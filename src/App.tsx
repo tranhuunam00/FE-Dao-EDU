@@ -1,0 +1,113 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { RouteGuard } from './router/RouteGuard';
+import { DashboardLayout } from './layouts/DashboardLayout';
+import { Role } from './context/AuthContext';
+
+// Pages — Auth
+import Login from './pages/auth/Login';
+import Unauthorized from './pages/Unauthorized';
+
+// Pages — Admin
+import AdminDashboard from './pages/admin/AdminDashboard';
+import CreateStudent from './pages/admin/CreateStudent';
+
+// Pages — Teacher
+import TeacherDashboard from './pages/teacher/TeacherDashboard';
+
+// Pages — Student
+import StudentDashboard from './pages/student/StudentDashboard';
+
+// Placeholder component
+const Placeholder = ({ title, desc }: { title: string; desc: string }) => (
+  <div style={{ color: '#fff' }}>
+    <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', marginBottom: '12px' }}>{title}</h2>
+    <p style={{ color: 'var(--text-secondary)' }}>{desc}</p>
+  </div>
+);
+
+function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
+
+          {/* ===== ADMIN Routes ===== */}
+          <Route
+            path="/admin/*"
+            element={
+              <RouteGuard allowedRoles={[Role.ADMIN]}>
+                <DashboardLayout>
+                  <Routes>
+                    <Route path="/" element={<AdminDashboard />} />
+                    <Route path="/students/create" element={<CreateStudent />} />
+                    <Route path="/students" element={
+                      <Placeholder title="Danh sách Học sinh" desc="Quản lý toàn bộ hồ sơ học sinh trong hệ thống." />
+                    } />
+                    <Route path="/logs" element={
+                      <Placeholder title="Nhật ký hệ thống" desc="Lịch sử hoạt động và nhật ký bảo mật." />
+                    } />
+                  </Routes>
+                </DashboardLayout>
+              </RouteGuard>
+            }
+          />
+
+          {/* ===== TEACHER Routes ===== */}
+          <Route
+            path="/teacher/*"
+            element={
+              <RouteGuard allowedRoles={[Role.TEACHER]}>
+                <DashboardLayout>
+                  <Routes>
+                    <Route path="/" element={<TeacherDashboard />} />
+                    <Route path="/students" element={
+                      <Placeholder title="Danh sách Học sinh" desc="Xem danh sách học sinh trong lớp đang phụ trách." />
+                    } />
+                    <Route path="/grades" element={
+                      <Placeholder title="Bài tập & Chấm điểm" desc="Quản lý bài kiểm tra và chấm điểm học sinh." />
+                    } />
+                    <Route path="/materials" element={
+                      <Placeholder title="Tài liệu học tập" desc="Tải lên và quản lý tài liệu cho các lớp học." />
+                    } />
+                  </Routes>
+                </DashboardLayout>
+              </RouteGuard>
+            }
+          />
+
+          {/* ===== STUDENT Routes ===== */}
+          <Route
+            path="/student/*"
+            element={
+              <RouteGuard allowedRoles={[Role.STUDENT]}>
+                <DashboardLayout>
+                  <Routes>
+                    <Route path="/" element={<StudentDashboard />} />
+                    <Route path="/grades" element={
+                      <Placeholder title="Kết quả học tập" desc="Xem điểm số và đánh giá từ các giáo viên." />
+                    } />
+                    <Route path="/materials" element={
+                      <Placeholder title="Tài liệu môn học" desc="Xem và tải tài liệu học tập theo từng môn." />
+                    } />
+                    <Route path="/schedule" element={
+                      <Placeholder title="Thời khóa biểu" desc="Lịch học hàng tuần của bạn." />
+                    } />
+                  </Routes>
+                </DashboardLayout>
+              </RouteGuard>
+            }
+          />
+
+          {/* Catch All */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}
+
+export default App;
