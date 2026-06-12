@@ -159,6 +159,20 @@ a:hover {
   border-color: var(--primary);
 }
 
+/* Global Disabled Button Styling */
+button:disabled,
+button[disabled],
+.ant-btn:disabled,
+.ant-btn-primary:disabled {
+  background: #374151 !important;
+  color: #9ca3af !important;
+  border: 1px solid #4b5563 !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  transform: none !important;
+}
+
 /* Form Inputs */
 .form-group {
   margin-bottom: 20px;

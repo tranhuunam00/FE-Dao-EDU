@@ -103,6 +103,7 @@ const StudentDetailInner: React.FC = () => {
   const [student, setStudent] = useState<StudentDetailData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [submittable, setSubmittable] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
   const [avatarBase64, setAvatarBase64] = useState<string | undefined>(undefined);
   const [activeTab, setActiveTab] = useState('overview');
@@ -169,6 +170,14 @@ const StudentDetailInner: React.FC = () => {
     };
     reader.readAsDataURL(file);
   };
+
+  const values = Form.useWatch([], form);
+  React.useEffect(() => {
+    form
+      .validateFields({ validateOnly: true })
+      .then(() => setSubmittable(true))
+      .catch(() => setSubmittable(false));
+  }, [form, values]);
 
   const handleSubmit = async (values: any) => {
     setSaving(true);
@@ -338,7 +347,8 @@ const StudentDetailInner: React.FC = () => {
               htmlType="submit"
               icon={<SaveOutlined />}
               loading={saving}
-              style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
+              disabled={!submittable}
+              style={{ background: submittable ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : undefined, border: 'none' }}
             >
               Lưu thay đổi
             </Button>
@@ -516,8 +526,8 @@ const StudentDetailInner: React.FC = () => {
                         </Select>
                       </Form.Item>
 
-                      <Form.Item name="districtWard" label="Quận / Huyện - Phường / Xã">
-                        <Select placeholder="Chọn Quận/Huyện" disabled={!selectedProvince} allowClear>
+                      <Form.Item name="districtWard" label="Phường / Xã">
+                        <Select placeholder="Chọn Phường/Xã" disabled={!selectedProvince} allowClear showSearch>
                           {(DISTRICT_WARD_MAP[selectedProvince] || []).map((opt: string) => (
                             <Option key={opt} value={opt}>{opt}</Option>
                           ))}
@@ -614,7 +624,10 @@ const StudentDetailInner: React.FC = () => {
                   <Form.Item
                     name="loginEmail"
                     label="Email đăng nhập"
-                    rules={[{ type: 'email', message: 'Địa chỉ email không hợp lệ' }]}
+                    rules={[
+                      { required: true, message: 'Vui lòng điền email đăng nhập' },
+                      { type: 'email', message: 'Địa chỉ email không hợp lệ' }
+                    ]}
                   >
                     <Input
                       placeholder="student.login@gmail.com"
@@ -681,8 +694,9 @@ const StudentDetailInner: React.FC = () => {
               htmlType="submit"
               icon={<SaveOutlined />}
               loading={saving}
+              disabled={!submittable}
               size="large"
-              style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none', padding: '0 32px' }}
+              style={{ background: submittable ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : undefined, border: 'none', padding: '0 32px' }}
             >
               Lưu thay đổi
             </Button>

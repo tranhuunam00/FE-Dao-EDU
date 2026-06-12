@@ -45,6 +45,7 @@ export const CreateStudent: React.FC = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [submittable, setSubmittable] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
   const [avatarBase64, setAvatarBase64] = useState<string | undefined>(undefined);
@@ -70,6 +71,14 @@ export const CreateStudent: React.FC = () => {
     };
     reader.readAsDataURL(file);
   };
+
+  const values = Form.useWatch([], form);
+  React.useEffect(() => {
+    form
+      .validateFields({ validateOnly: true })
+      .then(() => setSubmittable(true))
+      .catch(() => setSubmittable(false));
+  }, [form, values]);
 
   const handleSubmit = async (values: any) => {
     setLoading(true);
@@ -241,7 +250,8 @@ export const CreateStudent: React.FC = () => {
                 htmlType="submit"
                 icon={<SaveOutlined />}
                 loading={loading}
-                style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
+                disabled={!submittable}
+                style={{ background: submittable ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : undefined, border: 'none' }}
               >
                 Lưu hồ sơ
               </Button>
@@ -433,9 +443,9 @@ export const CreateStudent: React.FC = () => {
                           </Select>
                         </Form.Item>
 
-                        <Form.Item name="districtWard" label="Quận / Huyện - Phường / Xã">
-                          <Select placeholder="Chọn Quận/Huyện - Phường/Xã" disabled={!selectedProvince}>
-                            {(DISTRICT_WARD_MAP[selectedProvince] || []).map(opt => (
+                        <Form.Item name="districtWard" label="Phường / Xã">
+                          <Select placeholder="Chọn Phường/Xã" disabled={!selectedProvince} showSearch>
+                            {(DISTRICT_WARD_MAP[selectedProvince] || []).map((opt: string) => (
                               <Option key={opt} value={opt}>{opt}</Option>
                             ))}
                           </Select>
@@ -484,13 +494,18 @@ export const CreateStudent: React.FC = () => {
                       name="loginEmail"
                       label="Email đăng nhập"
                       rules={[
+                        { required: true, message: 'Vui lòng điền email đăng nhập' },
                         { type: 'email', message: 'Địa chỉ email không hợp lệ' },
                       ]}
                     >
                       <Input placeholder="student.login@gmail.com" prefix={<MailOutlined style={{ color: '#6b7280' }} />} />
                     </Form.Item>
 
-                    <Form.Item name="loginPassword" label="Mật khẩu đăng nhập">
+                    <Form.Item
+                      name="loginPassword"
+                      label="Mật khẩu đăng nhập"
+                      rules={[{ required: true, message: 'Vui lòng điền mật khẩu đăng nhập' }]}
+                    >
                       <Input.Password placeholder="Mật khẩu (mặc định: student123)" prefix={<LockOutlined style={{ color: '#6b7280' }} />} />
                     </Form.Item>
                   </Card>
@@ -542,10 +557,11 @@ export const CreateStudent: React.FC = () => {
               htmlType="submit"
               icon={<SaveOutlined />}
               loading={loading}
+              disabled={!submittable}
               size="large"
-              style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none', padding: '0 32px' }}
+              style={{ background: submittable ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : undefined, border: 'none', padding: '0 32px' }}
             >
-              Lưu hồ sơ học sinh
+              Lưu hồ sơ
             </Button>
           </div>
         </Form>

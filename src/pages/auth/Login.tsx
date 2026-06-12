@@ -25,8 +25,10 @@ import {
 const { Title, Text } = Typography;
 
 const LoginInner: React.FC = () => {
+  const [form] = Form.useForm();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [submittable, setSubmittable] = useState(false);
   const navigate = useNavigate();
   const { message } = App.useApp(); // Dùng hook message của App để nhận đúng context theme tối
 
@@ -42,6 +44,14 @@ const LoginInner: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const values = Form.useWatch([], form);
+  React.useEffect(() => {
+    form
+      .validateFields({ validateOnly: true })
+      .then(() => setSubmittable(true))
+      .catch(() => setSubmittable(false));
+  }, [form, values]);
 
   const handleQuickLogin = async (role: Role) => {
     setLoading(true);
@@ -158,6 +168,7 @@ const LoginInner: React.FC = () => {
               </Text>
 
               <Form
+                form={form}
                 layout="vertical"
                 onFinish={handleLoginSubmit}
                 requiredMark={false}
@@ -202,6 +213,7 @@ const LoginInner: React.FC = () => {
                     htmlType="submit"
                     size="large"
                     loading={loading}
+                    disabled={!submittable}
                     style={{
                       width: '100%',
                       height: '48px',
