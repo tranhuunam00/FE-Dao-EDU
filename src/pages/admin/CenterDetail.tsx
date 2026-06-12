@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  Form, Input, Select, Button, Card, Typography, Row, Col, App, Space, Spin, ConfigProvider, theme
+  Form, Input, Select, Button, Card, Typography, Row, Col, App, Space, Spin, ConfigProvider, theme,
+  Table, Modal, InputNumber
 } from 'antd';
-import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, SaveOutlined, PlusOutlined } from '@ant-design/icons';
 import api from '../../services/api';
 import { PROVINCE_OPTIONS, getDistrictsOrWards } from '../../assets/vietnam_divisions';
 
@@ -23,6 +24,14 @@ const CenterDetailInner: React.FC = () => {
   
   const selectedProvince = Form.useWatch('province', form);
   const [districtOptions, setDistrictOptions] = useState<{label: string, value: string}[]>([]);
+
+  // Classroom management states
+  const [rooms, setRooms] = useState<any[]>([]);
+  const [loadingRooms, setLoadingRooms] = useState(true);
+  const [isRoomModalVisible, setIsRoomModalVisible] = useState(false);
+  const [editingRoom, setEditingRoom] = useState<any>(null);
+  const [roomForm] = Form.useForm();
+  const [savingRoom, setSavingRoom] = useState(false);
 
   useEffect(() => {
     const fetchCenter = async () => {
@@ -48,6 +57,70 @@ const CenterDetailInner: React.FC = () => {
     };
     if (id) fetchCenter();
   }, [id, form, message, navigate]);
+
+  const fetchRooms = async () => {
+    try {
+      const { data } = await api.get(`/rooms?centerId=${id}`);
+      setRooms(data || []);
+    } catch (err) {
+      console.error('Cannot load rooms:', err);
+    } finally {
+      setLoadingRooms(false);
+    }
+  };
+
+  useEffect(() => {
+    if (id) {
+      fetchRooms();
+    }
+  }, [id]);
+
+  const handleOpenRoomModal = (room?: any) => {
+    if (room) {
+      setEditingRoom(room);
+      roomForm.setFieldsValue({
+        name: room.name,
+        capacity: room.capacity,
+        status: room.status,
+      });
+    } else {
+      setEditingRoom(null);
+      roomForm.resetFields();
+      roomForm.setFieldsValue({ capacity: 30, status: 'Active' });
+    }
+    setIsRoomModalVisible(true);
+  };
+
+  const handleSaveRoom = async () => {
+    try {
+      const vals = await roomForm.validateFields();
+      setSavingRoom(true);
+      if (editingRoom) {
+        const { data } = await api.put(`/rooms/${editingRoom.id}`, {
+          name: vals.name.trim(),
+          capacity: vals.capacity,
+          status: vals.status,
+        });
+        message.success('Cập nhật phòng học thành công!');
+        setRooms(prev => prev.map(r => r.id === editingRoom.id ? data : r));
+      } else {
+        const { data } = await api.post('/rooms', {
+          centerId: id,
+          name: vals.name.trim(),
+          capacity: vals.capacity,
+          status: vals.status || 'Active',
+        });
+        message.success('Tạo phòng học mới thành công!');
+        setRooms(prev => [...prev, data]);
+      }
+      setIsRoomModalVisible(false);
+      roomForm.resetFields();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi lưu phòng học');
+    } finally {
+      setSavingRoom(false);
+    }
+  };
 
   useEffect(() => {
     if (selectedProvince) {
@@ -185,6 +258,119 @@ const CenterDetailInner: React.FC = () => {
           </Row>
         </Card>
       </Form>
+
+      <Card
+        className="glass-panel"
+        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginTop: 24 }}
+        title={
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <span style={{ color: '#fff', fontSize: '16px', fontFamily: 'Outfit' }}>
+              Danh sách Phòng học
+            </span>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => handleOpenRoomModal()}
+              style={{ background: 'rgba(99, 102, 241, 0.2)', border: '1px solid rgba(99, 102, 241, 0.4)', color: '#a5b4fc' }}
+            >
+              Thêm phòng học
+            </Button>
+          </div>
+        }
+      >
+        <Table
+          dataSource={rooms}
+          loading={loadingRooms}
+          rowKey="id"
+          pagination={false}
+          size="small"
+          locale={{ emptyText: 'Chưa có phòng học nào được tạo cho trung tâm này.' }}
+          columns={[
+            {
+              title: 'Tên phòng',
+              dataIndex: 'name',
+              key: 'name',
+              render: (text: string) => <Text style={{ color: '#fff', fontWeight: 500 }}>{text}</Text>
+            },
+            {
+              title: 'Sức chứa',
+              dataIndex: 'capacity',
+              key: 'capacity',
+              render: (cap: number) => <Text style={{ color: 'var(--text-secondary)' }}>{cap} chỗ ngồi</Text>
+            },
+            {
+              title: 'Trạng thái',
+              dataIndex: 'status',
+              key: 'status',
+              render: (status: string) => (
+                <span style={{
+                  color: status === 'Active' ? '#10b981' : '#ef4444',
+                  background: status === 'Active' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  fontSize: '12px'
+                }}>
+                  {status === 'Active' ? 'Hoạt động' : 'Tạm dừng'}
+                </span>
+              )
+            },
+            {
+              title: 'Hành động',
+              key: 'actions',
+              width: 100,
+              render: (_, record) => (
+                <Button
+                  type="text"
+                  onClick={() => handleOpenRoomModal(record)}
+                  style={{ color: '#6366f1' }}
+                >
+                  Sửa
+                </Button>
+              )
+            }
+          ]}
+        />
+      </Card>
+
+      <Modal
+        title={editingRoom ? "Cập nhật phòng học" : "Thêm phòng học mới"}
+        open={isRoomModalVisible}
+        onOk={handleSaveRoom}
+        onCancel={() => {
+          setIsRoomModalVisible(false);
+          roomForm.resetFields();
+        }}
+        confirmLoading={savingRoom}
+        okText={editingRoom ? "Cập nhật" : "Tạo phòng"}
+        cancelText="Hủy"
+      >
+        <Form form={roomForm} layout="vertical" style={{ paddingTop: '12px' }}>
+          <Form.Item
+            name="name"
+            label="Tên phòng học"
+            rules={[{ required: true, message: 'Vui lòng nhập tên phòng học' }]}
+          >
+            <Input placeholder="VD: Phòng Lab 202, Phòng A1..." />
+          </Form.Item>
+          <Form.Item
+            name="capacity"
+            label="Sức chứa (chỗ ngồi)"
+            rules={[{ required: true, message: 'Vui lòng nhập sức chứa' }]}
+          >
+            <InputNumber min={1} style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item
+            name="status"
+            label="Trạng thái"
+            rules={[{ required: true }]}
+          >
+            <Select>
+              <Option value="Active">Hoạt động</Option>
+              <Option value="Inactive">Dừng hoạt động</Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

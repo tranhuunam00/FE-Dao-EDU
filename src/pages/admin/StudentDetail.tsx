@@ -19,6 +19,9 @@ import {
   Upload,
   Spin,
   Tag,
+  Table,
+  Modal,
+  Typography,
 } from 'antd';
 import {
   SaveOutlined,
@@ -32,6 +35,8 @@ import {
   TeamOutlined,
   LockOutlined,
   CameraOutlined,
+  PlusOutlined,
+  DeleteOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../services/api';
@@ -39,6 +44,7 @@ import { PROVINCE_OPTIONS, DISTRICT_WARD_MAP } from '../../assets/vietnam_divisi
 
 const { Option } = Select;
 const { TextArea } = Input;
+const { Text } = Typography;
 
 const RELATIONSHIP_OPTIONS = ['Bố', 'Mẹ', 'Anh', 'Chị', 'Ông', 'Bà', 'Người giám hộ khác'];
 
@@ -97,7 +103,7 @@ const getStatusLabel = (status: string) => {
 const StudentDetailInner: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
   const [form] = Form.useForm();
 
   const [student, setStudent] = useState<StudentDetailData | null>(null);
@@ -108,6 +114,102 @@ const StudentDetailInner: React.FC = () => {
   const [avatarBase64, setAvatarBase64] = useState<string | undefined>(undefined);
   const [activeTab, setActiveTab] = useState('overview');
 
+  const [studentClasses, setStudentClasses] = useState<any[]>([]);
+  const [allClasses, setAllClasses] = useState<any[]>([]);
+  const [isAddClassVisible, setIsAddClassVisible] = useState(false);
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+
+  const fetchStudentClasses = async () => {
+    if (!id) return;
+    try {
+      const { data } = await api.get(`/students/${id}/classes`);
+      setStudentClasses(data);
+    } catch (err) {
+      console.error('Error fetching student classes:', err);
+    }
+  };
+
+  const fetchAllClasses = async () => {
+    try {
+      const { data } = await api.get('/classes?limit=1000');
+      setAllClasses(data.classes || []);
+    } catch (err) {
+      console.error('Error fetching classes:', err);
+    }
+  };
+
+  const fetchStudentProfile = async () => {
+    if (!id) return;
+    try {
+      const res = await api.get(`/students/${id}`);
+      const data: StudentDetailData = res.data;
+      setStudent(data);
+      setAvatarPreview(data.avatar || undefined);
+
+      form.setFieldsValue({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        nickName: data.nickName,
+        gender: data.gender,
+        mobile: data.mobile,
+        email: data.email,
+        birthdate: data.birthdate ? dayjs(data.birthdate) : undefined,
+        parentGuardian1: data.parentGuardian1,
+        parentGuardian2: data.parentGuardian2,
+        parent1CitizenId: data.parent1CitizenId,
+        parent2CitizenId: data.parent2CitizenId,
+        studentCitizenId: data.studentCitizenId,
+        relationship1: data.relationship1,
+        relationship2: data.relationship2,
+        otherPhone1: data.otherPhone1,
+        otherPhone2: data.otherPhone2,
+        description: data.description,
+        country: data.country || 'Việt Nam',
+        province: data.province,
+        districtWard: data.districtWard,
+        primaryAddress: data.primaryAddress,
+        oldAddress: data.oldAddress,
+        status: data.status,
+        loginEmail: data.loginEmail,
+      });
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Không thể tải thông tin học sinh.');
+      navigate('/admin/students');
+    }
+  };
+
+  const handleAddClass = async () => {
+    if (!selectedClassId || !id) return;
+    try {
+      await api.post(`/classes/${selectedClassId}/students`, { studentId: id });
+      message.success('Đã thêm học sinh vào lớp thành công!');
+      setIsAddClassVisible(false);
+      setSelectedClassId(null);
+      await Promise.all([fetchStudentClasses(), fetchStudentProfile()]);
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi thêm học sinh vào lớp');
+    }
+  };
+
+  const handleRemoveClass = (classId: string, className: string) => {
+    modal.confirm({
+      title: 'Xác nhận xóa học sinh khỏi lớp',
+      content: `Bạn có chắc muốn xóa học sinh khỏi lớp "${className}"? Trạng thái sẽ chuyển sang Dropped.`,
+      okText: 'Xác nhận',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          await api.delete(`/classes/${classId}/students/${id}`);
+          message.success('Đã xóa học sinh khỏi lớp thành công!');
+          await Promise.all([fetchStudentClasses(), fetchStudentProfile()]);
+        } catch (err: any) {
+          message.error(err.response?.data?.message || 'Lỗi khi xóa học sinh khỏi lớp');
+        }
+      }
+    });
+  };
+
   const selectedProvince = Form.useWatch('province', form);
   const currentStatus = Form.useWatch('status', form);
   const birthdate = Form.useWatch('birthdate', form);
@@ -115,48 +217,15 @@ const StudentDetailInner: React.FC = () => {
 
   // Fetch student details
   useEffect(() => {
-    const fetchStudent = async () => {
+    const loadAll = async () => {
       setLoading(true);
-      try {
-        const res = await api.get(`/students/${id}`);
-        const data: StudentDetailData = res.data;
-        setStudent(data);
-        setAvatarPreview(data.avatar || undefined);
-
-        form.setFieldsValue({
-          firstName: data.firstName,
-          lastName: data.lastName,
-          nickName: data.nickName,
-          gender: data.gender,
-          mobile: data.mobile,
-          email: data.email,
-          birthdate: data.birthdate ? dayjs(data.birthdate) : undefined,
-          parentGuardian1: data.parentGuardian1,
-          parentGuardian2: data.parentGuardian2,
-          parent1CitizenId: data.parent1CitizenId,
-          parent2CitizenId: data.parent2CitizenId,
-          studentCitizenId: data.studentCitizenId,
-          relationship1: data.relationship1,
-          relationship2: data.relationship2,
-          otherPhone1: data.otherPhone1,
-          otherPhone2: data.otherPhone2,
-          description: data.description,
-          country: data.country || 'Việt Nam',
-          province: data.province,
-          districtWard: data.districtWard,
-          primaryAddress: data.primaryAddress,
-          oldAddress: data.oldAddress,
-          status: data.status,
-          loginEmail: data.loginEmail,
-        });
-      } catch (err: any) {
-        message.error(err.response?.data?.message || 'Không thể tải thông tin học sinh.');
-        navigate('/admin/students');
-      } finally {
-        setLoading(false);
-      }
+      await Promise.all([fetchStudentProfile(), fetchStudentClasses()]);
+      setLoading(false);
     };
-    if (id) fetchStudent();
+    if (id) {
+      loadAll();
+      fetchAllClasses();
+    }
   }, [id]);
 
   const handleAvatarChange = (info: any) => {
@@ -669,6 +738,96 @@ const StudentDetailInner: React.FC = () => {
                 </Card>
               ),
             },
+            {
+              key: 'classes',
+              label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><TeamOutlined /> Lớp học ({studentClasses.filter(c => c.status === 'Active').length})</span>,
+              children: (
+                <Card
+                  title={
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontFamily: 'Outfit' }}><TeamOutlined /> Danh sách Lớp học tham gia</span>
+                      <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={() => setIsAddClassVisible(true)}
+                        style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
+                      >
+                        Thêm vào lớp
+                      </Button>
+                    </div>
+                  }
+                  className="glass-panel"
+                  style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
+                >
+                  <Table
+                    dataSource={studentClasses}
+                    rowKey="id"
+                    pagination={false}
+                    size="small"
+                    columns={[
+                      {
+                        title: 'Mã lớp',
+                        dataIndex: ['classEntity', 'classCode'],
+                        key: 'classCode',
+                        render: (text, record: any) => (
+                          <Button
+                            type="link"
+                            onClick={() => navigate(`/admin/classes/${record.classId}`)}
+                            style={{ padding: 0, height: 'auto', fontWeight: 600, color: '#818cf8' }}
+                          >
+                            {text}
+                          </Button>
+                        ),
+                      },
+                      {
+                        title: 'Tên lớp',
+                        dataIndex: ['classEntity', 'className'],
+                        key: 'className',
+                      },
+                      {
+                        title: 'Khóa học',
+                        dataIndex: ['classEntity', 'course', 'name'],
+                        key: 'courseName',
+                      },
+                      {
+                        title: 'Trung tâm',
+                        dataIndex: ['classEntity', 'center', 'name'],
+                        key: 'centerName',
+                      },
+                      {
+                        title: 'Ngày tham gia',
+                        dataIndex: 'joinedDate',
+                        key: 'joinedDate',
+                        render: (v) => dayjs(v).format('DD/MM/YYYY'),
+                      },
+                      {
+                        title: 'Trạng thái',
+                        dataIndex: 'status',
+                        key: 'status',
+                        render: (s) => (
+                          <Tag color={s === 'Active' ? 'green' : 'red'}>
+                            {s === 'Active' ? 'Đang học' : 'Đã dừng học (Dropped)'}
+                          </Tag>
+                        )
+                      },
+                      {
+                        title: 'Hành động',
+                        key: 'action',
+                        width: 80,
+                        render: (_, record) => record.status === 'Active' && (
+                          <Button
+                            danger
+                            type="text"
+                            icon={<DeleteOutlined />}
+                            onClick={() => handleRemoveClass(record.classId, record.classEntity.className)}
+                          />
+                        )
+                      }
+                    ]}
+                  />
+                </Card>
+              )
+            },
           ]}
         />
 
@@ -704,6 +863,38 @@ const StudentDetailInner: React.FC = () => {
           </Space>
         </div>
       </Form>
+
+      {/* Add Class Modal */}
+      <Modal
+        title="Thêm Học sinh vào Lớp học"
+        open={isAddClassVisible}
+        onOk={handleAddClass}
+        onCancel={() => setIsAddClassVisible(false)}
+        okText="Thêm vào lớp"
+        cancelText="Hủy"
+        destroyOnClose
+      >
+        <div style={{ padding: '12px 0' }}>
+          <Text style={{ display: 'block', marginBottom: 8 }}>Chọn lớp học hoạt động từ hệ thống:</Text>
+          <Select
+            placeholder="Tìm theo Tên hoặc Mã lớp học..."
+            style={{ width: '100%' }}
+            showSearch
+            optionFilterProp="children"
+            onChange={setSelectedClassId}
+            value={selectedClassId}
+          >
+            {allClasses
+              .filter(c => c.status === 'Active' && !studentClasses.some(sc => sc.classId === c.id && sc.status === 'Active'))
+              .map(c => (
+                <Option key={c.id} value={c.id}>
+                  {c.className} ({c.classCode}) - {c.center?.name || 'Không có trung tâm'}
+                </Option>
+              ))
+            }
+          </Select>
+        </div>
+      </Modal>
     </div>
   );
 };

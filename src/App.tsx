@@ -19,6 +19,12 @@ import TeacherDetail from './pages/admin/TeacherDetail';
 import CenterList from './pages/admin/CenterList';
 import CreateCenter from './pages/admin/CreateCenter';
 import CenterDetail from './pages/admin/CenterDetail';
+import CourseList from './pages/admin/CourseList';
+import CreateCourse from './pages/admin/CreateCourse';
+import CourseDetail from './pages/admin/CourseDetail';
+import ClassList from './pages/admin/ClassList';
+import CreateClass from './pages/admin/CreateClass';
+import ClassDetail from './pages/admin/ClassDetail';
 
 // Pages — Teacher
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
@@ -62,6 +68,14 @@ function App() {
                     <Route path="centers" element={<CenterList />} />
                     <Route path="centers/create" element={<CreateCenter />} />
                     <Route path="centers/:id" element={<CenterDetail />} />
+
+                    <Route path="courses" element={<CourseList />} />
+                    <Route path="courses/create" element={<CreateCourse />} />
+                    <Route path="courses/:id" element={<CourseDetail />} />
+
+                    <Route path="classes" element={<ClassList />} />
+                    <Route path="classes/create" element={<CreateClass />} />
+                    <Route path="classes/:id" element={<ClassDetail />} />
                     <Route path="/logs" element={
                       <Placeholder title="Nhật ký hệ thống" desc="Lịch sử hoạt động và nhật ký bảo mật." />
                     } />
