@@ -13,6 +13,12 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import CreateStudent from './pages/admin/CreateStudent';
 import StudentList from './pages/admin/StudentList';
 import StudentDetail from './pages/admin/StudentDetail';
+import TeacherList from './pages/admin/TeacherList';
+import CreateTeacher from './pages/admin/CreateTeacher';
+import TeacherDetail from './pages/admin/TeacherDetail';
+import CenterList from './pages/admin/CenterList';
+import CreateCenter from './pages/admin/CreateCenter';
+import CenterDetail from './pages/admin/CenterDetail';
 
 // Pages — Teacher
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
@@ -45,9 +51,17 @@ function App() {
                 <DashboardLayout>
                   <Routes>
                     <Route path="/" element={<AdminDashboard />} />
-                    <Route path="/students/create" element={<CreateStudent />} />
-                    <Route path="/students/:id" element={<StudentDetail />} />
-                    <Route path="/students" element={<StudentList />} />
+                    <Route path="students" element={<StudentList />} />
+                    <Route path="students/create" element={<CreateStudent />} />
+                    <Route path="students/:id" element={<StudentDetail />} />
+                    
+                    <Route path="teachers" element={<TeacherList />} />
+                    <Route path="teachers/create" element={<CreateTeacher />} />
+                    <Route path="teachers/:id" element={<TeacherDetail />} />
+                    
+                    <Route path="centers" element={<CenterList />} />
+                    <Route path="centers/create" element={<CreateCenter />} />
+                    <Route path="centers/:id" element={<CenterDetail />} />
                     <Route path="/logs" element={
                       <Placeholder title="Nhật ký hệ thống" desc="Lịch sử hoạt động và nhật ký bảo mật." />
                     } />

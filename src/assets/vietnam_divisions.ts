@@ -3529,3 +3529,8 @@ export const DISTRICT_WARD_MAP: Record<string, string[]> = {
     "Xã Đất Mũi"
   ]
 };
+
+export const getDistrictsOrWards = (province: string) => {
+  return (DISTRICT_WARD_MAP[province] || []).map((d) => ({ label: d, value: d }));
+};
+

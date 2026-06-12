@@ -17,6 +17,7 @@ import {
   BookMarked,
   BarChart2
 } from 'lucide-react';
+import { TeamOutlined as AntdTeamOutlined, BankOutlined as AntdBankOutlined } from '@ant-design/icons';
 
 export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, logout } = useAuth();
@@ -35,8 +36,9 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
       case Role.ADMIN:
         return [
           { name: 'Tổng quan', path: '/admin', icon: <LayoutDashboard size={20} /> },
-          { name: 'Thêm Học sinh mới', path: '/admin/students/create', icon: <UserPlus size={20} /> },
-          { name: 'Danh sách Học sinh', path: '/admin/students', icon: <Users size={20} /> },
+          { name: 'Học sinh', path: '/admin/students', icon: <Users size={20} /> },
+          { name: 'Giáo viên/Trợ giảng', path: '/admin/teachers', icon: <AntdTeamOutlined style={{ fontSize: '20px' }} /> },
+          { name: 'Trung tâm', path: '/admin/centers', icon: <AntdBankOutlined style={{ fontSize: '20px' }} /> },
           { name: 'Nhật ký hệ thống', path: '/admin/logs', icon: <Shield size={20} /> },
         ];
       case Role.TEACHER:
