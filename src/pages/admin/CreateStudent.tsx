@@ -15,6 +15,8 @@ import {
   theme,
   message,
   Divider,
+  Avatar,
+  Upload,
 } from 'antd';
 import {
   SaveOutlined,
@@ -27,6 +29,7 @@ import {
   IdcardOutlined,
   TeamOutlined,
   LockOutlined,
+  CameraOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../services/api';
@@ -43,6 +46,8 @@ export const CreateStudent: React.FC = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
+  const [avatarBase64, setAvatarBase64] = useState<string | undefined>(undefined);
 
   // Watch fields for dynamic changes
   const birthdate = Form.useWatch('birthdate', form);
@@ -53,6 +58,18 @@ export const CreateStudent: React.FC = () => {
   const age = birthdate
     ? dayjs().diff(dayjs(birthdate), 'year')
     : null;
+
+  const handleAvatarChange = (info: any) => {
+    const file = info.file.originFileObj || info.file;
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      setAvatarPreview(result);
+      setAvatarBase64(result);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = async (values: any) => {
     setLoading(true);
@@ -85,6 +102,7 @@ export const CreateStudent: React.FC = () => {
         // Optional login account
         loginEmail: values.loginEmail?.trim() || undefined,
         loginPassword: values.loginPassword || undefined,
+        avatar: avatarBase64 || undefined,
       };
 
       const response = await api.post('/students', payload);
@@ -157,21 +175,44 @@ export const CreateStudent: React.FC = () => {
               borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div
-                style={{
-                  width: '46px',
-                  height: '46px',
-                  borderRadius: '12px',
-                  background: 'linear-gradient(135deg, #6366f1, #a855f7)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#fff',
-                  boxShadow: '0 4px 15px rgba(99, 102, 241, 0.35)',
-                }}
-              >
-                <TeamOutlined style={{ fontSize: '22px' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+              {/* Avatar Upload */}
+              <div style={{ position: 'relative' }}>
+                <Avatar
+                  size={72}
+                  src={avatarPreview}
+                  icon={!avatarPreview ? <UserOutlined /> : undefined}
+                  style={{
+                    background: avatarPreview ? 'transparent' : 'linear-gradient(135deg, #6366f1, #a855f7)',
+                    border: '3px solid rgba(99, 102, 241, 0.4)',
+                    boxShadow: '0 0 20px rgba(99, 102, 241, 0.3)',
+                  }}
+                />
+                <Upload
+                  accept="image/*"
+                  showUploadList={false}
+                  beforeUpload={() => false}
+                  onChange={handleAvatarChange}
+                >
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      right: 0,
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '50%',
+                      background: '#6366f1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+                    }}
+                  >
+                    <CameraOutlined style={{ fontSize: '12px', color: '#fff' }} />
+                  </div>
+                </Upload>
               </div>
               <div>
                 <h2 style={{ fontSize: '1.6rem', color: '#fff', margin: 0, fontFamily: 'Outfit' }}>

@@ -11,6 +11,8 @@ import Unauthorized from './pages/Unauthorized';
 // Pages — Admin
 import AdminDashboard from './pages/admin/AdminDashboard';
 import CreateStudent from './pages/admin/CreateStudent';
+import StudentList from './pages/admin/StudentList';
+import StudentDetail from './pages/admin/StudentDetail';
 
 // Pages — Teacher
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
@@ -44,9 +46,8 @@ function App() {
                   <Routes>
                     <Route path="/" element={<AdminDashboard />} />
                     <Route path="/students/create" element={<CreateStudent />} />
-                    <Route path="/students" element={
-                      <Placeholder title="Danh sách Học sinh" desc="Quản lý toàn bộ hồ sơ học sinh trong hệ thống." />
-                    } />
+                    <Route path="/students/:id" element={<StudentDetail />} />
+                    <Route path="/students" element={<StudentList />} />
                     <Route path="/logs" element={
                       <Placeholder title="Nhật ký hệ thống" desc="Lịch sử hoạt động và nhật ký bảo mật." />
                     } />
