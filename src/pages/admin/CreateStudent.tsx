@@ -1,113 +1,103 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../services/api';
 import {
-  UserPlus, Save, X, CheckCircle, AlertCircle,
-  User, Phone, Mail, Calendar, MapPin, FileText,
-  Hash, Users, ChevronDown
-} from 'lucide-react';
+  ConfigProvider,
+  Form,
+  Input,
+  DatePicker,
+  Select,
+  Button,
+  Tabs,
+  Card,
+  Row,
+  Col,
+  Space,
+  theme,
+  message,
+  Divider,
+} from 'antd';
+import {
+  SaveOutlined,
+  CloseOutlined,
+  UserOutlined,
+  PhoneOutlined,
+  MailOutlined,
+  CalendarOutlined,
+  EnvironmentOutlined,
+  IdcardOutlined,
+  TeamOutlined,
+  LockOutlined,
+} from '@ant-design/icons';
+import dayjs from 'dayjs';
+import api from '../../services/api';
+import { PROVINCE_OPTIONS, DISTRICT_WARD_MAP } from '../../assets/vietnam_divisions';
 
-interface CreateStudentForm {
-  firstName: string;
-  lastName: string;
-  nickName: string;
-  gender: string;
-  mobile: string;
-  email: string;
-  birthdate: string;
-  parentName: string;
-  relationship: string;
-  citizenId: string;
-  status: string;
-  primaryAddress: string;
-  description: string;
-}
+const { Option } = Select;
+const { TextArea } = Input;
 
-const INITIAL_FORM: CreateStudentForm = {
-  firstName: '',
-  lastName: '',
-  nickName: '',
-  gender: '',
-  mobile: '',
-  email: '',
-  birthdate: '',
-  parentName: '',
-  relationship: '',
-  citizenId: '',
-  status: 'Waiting for class',
-  primaryAddress: '',
-  description: '',
-};
 
-const GENDER_OPTIONS = ['Nam', 'Nữ', 'Khác'];
-const STATUS_OPTIONS = [
-  { value: 'Waiting for class', label: 'Chờ xếp lớp' },
-  { value: 'Studying', label: 'Đang học' },
-  { value: 'Suspended', label: 'Tạm nghỉ' },
-  { value: 'Graduated', label: 'Đã tốt nghiệp' },
-];
 const RELATIONSHIP_OPTIONS = ['Bố', 'Mẹ', 'Anh', 'Chị', 'Ông', 'Bà', 'Người giám hộ khác'];
 
 export const CreateStudent: React.FC = () => {
   const navigate = useNavigate();
-  const [form, setForm] = useState<CreateStudentForm>(INITIAL_FORM);
+  const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Partial<CreateStudentForm>>({});
+  const [activeTab, setActiveTab] = useState('overview');
 
-  const handleChange = (field: keyof CreateStudentForm, value: string) => {
-    setForm(prev => ({ ...prev, [field]: value }));
-    if (fieldErrors[field]) {
-      setFieldErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  };
+  // Watch fields for dynamic changes
+  const birthdate = Form.useWatch('birthdate', form);
+  const selectedProvince = Form.useWatch('province', form);
+  const currentStatus = Form.useWatch('status', form) || 'Waiting for class';
 
-  const validate = (): boolean => {
-    const errors: Partial<CreateStudentForm> = {};
-    if (!form.firstName.trim()) errors.firstName = 'Vui lòng nhập tên học sinh';
-    if (!form.lastName.trim()) errors.lastName = 'Vui lòng nhập họ học sinh';
-    if (!form.gender) errors.gender = 'Vui lòng chọn giới tính';
-    if (!form.mobile.trim()) errors.mobile = 'Vui lòng nhập số điện thoại';
-    else if (!/^[0-9]{9,11}$/.test(form.mobile.replace(/\s/g, ''))) errors.mobile = 'Số điện thoại không hợp lệ';
-    if (!form.birthdate) errors.birthdate = 'Vui lòng chọn ngày sinh';
-    if (!form.status) errors.status = 'Vui lòng chọn trạng thái';
-    if (!form.primaryAddress.trim()) errors.primaryAddress = 'Vui lòng nhập địa chỉ';
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
+  // Compute age from birthdate
+  const age = birthdate
+    ? dayjs().diff(dayjs(birthdate), 'year')
+    : null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSuccess(null);
-    setError(null);
-    if (!validate()) return;
-
+  const handleSubmit = async (values: any) => {
     setLoading(true);
     try {
       const payload = {
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        nickName: form.nickName.trim() || undefined,
-        gender: form.gender,
-        mobile: form.mobile.trim(),
-        email: form.email.trim() || undefined,
-        birthdate: form.birthdate,
-        parentName: form.parentName.trim() || undefined,
-        relationship: form.relationship || undefined,
-        citizenId: form.citizenId.trim() || undefined,
-        status: form.status,
-        primaryAddress: form.primaryAddress.trim(),
-        description: form.description.trim() || undefined,
+        ...values,
+        birthdate: values.birthdate ? values.birthdate.format('YYYY-MM-DD') : undefined,
+        // Trim standard string fields
+        firstName: values.firstName?.trim(),
+        lastName: values.lastName?.trim(),
+        nickName: values.nickName?.trim() || undefined,
+        mobile: values.mobile?.trim(),
+        email: values.email?.trim() || undefined,
+        parentGuardian1: values.parentGuardian1?.trim() || undefined,
+        parentGuardian2: values.parentGuardian2?.trim() || undefined,
+        parent1CitizenId: values.parent1CitizenId?.trim() || undefined,
+        parent2CitizenId: values.parent2CitizenId?.trim() || undefined,
+        studentCitizenId: values.studentCitizenId?.trim() || undefined,
+        relationship1: values.relationship1 || undefined,
+        relationship2: values.relationship2 || undefined,
+        otherPhone1: values.otherPhone1?.trim() || undefined,
+        otherPhone2: values.otherPhone2?.trim() || undefined,
+        description: values.description?.trim() || undefined,
+        country: values.country || 'Việt Nam',
+        province: values.province || undefined,
+        districtWard: values.districtWard || undefined,
+        primaryAddress: values.primaryAddress?.trim(),
+        oldAddress: values.oldAddress?.trim() || undefined,
+        status: values.status || 'Waiting for class',
+        // Optional login account
+        loginEmail: values.loginEmail?.trim() || undefined,
+        loginPassword: values.loginPassword || undefined,
       };
+
       const response = await api.post('/students', payload);
-      setSuccess(`Đã tạo thành công học sinh: ${response.data.lastName} ${response.data.firstName} — Mã: ${response.data.id}`);
-      setForm(INITIAL_FORM);
-      setFieldErrors({});
+      message.success(`Đã tạo thành công học sinh: ${response.data.lastName} ${response.data.firstName} — Mã: ${response.data.studentId}`);
+      form.resetFields();
+      setActiveTab('overview');
     } catch (err: any) {
       const msg = err.response?.data?.message;
-      if (Array.isArray(msg)) setError(msg.join(', '));
-      else setError(msg || 'Không thể tạo học sinh. Vui lòng thử lại.');
+      if (Array.isArray(msg)) {
+        message.error(msg.join(', '));
+      } else {
+        message.error(msg || 'Không thể tạo học sinh. Vui lòng thử lại.');
+      }
     } finally {
       setLoading(false);
     }
@@ -117,417 +107,409 @@ export const CreateStudent: React.FC = () => {
     navigate('/admin/students');
   };
 
-  const InputField: React.FC<{
-    label: string;
-    icon: React.ReactNode;
-    required?: boolean;
-    error?: string;
-    children: React.ReactNode;
-  }> = ({ label, icon, required, error, children }) => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-      <label style={{
-        fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)',
-        textTransform: 'uppercase', letterSpacing: '0.05em',
-        display: 'flex', alignItems: 'center', gap: '6px'
-      }}>
-        <span style={{ color: 'var(--text-muted)' }}>{icon}</span>
-        {label}
-        {required && <span style={{ color: 'var(--danger)', marginLeft: '2px' }}>*</span>}
-      </label>
-      {children}
-      {error && (
-        <span style={{ fontSize: '0.78rem', color: '#fca5a5', display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <AlertCircle size={12} /> {error}
-        </span>
-      )}
-    </div>
-  );
-
-  const inputStyle = (hasError?: string): React.CSSProperties => ({
-    width: '100%', padding: '11px 14px',
-    background: 'var(--bg-secondary)',
-    border: `1px solid ${hasError ? 'rgba(239, 68, 68, 0.5)' : 'var(--card-border)'}`,
-    borderRadius: 'var(--border-radius-sm)',
-    color: 'var(--text-primary)', fontFamily: 'var(--font-primary)',
-    fontSize: '0.93rem', outline: 'none',
-    transition: 'border-color 0.2s, box-shadow 0.2s',
-    boxShadow: hasError ? '0 0 0 3px rgba(239, 68, 68, 0.15)' : 'none',
-  });
-
-  const selectStyle = (hasError?: string): React.CSSProperties => ({
-    ...inputStyle(hasError),
-    appearance: 'none',
-    backgroundImage: `url("data:image/svg+xml;utf8,<svg fill='%239ca3af' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>")`,
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'right 12px center',
-    paddingRight: '40px',
-    cursor: 'pointer',
-  });
-
-  const sectionStyle: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-    gap: '20px 28px',
+  // Status tag colors
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Waiting for class':
+        return '#f59e0b';
+      case 'Studying':
+        return '#10b981';
+      case 'Suspended':
+        return '#ef4444';
+      case 'Graduated':
+        return '#6366f1';
+      default:
+        return '#9ca3af';
+    }
   };
 
-  const sectionTitle = (title: string, icon: React.ReactNode) => (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: '10px',
-      paddingBottom: '12px', marginBottom: '4px',
-      borderBottom: '1px solid var(--card-border)'
-    }}>
-      <span style={{ color: 'var(--primary)' }}>{icon}</span>
-      <h3 style={{ fontSize: '1rem', color: '#fff', fontFamily: 'var(--font-display)', fontWeight: 600 }}>{title}</h3>
-    </div>
-  );
-
   return (
-    <div style={{ maxWidth: '1100px' }}>
-      {/* Page Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-            <div style={{
-              width: '42px', height: '42px', borderRadius: '11px',
-              background: 'linear-gradient(135deg, var(--primary), var(--accent))',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', boxShadow: '0 4px 15px var(--primary-glow)'
-            }}>
-              <UserPlus size={22} />
-            </div>
-            <div>
-              <h2 style={{ fontSize: '1.75rem', color: '#fff', fontFamily: 'var(--font-display)' }}>
-                Thêm Học sinh mới
-              </h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '2px' }}>
-                Điền thông tin hồ sơ để đăng ký học sinh vào hệ thống
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Status & Action bar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Trạng thái:</span>
-            <select
-              value={form.status}
-              onChange={(e) => handleChange('status', e.target.value)}
-              style={{
-                ...selectStyle(),
-                width: 'auto', padding: '8px 36px 8px 12px',
-                fontSize: '0.85rem',
-                color: form.status === 'Waiting for class' ? '#f59e0b' 
-                      : form.status === 'Studying' ? 'var(--secondary)' 
-                      : form.status === 'Suspended' ? 'var(--danger)' 
-                      : 'var(--primary)',
-              }}
-            >
-              {STATUS_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </div>
-          <button onClick={handleCancel} className="btn btn-outline" style={{ padding: '10px 18px' }}>
-            <X size={16} /> Hủy
-          </button>
-          <button
-            form="create-student-form"
-            type="submit"
-            className="btn btn-primary"
-            disabled={loading}
-            style={{ padding: '10px 22px', animation: loading ? 'pulse-glow 1.5s infinite' : 'none' }}
+    <ConfigProvider
+      theme={{
+        algorithm: theme.darkAlgorithm,
+        token: {
+          colorPrimary: '#6366f1',
+          colorBgContainer: '#111827',
+          colorBorder: 'rgba(255, 255, 255, 0.06)',
+          borderRadius: 8,
+          fontFamily: 'Inter, sans-serif',
+        },
+      }}
+    >
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '12px 0' }}>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          initialValues={{
+            status: 'Waiting for class',
+            country: 'Việt Nam',
+          }}
+        >
+          {/* Header Action Bar */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '24px',
+              paddingBottom: '16px',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+            }}
           >
-            <Save size={16} />
-            {loading ? 'Đang lưu...' : 'Lưu hồ sơ'}
-          </button>
-        </div>
-      </div>
-
-      {/* Alerts */}
-      {success && (
-        <div className="glass-panel animate-fade-in" style={{
-          padding: '14px 18px', marginBottom: '20px',
-          backgroundColor: 'rgba(16, 185, 129, 0.08)',
-          borderColor: 'rgba(16, 185, 129, 0.3)',
-          display: 'flex', alignItems: 'center', gap: '12px',
-          color: '#6ee7b7', fontSize: '0.93rem'
-        }}>
-          <CheckCircle size={20} style={{ flexShrink: 0 }} />
-          <div>{success}</div>
-        </div>
-      )}
-      {error && (
-        <div className="glass-panel animate-fade-in" style={{
-          padding: '14px 18px', marginBottom: '20px',
-          backgroundColor: 'rgba(239, 68, 68, 0.08)',
-          borderColor: 'rgba(239, 68, 68, 0.3)',
-          display: 'flex', alignItems: 'center', gap: '12px',
-          color: '#fca5a5', fontSize: '0.93rem'
-        }}>
-          <AlertCircle size={20} style={{ flexShrink: 0 }} />
-          <div>{error}</div>
-        </div>
-      )}
-
-      {/* Form */}
-      <form id="create-student-form" onSubmit={handleSubmit}>
-        {/* Tabs mockup */}
-        <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', borderBottom: '1px solid var(--card-border)', paddingBottom: '0' }}>
-          {['Thông tin chung', 'Tài khoản đăng nhập', 'Gói học'].map((tab, idx) => (
-            <div key={tab} style={{
-              padding: '10px 20px', fontSize: '0.9rem', fontWeight: idx === 0 ? 600 : 500,
-              color: idx === 0 ? 'var(--primary)' : 'var(--text-muted)',
-              borderBottom: idx === 0 ? '2px solid var(--primary)' : '2px solid transparent',
-              cursor: idx === 0 ? 'default' : 'not-allowed',
-              marginBottom: '-1px', userSelect: 'none'
-            }}>
-              {tab}
-            </div>
-          ))}
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-          {/* Section 1 - Basic Info */}
-          <div className="glass-panel" style={{ padding: '28px' }}>
-            {sectionTitle('Thông tin cơ bản', <User size={18} />)}
-            <div style={sectionStyle}>
-              {/* Avatar placeholder + Ho Ten */}
-              <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '28px', alignItems: 'flex-start' }}>
-                {/* Avatar */}
-                <div style={{
-                  width: '80px', height: '80px', borderRadius: '50%',
-                  background: 'var(--bg-tertiary)',
-                  border: '2px dashed var(--card-border)',
-                  display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', flexShrink: 0, gap: '4px'
-                }}>
-                  <User size={24} style={{ color: 'var(--text-muted)' }} />
-                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.2 }}>Ảnh đại diện</span>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px 28px', flex: 1 }}>
-                  <InputField label="Họ" icon={<User size={13} />} required error={fieldErrors.lastName}>
-                    <input
-                      type="text"
-                      placeholder="Nguyễn Bình"
-                      style={inputStyle(fieldErrors.lastName)}
-                      value={form.lastName}
-                      onChange={(e) => handleChange('lastName', e.target.value)}
-                      onFocus={(e) => { e.target.style.borderColor = 'var(--primary)'; e.target.style.boxShadow = '0 0 0 3px var(--primary-glow)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = fieldErrors.lastName ? 'rgba(239,68,68,0.5)' : 'var(--card-border)'; e.target.style.boxShadow = 'none'; }}
-                    />
-                  </InputField>
-
-                  <InputField label="Tên" icon={<User size={13} />} required error={fieldErrors.firstName}>
-                    <input
-                      type="text"
-                      placeholder="Minh"
-                      style={inputStyle(fieldErrors.firstName)}
-                      value={form.firstName}
-                      onChange={(e) => handleChange('firstName', e.target.value)}
-                      onFocus={(e) => { e.target.style.borderColor = 'var(--primary)'; e.target.style.boxShadow = '0 0 0 3px var(--primary-glow)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = fieldErrors.firstName ? 'rgba(239,68,68,0.5)' : 'var(--card-border)'; e.target.style.boxShadow = 'none'; }}
-                    />
-                  </InputField>
-
-                  <InputField label="Biệt danh / Tên gọi" icon={<User size={13} />}>
-                    <input
-                      type="text"
-                      placeholder="Minh Còi"
-                      style={inputStyle()}
-                      value={form.nickName}
-                      onChange={(e) => handleChange('nickName', e.target.value)}
-                      onFocus={(e) => { e.target.style.borderColor = 'var(--primary)'; e.target.style.boxShadow = '0 0 0 3px var(--primary-glow)'; }}
-                      onBlur={(e) => { e.target.style.borderColor = 'var(--card-border)'; e.target.style.boxShadow = 'none'; }}
-                    />
-                  </InputField>
-
-                  <InputField label="Mã học sinh" icon={<Hash size={13} />}>
-                    <div style={{
-                      ...inputStyle(),
-                      display: 'flex', alignItems: 'center', gap: '8px',
-                      color: 'var(--text-muted)', cursor: 'not-allowed',
-                      background: 'rgba(0,0,0,0.2)'
-                    }}>
-                      <Hash size={14} />
-                      <span style={{ fontSize: '0.85rem', fontStyle: 'italic' }}>Tự động sinh (STU-XXXX)</span>
-                    </div>
-                  </InputField>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div
+                style={{
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#fff',
+                  boxShadow: '0 4px 15px rgba(99, 102, 241, 0.35)',
+                }}
+              >
+                <TeamOutlined style={{ fontSize: '22px' }} />
+              </div>
+              <div>
+                <h2 style={{ fontSize: '1.6rem', color: '#fff', margin: 0, fontFamily: 'Outfit' }}>
+                  Thêm Học sinh mới
+                </h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                  <span style={{ color: '#9ca3af', fontSize: '0.88rem' }}>Mã học sinh:</span>
+                  <span style={{ color: '#6366f1', fontWeight: 600, fontSize: '0.88rem' }}>Auto generate</span>
+                  <Divider type="vertical" style={{ borderColor: 'rgba(255, 255, 255, 0.08)' }} />
+                  <span style={{ color: '#9ca3af', fontSize: '0.88rem' }}>Trạng thái:</span>
+                  <span style={{ color: getStatusColor(currentStatus), fontWeight: 600, fontSize: '0.88rem' }}>
+                    {currentStatus === 'Waiting for class' ? 'Chờ xếp lớp' 
+                     : currentStatus === 'Studying' ? 'Đang học' 
+                     : currentStatus === 'Suspended' ? 'Tạm nghỉ' : 'Đã tốt nghiệp'}
+                  </span>
                 </div>
               </div>
-
-              {/* Gender */}
-              <InputField label="Giới tính" icon={<Users size={13} />} required error={fieldErrors.gender}>
-                <select
-                  style={selectStyle(fieldErrors.gender)}
-                  value={form.gender}
-                  onChange={(e) => handleChange('gender', e.target.value)}
-                >
-                  <option value="">-- Chọn giới tính --</option>
-                  {GENDER_OPTIONS.map(g => <option key={g} value={g}>{g}</option>)}
-                </select>
-              </InputField>
-
-              {/* Birthdate */}
-              <InputField label="Ngày sinh" icon={<Calendar size={13} />} required error={fieldErrors.birthdate}>
-                <input
-                  type="date"
-                  style={inputStyle(fieldErrors.birthdate)}
-                  value={form.birthdate}
-                  onChange={(e) => handleChange('birthdate', e.target.value)}
-                  onFocus={(e) => { e.target.style.borderColor = 'var(--primary)'; e.target.style.boxShadow = '0 0 0 3px var(--primary-glow)'; }}
-                  onBlur={(e) => { e.target.style.borderColor = fieldErrors.birthdate ? 'rgba(239,68,68,0.5)' : 'var(--card-border)'; e.target.style.boxShadow = 'none'; }}
-                />
-              </InputField>
-
-              {/* Age (computed) */}
-              <InputField label="Tuổi" icon={<Calendar size={13} />}>
-                <div style={{
-                  ...inputStyle(),
-                  color: 'var(--text-muted)', cursor: 'not-allowed',
-                  background: 'rgba(0,0,0,0.2)'
-                }}>
-                  {form.birthdate
-                    ? `${Math.floor((Date.now() - new Date(form.birthdate).getTime()) / (365.25 * 24 * 3600 * 1000))} tuổi`
-                    : 'Chưa có dữ liệu'}
-                </div>
-              </InputField>
-
-              {/* CCCD */}
-              <InputField label="CCCD / CMND học sinh" icon={<Hash size={13} />}>
-                <input
-                  type="text"
-                  placeholder="046095001234"
-                  style={inputStyle()}
-                  value={form.citizenId}
-                  onChange={(e) => handleChange('citizenId', e.target.value)}
-                  onFocus={(e) => { e.target.style.borderColor = 'var(--primary)'; e.target.style.boxShadow = '0 0 0 3px var(--primary-glow)'; }}
-                  onBlur={(e) => { e.target.style.borderColor = 'var(--card-border)'; e.target.style.boxShadow = 'none'; }}
-                />
-              </InputField>
             </div>
+
+            <Space size="middle">
+              <Button icon={<CloseOutlined />} onClick={handleCancel} style={{ background: 'transparent' }}>
+                Hủy bỏ
+              </Button>
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<SaveOutlined />}
+                loading={loading}
+                style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
+              >
+                Lưu hồ sơ
+              </Button>
+            </Space>
           </div>
 
-          {/* Section 2 - Contact */}
-          <div className="glass-panel" style={{ padding: '28px' }}>
-            {sectionTitle('Thông tin liên lạc', <Phone size={18} />)}
-            <div style={sectionStyle}>
-              <InputField label="Số điện thoại" icon={<Phone size={13} />} required error={fieldErrors.mobile}>
-                <input
-                  type="tel"
-                  placeholder="0987 654 321"
-                  style={inputStyle(fieldErrors.mobile)}
-                  value={form.mobile}
-                  onChange={(e) => handleChange('mobile', e.target.value)}
-                  onFocus={(e) => { e.target.style.borderColor = 'var(--primary)'; e.target.style.boxShadow = '0 0 0 3px var(--primary-glow)'; }}
-                  onBlur={(e) => { e.target.style.borderColor = fieldErrors.mobile ? 'rgba(239,68,68,0.5)' : 'var(--card-border)'; e.target.style.boxShadow = 'none'; }}
-                />
-              </InputField>
+          {/* Form Tabs */}
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            style={{ marginBottom: '24px' }}
+            items={[
+              {
+                key: 'overview',
+                label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><UserOutlined /> Overview</span>,
+                children: (
+                  <Row gutter={[24, 24]}>
+                    <Col xs={24} lg={15}>
+                      {/* Left: General Information */}
+                      <Card
+                        title={<span style={{ fontFamily: 'Outfit' }}><UserOutlined /> Thông tin cá nhân</span>}
+                        className="glass-panel"
+                        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
+                      >
+                        <Row gutter={16}>
+                          <Col xs={12}>
+                            <Form.Item
+                              name="lastName"
+                              label="Họ đệm"
+                              rules={[{ required: true, message: 'Vui lòng nhập họ đệm học sinh' }]}
+                            >
+                              <Input placeholder="Nguyễn Bình" prefix={<UserOutlined style={{ color: '#6b7280' }} />} />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={12}>
+                            <Form.Item
+                              name="firstName"
+                              label="Tên"
+                              rules={[{ required: true, message: 'Vui lòng nhập tên học sinh' }]}
+                            >
+                              <Input placeholder="Minh" prefix={<UserOutlined style={{ color: '#6b7280' }} />} />
+                            </Form.Item>
+                          </Col>
+                        </Row>
 
-              <InputField label="Email" icon={<Mail size={13} />}>
-                <input
-                  type="email"
-                  placeholder="binhminh@gmail.com"
-                  style={inputStyle()}
-                  value={form.email}
-                  onChange={(e) => handleChange('email', e.target.value)}
-                  onFocus={(e) => { e.target.style.borderColor = 'var(--primary)'; e.target.style.boxShadow = '0 0 0 3px var(--primary-glow)'; }}
-                  onBlur={(e) => { e.target.style.borderColor = 'var(--card-border)'; e.target.style.boxShadow = 'none'; }}
-                />
-              </InputField>
+                        <Row gutter={16}>
+                          <Col xs={12}>
+                            <Form.Item name="nickName" label="Biệt danh">
+                              <Input placeholder="Minh Còi" prefix={<UserOutlined style={{ color: '#6b7280' }} />} />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={12}>
+                            <Form.Item
+                              name="gender"
+                              label="Giới tính"
+                              rules={[{ required: true, message: 'Vui lòng chọn giới tính' }]}
+                            >
+                              <Select placeholder="Chọn giới tính">
+                                <Option value="Nam">Nam</Option>
+                                <Option value="Nữ">Nữ</Option>
+                                <Option value="Khác">Khác</Option>
+                              </Select>
+                            </Form.Item>
+                          </Col>
+                        </Row>
 
-              <InputField label="Địa chỉ chính" icon={<MapPin size={13} />} required error={fieldErrors.primaryAddress}>
-                <input
-                  type="text"
-                  placeholder="123 Đường Lê Lợi, Thành phố Huế, Việt Nam"
-                  style={inputStyle(fieldErrors.primaryAddress)}
-                  value={form.primaryAddress}
-                  onChange={(e) => handleChange('primaryAddress', e.target.value)}
-                  onFocus={(e) => { e.target.style.borderColor = 'var(--primary)'; e.target.style.boxShadow = '0 0 0 3px var(--primary-glow)'; }}
-                  onBlur={(e) => { e.target.style.borderColor = fieldErrors.primaryAddress ? 'rgba(239,68,68,0.5)' : 'var(--card-border)'; e.target.style.boxShadow = 'none'; }}
-                />
-              </InputField>
-            </div>
-          </div>
+                        <Row gutter={16}>
+                          <Col xs={12}>
+                            <Form.Item
+                              name="birthdate"
+                              label="Ngày sinh"
+                              rules={[{ required: true, message: 'Vui lòng chọn ngày sinh' }]}
+                            >
+                              <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder="Chọn ngày sinh" />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={12}>
+                            <Form.Item label="Tuổi">
+                              <Input
+                                value={age !== null ? `${age} tuổi` : 'Chưa nhập ngày sinh'}
+                                disabled
+                                style={{ background: 'rgba(0,0,0,0.2)', color: '#9ca3af' }}
+                              />
+                            </Form.Item>
+                          </Col>
+                        </Row>
 
-          {/* Section 3 - Parent Info */}
-          <div className="glass-panel" style={{ padding: '28px' }}>
-            {sectionTitle('Thông tin Phụ huynh / Người giám hộ', <Users size={18} />)}
-            <div style={sectionStyle}>
-              <InputField label="Họ tên Phụ huynh / Người giám hộ" icon={<User size={13} />}>
-                <input
-                  type="text"
-                  placeholder="Nguyễn Văn Hùng"
-                  style={inputStyle()}
-                  value={form.parentName}
-                  onChange={(e) => handleChange('parentName', e.target.value)}
-                  onFocus={(e) => { e.target.style.borderColor = 'var(--primary)'; e.target.style.boxShadow = '0 0 0 3px var(--primary-glow)'; }}
-                  onBlur={(e) => { e.target.style.borderColor = 'var(--card-border)'; e.target.style.boxShadow = 'none'; }}
-                />
-              </InputField>
+                        <Row gutter={16}>
+                          <Col xs={24}>
+                            <Form.Item name="studentCitizenId" label="Số CCCD học sinh">
+                              <Input placeholder="046095001234" prefix={<IdcardOutlined style={{ color: '#6b7280' }} />} />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                      </Card>
 
-              <InputField label="Quan hệ với học sinh" icon={<ChevronDown size={13} />}>
-                <select
-                  style={selectStyle()}
-                  value={form.relationship}
-                  onChange={(e) => handleChange('relationship', e.target.value)}
-                >
-                  <option value="">-- Chọn quan hệ --</option>
-                  {RELATIONSHIP_OPTIONS.map(r => <option key={r} value={r}>{r}</option>)}
-                </select>
-              </InputField>
-            </div>
-          </div>
+                      <Card
+                        title={<span style={{ fontFamily: 'Outfit' }}><TeamOutlined /> Thông tin Phụ huynh / Người giám hộ</span>}
+                        className="glass-panel"
+                        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginTop: '24px' }}
+                      >
+                        <Divider orientation={"left" as any} style={{ margin: '0 0 16px 0', borderColor: 'rgba(255,255,255,0.06)' }}>Người giám hộ 1</Divider>
+                        <Row gutter={16}>
+                          <Col xs={12}>
+                            <Form.Item name="parentGuardian1" label="Họ và tên">
+                              <Input placeholder="Tên phụ huynh 1" prefix={<UserOutlined style={{ color: '#6b7280' }} />} />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={12}>
+                            <Form.Item name="relationship1" label="Quan hệ">
+                              <Select placeholder="Chọn mối quan hệ">
+                                {RELATIONSHIP_OPTIONS.map(opt => <Option key={opt} value={opt}>{opt}</Option>)}
+                              </Select>
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                        <Row gutter={16}>
+                          <Col xs={12}>
+                            <Form.Item name="parent1CitizenId" label="Số CCCD">
+                              <Input placeholder="Số CCCD" prefix={<IdcardOutlined style={{ color: '#6b7280' }} />} />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={12}>
+                            <Form.Item name="otherPhone1" label="Số điện thoại phụ">
+                              <Input placeholder="Số điện thoại phụ" prefix={<PhoneOutlined style={{ color: '#6b7280' }} />} />
+                            </Form.Item>
+                          </Col>
+                        </Row>
 
-          {/* Section 4 - Notes */}
-          <div className="glass-panel" style={{ padding: '28px' }}>
-            {sectionTitle('Ghi chú', <FileText size={18} />)}
-            <div>
-              <label style={{
-                fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-secondary)',
-                textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px'
-              }}>
-                Mô tả / Ghi chú thêm
-              </label>
-              <textarea
-                rows={4}
-                placeholder="Học sinh hiếu động, có năng khiếu Toán, tham gia câu lạc bộ cờ vua..."
-                style={{
-                  ...inputStyle(),
-                  resize: 'vertical', minHeight: '100px',
-                }}
-                value={form.description}
-                onChange={(e) => handleChange('description', e.target.value)}
-                onFocus={(e) => { e.target.style.borderColor = 'var(--primary)'; e.target.style.boxShadow = '0 0 0 3px var(--primary-glow)'; }}
-                onBlur={(e) => { e.target.style.borderColor = 'var(--card-border)'; e.target.style.boxShadow = 'none'; }}
-              />
-            </div>
-          </div>
-        </div>
+                        <Divider orientation={"left" as any} style={{ margin: '16px 0', borderColor: 'rgba(255,255,255,0.06)' }}>Người giám hộ 2</Divider>
+                        <Row gutter={16}>
+                          <Col xs={12}>
+                            <Form.Item name="parentGuardian2" label="Họ và tên">
+                              <Input placeholder="Tên phụ huynh 2" prefix={<UserOutlined style={{ color: '#6b7280' }} />} />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={12}>
+                            <Form.Item name="relationship2" label="Quan hệ">
+                              <Select placeholder="Chọn mối quan hệ">
+                                {RELATIONSHIP_OPTIONS.map(opt => <Option key={opt} value={opt}>{opt}</Option>)}
+                              </Select>
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                        <Row gutter={16}>
+                          <Col xs={12}>
+                            <Form.Item name="parent2CitizenId" label="Số CCCD">
+                              <Input placeholder="Số CCCD" prefix={<IdcardOutlined style={{ color: '#6b7280' }} />} />
+                            </Form.Item>
+                          </Col>
+                          <Col xs={12}>
+                            <Form.Item name="otherPhone2" label="Số điện thoại phụ">
+                              <Input placeholder="Số điện thoại phụ" prefix={<PhoneOutlined style={{ color: '#6b7280' }} />} />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                      </Card>
+                    </Col>
 
-        {/* Bottom Action Bar */}
-        <div style={{
-          display: 'flex', justifyContent: 'flex-end', gap: '12px',
-          marginTop: '24px', paddingTop: '20px',
-          borderTop: '1px solid var(--card-border)'
-        }}>
-          <button type="button" onClick={handleCancel} className="btn btn-outline" style={{ padding: '12px 28px' }}>
-            <X size={16} /> Hủy bỏ
-          </button>
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={loading}
-            style={{ padding: '12px 32px', fontSize: '0.98rem', animation: loading ? 'pulse-glow 1.5s infinite' : 'none' }}
+                    <Col xs={24} lg={9}>
+                      {/* Right: Contact & Address Info */}
+                      <Card
+                        title={<span style={{ fontFamily: 'Outfit' }}><EnvironmentOutlined /> Liên lạc & Địa chỉ</span>}
+                        className="glass-panel"
+                        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
+                      >
+                        <Form.Item
+                          name="mobile"
+                          label="Số điện thoại chính"
+                          rules={[
+                            { required: true, message: 'Vui lòng nhập số điện thoại' },
+                            { pattern: /^[0-9]{9,11}$/, message: 'Số điện thoại không hợp lệ' }
+                          ]}
+                        >
+                          <Input placeholder="0987654321" prefix={<PhoneOutlined style={{ color: '#6b7280' }} />} />
+                        </Form.Item>
+
+                        <Form.Item name="email" label="Địa chỉ Email">
+                          <Input type="email" placeholder="example@gmail.com" prefix={<MailOutlined style={{ color: '#6b7280' }} />} />
+                        </Form.Item>
+
+                        <Form.Item name="country" label="Quốc gia">
+                          <Input disabled style={{ background: 'rgba(0,0,0,0.2)', color: '#9ca3af' }} />
+                        </Form.Item>
+
+                        <Form.Item name="province" label="Tỉnh / Thành phố">
+                          <Select placeholder="Chọn Tỉnh/Thành phố">
+                            {PROVINCE_OPTIONS.map(opt => <Option key={opt.value} value={opt.value}>{opt.label}</Option>)}
+                          </Select>
+                        </Form.Item>
+
+                        <Form.Item name="districtWard" label="Quận / Huyện - Phường / Xã">
+                          <Select placeholder="Chọn Quận/Huyện - Phường/Xã" disabled={!selectedProvince}>
+                            {(DISTRICT_WARD_MAP[selectedProvince] || []).map(opt => (
+                              <Option key={opt} value={opt}>{opt}</Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+
+                        <Form.Item
+                          name="primaryAddress"
+                          label="Địa chỉ chi tiết (Thường trú)"
+                          rules={[{ required: true, message: 'Vui lòng nhập địa chỉ chi tiết' }]}
+                        >
+                          <TextArea rows={2} placeholder="Số nhà, Tên đường..." />
+                        </Form.Item>
+
+                        <Form.Item name="oldAddress" label="Địa chỉ cũ (nếu có)">
+                          <TextArea rows={1} placeholder="Địa chỉ cũ" />
+                        </Form.Item>
+                      </Card>
+
+                      <Card
+                        title={<span style={{ fontFamily: 'Outfit' }}><CalendarOutlined /> Ghi chú</span>}
+                        className="glass-panel"
+                        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginTop: '24px' }}
+                      >
+                        <Form.Item name="description" label="Ghi chú thêm về học sinh">
+                          <TextArea rows={4} placeholder="Ghi chú về sức khỏe, học lực, năng khiếu..." />
+                        </Form.Item>
+                      </Card>
+                    </Col>
+                  </Row>
+                ),
+              },
+              {
+                key: 'login',
+                label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><LockOutlined /> Student Login</span>,
+                children: (
+                  <Card
+                    title={<span style={{ fontFamily: 'Outfit' }}><LockOutlined /> Tạo tài khoản đăng nhập học sinh</span>}
+                    className="glass-panel"
+                    style={{ maxWidth: '600px', margin: '0 auto', border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
+                  >
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', fontSize: '0.9rem' }}>
+                      Điền email và mật khẩu nếu bạn muốn tạo tài khoản đăng nhập cho học sinh này ngay lập tức. Học sinh có thể dùng tài khoản này để xem điểm, thời khóa biểu và tài liệu.
+                    </p>
+
+                    <Form.Item
+                      name="loginEmail"
+                      label="Email đăng nhập"
+                      rules={[
+                        { type: 'email', message: 'Địa chỉ email không hợp lệ' },
+                      ]}
+                    >
+                      <Input placeholder="student.login@gmail.com" prefix={<MailOutlined style={{ color: '#6b7280' }} />} />
+                    </Form.Item>
+
+                    <Form.Item name="loginPassword" label="Mật khẩu đăng nhập">
+                      <Input.Password placeholder="Mật khẩu (mặc định: student123)" prefix={<LockOutlined style={{ color: '#6b7280' }} />} />
+                    </Form.Item>
+                  </Card>
+                ),
+              },
+              {
+                key: 'membership',
+                label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><TeamOutlined /> Membership</span>,
+                children: (
+                  <Card
+                    title={<span style={{ fontFamily: 'Outfit' }}><TeamOutlined /> Gán trạng thái và Lớp học</span>}
+                    className="glass-panel"
+                    style={{ maxWidth: '600px', margin: '0 auto', border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
+                  >
+                    <Form.Item
+                      name="status"
+                      label="Trạng thái học sinh"
+                      rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
+                    >
+                      <Select placeholder="Chọn trạng thái">
+                        <Option value="Waiting for class">Chờ xếp lớp (Waiting for class)</Option>
+                        <Option value="Studying">Đang học (Studying)</Option>
+                        <Option value="Suspended">Tạm nghỉ (Suspended)</Option>
+                        <Option value="Graduated">Đã tốt nghiệp (Graduated)</Option>
+                      </Select>
+                    </Form.Item>
+                  </Card>
+                ),
+              },
+            ]}
+          />
+
+          {/* Bottom Action Bar */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '12px',
+              marginTop: '24px',
+              paddingTop: '16px',
+              borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+            }}
           >
-            <Save size={18} />
-            {loading ? 'Đang lưu hồ sơ...' : 'Lưu hồ sơ học sinh'}
-          </button>
-        </div>
-      </form>
-    </div>
+            <Button icon={<CloseOutlined />} onClick={handleCancel} size="large" style={{ background: 'transparent' }}>
+              Hủy bỏ
+            </Button>
+            <Button
+              type="primary"
+              htmlType="submit"
+              icon={<SaveOutlined />}
+              loading={loading}
+              size="large"
+              style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none', padding: '0 32px' }}
+            >
+              Lưu hồ sơ học sinh
+            </Button>
+          </div>
+        </Form>
+      </div>
+    </ConfigProvider>
   );
 };
 

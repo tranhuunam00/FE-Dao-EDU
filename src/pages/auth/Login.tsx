@@ -1,31 +1,43 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, Role } from '../../context/AuthContext';
-import { BookOpen, Shield, KeyRound, Mail, AlertCircle, ArrowRight, UserCheck } from 'lucide-react';
+import {
+  ConfigProvider,
+  Form,
+  Input,
+  Button,
+  Card,
+  Row,
+  Col,
+  Typography,
+  theme,
+  App,
+} from 'antd';
+import {
+  MailOutlined,
+  LockOutlined,
+  ArrowRightOutlined,
+  BookOutlined,
+  SafetyOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 
-export const Login: React.FC = () => {
-  const { login, error: authError } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const { Title, Text } = Typography;
+
+const LoginInner: React.FC = () => {
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [localError, setLocalError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { message } = App.useApp(); // Dùng hook message của App để nhận đúng context theme tối
 
-  const handleLoginSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLocalError(null);
-
-    if (!email || !password) {
-      setLocalError('Vui lòng điền đầy đủ email và mật khẩu');
-      return;
-    }
-
+  const handleLoginSubmit = async (values: any) => {
     setLoading(true);
     try {
-      const user = await login(email, password);
+      const user = await login(values.email, values.password);
+      message.success(`Đăng nhập thành công! Chào mừng ${user.name}`);
       redirectUser(user.role);
     } catch (err: any) {
-      // AuthContext handles setting error
+      message.error(err.message || 'Không thể đăng nhập. Vui lòng kiểm tra lại.');
     } finally {
       setLoading(false);
     }
@@ -33,7 +45,6 @@ export const Login: React.FC = () => {
 
   const handleQuickLogin = async (role: Role) => {
     setLoading(true);
-    setLocalError(null);
     let devEmail = '';
     let devPassword = '';
 
@@ -52,14 +63,12 @@ export const Login: React.FC = () => {
         break;
     }
 
-    setEmail(devEmail);
-    setPassword(devPassword);
-
     try {
       const user = await login(devEmail, devPassword);
+      message.success(`Đăng nhập nhanh thành công!`);
       redirectUser(user.role);
-    } catch (err) {
-      // error handled by context
+    } catch (err: any) {
+      message.error(err.message || 'Lỗi đăng nhập nhanh');
     } finally {
       setLoading(false);
     }
@@ -80,8 +89,6 @@ export const Login: React.FC = () => {
         navigate('/login');
     }
   };
-
-  const activeError = localError || authError;
 
   return (
     <div style={{
@@ -109,183 +116,243 @@ export const Login: React.FC = () => {
       }} />
 
       <div style={{
-        display: 'flex', maxWidth: '980px', width: '100%',
-        gap: '32px', zIndex: 1, flexWrap: 'wrap'
+        maxWidth: '980px', width: '100%', zIndex: 1
       }}>
-        {/* Main Login Card */}
-        <div className="glass-panel" style={{
-          flex: '1.2 1 400px', padding: '44px',
-          display: 'flex', flexDirection: 'column',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.4)'
-        }}>
-          {/* Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '36px' }}>
-            <div style={{
-              width: '46px', height: '46px', borderRadius: '12px',
-              background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', boxShadow: '0 0 20px rgba(99, 102, 241, 0.45)'
-            }}>
-              <BookOpen size={24} />
-            </div>
-            <div>
-              <h2 style={{ fontSize: '1.4rem', fontFamily: 'var(--font-display)', fontWeight: 800 }}>DAO EDU</h2>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Cổng học tập trực tuyến</span>
-            </div>
-          </div>
-
-          <h3 style={{ fontSize: '1.5rem', marginBottom: '8px', color: '#fff', fontFamily: 'var(--font-display)' }}>Đăng nhập</h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '24px' }}>
-            Chào mừng trở lại! Vui lòng nhập thông tin đăng nhập của bạn.
-          </p>
-
-          {activeError && (
-            <div className="glass-panel animate-fade-in" style={{
-              padding: '12px 16px',
-              backgroundColor: 'rgba(239, 68, 68, 0.1)',
-              borderColor: 'rgba(239, 68, 68, 0.25)',
-              borderRadius: 'var(--border-radius-sm)',
-              display: 'flex', alignItems: 'center', gap: '12px',
-              color: '#fca5a5', fontSize: '0.9rem', marginBottom: '24px'
-            }}>
-              <AlertCircle size={20} style={{ flexShrink: 0 }} />
-              <div>{activeError}</div>
-            </div>
-          )}
-
-          <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div className="form-group">
-              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Mail size={14} /> Email đăng nhập
-              </label>
-              <input
-                type="email"
-                placeholder="email@class.com"
-                className="form-input"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-                id="login-email"
-              />
-            </div>
-
-            <div className="form-group" style={{ marginBottom: '8px' }}>
-              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <KeyRound size={14} /> Mật khẩu
-              </label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                className="form-input"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-                id="login-password"
-              />
-            </div>
-
-            <button
-              type="submit"
-              id="login-submit"
-              className="btn btn-primary"
-              disabled={loading}
+        <Row gutter={[32, 32]} justify="center" align="stretch">
+          {/* Main Login Card */}
+          <Col xs={24} md={13} style={{ display: 'flex' }}>
+            <Card
+              className="glass-panel"
               style={{
-                width: '100%', padding: '14px', fontSize: '1rem', marginTop: '12px',
-                animation: loading ? 'pulse-glow 1.5s infinite' : 'none'
+                width: '100%',
+                border: 'none',
+                background: 'rgba(17, 24, 39, 0.75)',
+                boxShadow: '0 20px 50px rgba(0, 0, 0, 0.4)',
+                padding: '16px'
               }}
             >
-              {loading ? 'Đang xác thực...' : 'Đăng nhập hệ thống'}
-              {!loading && <ArrowRight size={18} />}
-            </button>
-          </form>
-        </div>
-
-        {/* Developer Sandbox Panel */}
-        <div className="glass-panel" style={{
-          flex: '1 1 300px', padding: '40px',
-          display: 'flex', flexDirection: 'column', justifyContent: 'center',
-          background: 'rgba(99, 102, 241, 0.03)',
-          borderColor: 'rgba(99, 102, 241, 0.12)',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', color: 'var(--primary)' }}>
-            <Shield size={22} />
-            <h4 style={{ fontSize: '1.15rem', fontFamily: 'var(--font-display)', fontWeight: 700 }}>Quick Dev Access</h4>
-          </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: '1.6', marginBottom: '24px' }}>
-            Bấm để tự động đăng nhập nhanh với từng vai trò trong hệ thống DAO EDU.
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {/* Admin */}
-            <button
-              id="quick-login-admin"
-              onClick={() => handleQuickLogin(Role.ADMIN)}
-              className="btn btn-outline"
-              disabled={loading}
-              style={{
-                justifyContent: 'flex-start', padding: '14px 16px',
-                borderRadius: 'var(--border-radius-sm)',
-                borderColor: 'rgba(168, 85, 247, 0.3)',
-                background: 'rgba(168, 85, 247, 0.05)'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(168, 85, 247, 0.15)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(168, 85, 247, 0.05)'}
-            >
-              <UserCheck size={18} style={{ color: 'var(--accent)', marginRight: '8px' }} />
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#fff' }}>1. Quản trị viên (Admin)</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>admin@class.com</div>
+              {/* Logo */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
+                <div style={{
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#fff',
+                  boxShadow: '0 0 20px rgba(99, 102, 241, 0.45)'
+                }}>
+                  <BookOutlined style={{ fontSize: '24px' }} />
+                </div>
+                <div>
+                  <h2 style={{ fontSize: '1.4rem', fontFamily: 'var(--font-display)', fontWeight: 800, margin: 0, color: '#fff' }}>DAO EDU</h2>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Cổng học tập trực tuyến</span>
+                </div>
               </div>
-            </button>
 
-            {/* Teacher */}
-            <button
-              id="quick-login-teacher"
-              onClick={() => handleQuickLogin(Role.TEACHER)}
-              className="btn btn-outline"
-              disabled={loading}
-              style={{
-                justifyContent: 'flex-start', padding: '14px 16px',
-                borderRadius: 'var(--border-radius-sm)',
-                borderColor: 'rgba(16, 185, 129, 0.3)',
-                background: 'rgba(16, 185, 129, 0.05)'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(16, 185, 129, 0.15)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(16, 185, 129, 0.05)'}
-            >
-              <UserCheck size={18} style={{ color: 'var(--secondary)', marginRight: '8px' }} />
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#fff' }}>2. Giáo viên (Teacher)</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>teacher@class.com</div>
-              </div>
-            </button>
+              <Title level={3} style={{ color: '#fff', marginBottom: '8px', fontFamily: 'Outfit' }}>Đăng nhập</Title>
+              <Text style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'block', marginBottom: '24px' }}>
+                Chào mừng trở lại! Vui lòng nhập thông tin đăng nhập của bạn.
+              </Text>
 
-            {/* Student */}
-            <button
-              id="quick-login-student"
-              onClick={() => handleQuickLogin(Role.STUDENT)}
-              className="btn btn-outline"
-              disabled={loading}
-              style={{
-                justifyContent: 'flex-start', padding: '14px 16px',
-                borderRadius: 'var(--border-radius-sm)',
-                borderColor: 'rgba(99, 102, 241, 0.3)',
-                background: 'rgba(99, 102, 241, 0.05)'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.15)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.05)'}
-            >
-              <UserCheck size={18} style={{ color: 'var(--primary)', marginRight: '8px' }} />
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#fff' }}>3. Học sinh (Student)</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>student@class.com</div>
-              </div>
-            </button>
-          </div>
+              <Form
+                layout="vertical"
+                onFinish={handleLoginSubmit}
+                requiredMark={false}
+              >
+                <Form.Item
+                  name="email"
+                  label={<span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}><MailOutlined /> Email đăng nhập</span>}
+                  rules={[
+                    { required: true, message: 'Vui lòng điền email' },
+                    { type: 'email', message: 'Email không đúng định dạng' }
+                  ]}
+                >
+                  <Input
+                    id="login-email"
+                    placeholder="email@class.com"
+                    size="large"
+                    style={{ background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', color: '#fff' }}
+                    disabled={loading}
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="password"
+                  label={<span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}><LockOutlined /> Mật khẩu</span>}
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập mật khẩu' }
+                  ]}
+                >
+                  <Input.Password
+                    id="login-password"
+                    placeholder="••••••••"
+                    size="large"
+                    style={{ background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', color: '#fff' }}
+                    disabled={loading}
+                  />
+                </Form.Item>
+
+                <Form.Item style={{ marginTop: '28px', marginBottom: 0 }}>
+                  <Button
+                    id="login-submit"
+                    type="primary"
+                    htmlType="submit"
+                    size="large"
+                    loading={loading}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      background: 'linear-gradient(135deg, var(--primary), var(--accent))',
+                      border: 'none',
+                      fontSize: '1rem',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 15px rgba(99, 102, 241, 0.35)'
+                    }}
+                  >
+                    Đăng nhập hệ thống {!loading && <ArrowRightOutlined />}
+                  </Button>
+                </Form.Item>
+              </Form>
+            </Card>
+          </Col>
+
+            {/* Developer Sandbox Panel */}
+            <Col xs={24} md={11} style={{ display: 'flex' }}>
+              <Card
+                className="glass-panel"
+                style={{
+                  width: '100%',
+                  border: 'none',
+                  background: 'rgba(99, 102, 241, 0.03)',
+                  borderColor: 'rgba(99, 102, 241, 0.12)',
+                  boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)',
+                  padding: '16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', color: 'var(--primary)' }}>
+                  <SafetyOutlined style={{ fontSize: '22px' }} />
+                  <Title level={4} style={{ margin: 0, color: 'var(--primary)', fontFamily: 'Outfit', fontWeight: 700 }}>Quick Dev Access</Title>
+                </div>
+                <Text style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: '1.6', display: 'block', marginBottom: '24px' }}>
+                  Bấm để tự động đăng nhập nhanh với từng vai trò trong hệ thống DAO EDU.
+                </Text>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {/* Admin */}
+                  <Button
+                    id="quick-login-admin"
+                    onClick={() => handleQuickLogin(Role.ADMIN)}
+                    disabled={loading}
+                    style={{
+                      height: '56px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-start',
+                      borderRadius: '8px',
+                      borderColor: 'rgba(168, 85, 247, 0.3)',
+                      background: 'rgba(168, 85, 247, 0.05)',
+                      color: '#fff',
+                      padding: '0 16px'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(168, 85, 247, 0.15)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(168, 85, 247, 0.05)'}
+                  >
+                    <UserOutlined style={{ color: 'var(--accent)', fontSize: '18px', marginRight: '12px' }} />
+                    <div style={{ textAlign: 'left' }}>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>1. Quản trị viên (Admin)</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>admin@class.com</div>
+                    </div>
+                  </Button>
+
+                  {/* Teacher */}
+                  <Button
+                    id="quick-login-teacher"
+                    onClick={() => handleQuickLogin(Role.TEACHER)}
+                    disabled={loading}
+                    style={{
+                      height: '56px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-start',
+                      borderRadius: '8px',
+                      borderColor: 'rgba(16, 185, 129, 0.3)',
+                      background: 'rgba(16, 185, 129, 0.05)',
+                      color: '#fff',
+                      padding: '0 16px'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(16, 185, 129, 0.15)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(16, 185, 129, 0.05)'}
+                  >
+                    <UserOutlined style={{ color: 'var(--secondary)', fontSize: '18px', marginRight: '12px' }} />
+                    <div style={{ textAlign: 'left' }}>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>2. Giáo viên (Teacher)</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>teacher@class.com</div>
+                    </div>
+                  </Button>
+
+                  {/* Student */}
+                  <Button
+                    id="quick-login-student"
+                    onClick={() => handleQuickLogin(Role.STUDENT)}
+                    disabled={loading}
+                    style={{
+                      height: '56px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-start',
+                      borderRadius: '8px',
+                      borderColor: 'rgba(99, 102, 241, 0.3)',
+                      background: 'rgba(99, 102, 241, 0.05)',
+                      color: '#fff',
+                      padding: '0 16px'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.15)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.05)'}
+                  >
+                    <UserOutlined style={{ color: 'var(--primary)', fontSize: '18px', marginRight: '12px' }} />
+                    <div style={{ textAlign: 'left' }}>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>3. Học sinh (Student)</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>student@class.com</div>
+                    </div>
+                  </Button>
+                </div>
+              </Card>
+            </Col>
+          </Row>
         </div>
       </div>
-    </div>
   );
 };
+
+export const Login: React.FC = () => {
+  return (
+    <ConfigProvider
+      theme={{
+        algorithm: theme.darkAlgorithm,
+        token: {
+          colorPrimary: '#6366f1',
+          colorBgContainer: '#111827',
+          colorBorder: 'rgba(255, 255, 255, 0.06)',
+          borderRadius: 8,
+          fontFamily: 'Inter, sans-serif',
+        },
+      }}
+    >
+      <App>
+        <LoginInner />
+      </App>
+    </ConfigProvider>
+  );
+};
+
 export default Login;

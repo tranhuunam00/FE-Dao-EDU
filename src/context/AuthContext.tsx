@@ -42,10 +42,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const storedToken = localStorage.getItem('token');
       if (storedToken) {
         try {
-          // Fetch current user details from API
+          // Fetch current user details from API (tự động đi qua interceptor để refresh nếu hết hạn)
           const response = await api.get('/dashboard/profile');
           setUser(response.data.user);
-          setToken(storedToken);
+          setToken(localStorage.getItem('token'));
         } catch (err: any) {
           console.error('Lỗi xác thực token:', err);
           logout();
@@ -61,9 +61,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
     try {
       const response = await api.post('/auth/login', { email, password });
-      const { accessToken, user: userData } = response.data;
+      const { accessToken, refreshToken, user: userData } = response.data;
       
       localStorage.setItem('token', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
       setToken(accessToken);
       setUser(userData);
       return userData;
@@ -76,6 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     setToken(null);
     setUser(null);
     setError(null);

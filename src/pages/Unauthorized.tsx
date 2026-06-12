@@ -18,11 +18,11 @@ export const Unauthorized: React.FC = () => {
       case Role.ADMIN:
         navigate('/admin');
         break;
-      case Role.DOCTOR:
-        navigate('/doctor');
+      case Role.TEACHER:
+        navigate('/teacher');
         break;
-      case Role.PATIENT:
-        navigate('/patient');
+      case Role.STUDENT:
+        navigate('/student');
         break;
       default:
         navigate('/login');
