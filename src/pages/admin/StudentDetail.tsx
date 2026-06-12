@@ -214,7 +214,8 @@ const StudentDetailInner: React.FC = () => {
         payload.avatar = avatarBase64;
       }
 
-      await api.patch(`/students/${id}`, payload);
+      const res = await api.patch(`/students/${id}`, payload);
+      setStudent(res.data);
       message.success('Đã cập nhật thông tin học sinh thành công!');
       setAvatarBase64(undefined);
     } catch (err: any) {

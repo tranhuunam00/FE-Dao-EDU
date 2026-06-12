@@ -18,6 +18,8 @@ import {
 import {
   SearchOutlined,
   UserAddOutlined,
+  CheckCircleFilled,
+  CloseCircleFilled,
   ReloadOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -42,6 +44,8 @@ interface StudentData {
   primaryAddress: string;
   status: string;
   createdAt: string;
+  userId?: string;
+  loginEmail?: string;
 }
 
 const StudentListInner: React.FC = () => {
@@ -116,8 +120,21 @@ const StudentListInner: React.FC = () => {
       title: 'Mã HS',
       dataIndex: 'studentId',
       key: 'studentId',
-      width: '100px',
-      render: (text: string) => <Text strong style={{ color: 'var(--primary)' }}>{text}</Text>,
+      width: '120px',
+      render: (text: string, record: StudentData) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Text strong style={{ color: 'var(--primary)' }}>{text}</Text>
+          {record.userId ? (
+            <Tooltip title="Đã có tài khoản đăng nhập">
+              <CheckCircleFilled style={{ color: '#10b981' }} />
+            </Tooltip>
+          ) : (
+            <Tooltip title="Chưa có tài khoản">
+              <CloseCircleFilled style={{ color: '#6b7280' }} />
+            </Tooltip>
+          )}
+        </div>
+      ),
     },
     {
       title: 'Họ và tên',
