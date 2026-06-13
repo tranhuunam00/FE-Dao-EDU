@@ -227,19 +227,8 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0 32px', position: 'sticky', top: 0, zIndex: 10
         }}>
-          {/* Header Search */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '300px' }}>
-            <Search size={18} style={{ color: 'var(--text-muted)' }} />
-            <input 
-              type="text" 
-              placeholder="Tìm kiếm học sinh, lớp học..." 
-              style={{
-                background: 'transparent', border: 'none', outline: 'none',
-                color: 'var(--text-primary)', fontSize: '0.9rem', width: '100%'
-              }}
-            />
-          </div>
-
+          {/* Empty spacer for space-between or just change header to flex-end */}
+          <div style={{ flex: 1 }}></div>
           {/* System status / Actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
@@ -254,7 +243,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
         </header>
 
         {/* Page Content */}
-        <main style={{ padding: '32px', flex: 1 }}>
+        <main style={{ padding: '16px 24px', flex: 1 }}>
           <div className="animate-fade-in">
             {children}
           </div>

@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Card, Typography, Row, Col, App, ConfigProvider, theme, Tag, Table, Button, Spin,
-  Descriptions, Tabs, Modal, Form, Select, DatePicker, TimePicker, Switch, Input, Badge, Divider, List, Alert
+  App, ConfigProvider, theme, Tag, Button, Spin,
+  Tabs, Modal, Form, Select, DatePicker, TimePicker, Switch, Input, Divider, Alert, Typography, Descriptions, Row, Col, Table
 } from 'antd';
 import {
   ArrowLeftOutlined, TeamOutlined, CalendarOutlined,
-  EnvironmentOutlined, PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined, CheckCircleOutlined, StopOutlined
+  CheckCircleOutlined, StopOutlined, EditOutlined, SaveOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../services/api';
 
+import { GeneralTab } from './ClassDetailTabs/GeneralTab';
+import { StudentsTab } from './ClassDetailTabs/StudentsTab';
+import { ScheduleTab } from './ClassDetailTabs/ScheduleTab';
+
 const { Title, Text } = Typography;
 const { Option } = Select;
-
 
 interface StudentAttendance {
   studentId: string;
@@ -39,52 +42,13 @@ interface ClassSession {
   room?: { name: string };
 }
 
-interface ClassDetailData {
-  id: string;
-  classCode: string;
-  className: string;
-  status: string;
-  startDate?: string;
-  finishDate?: string;
-  maxSize?: number;
-  skipHolidays: boolean;
-  description?: string;
-  course?: { name: string };
-  courseLevel?: { levelName: string };
-  mainTeacher?: { id: string; firstName: string; lastName: string };
-  center?: { id: string; name: string };
-  schedules: {
-    id: string;
-    weekday: string;
-    startTime: string;
-    endTime: string;
-    room?: { name: string };
-  }[];
-  students: {
-    id: string;
-    studentId: string;
-    status: string;
-    joinedDate: string;
-    updatedAt?: string;
-    student: {
-      name: string;
-      firstName?: string;
-      lastName?: string;
-      phone?: string;
-      mobile?: string;
-      email?: string | null;
-      user?: { email: string };
-    };
-  }[];
-}
-
 const ClassDetailInner: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { message, modal } = App.useApp();
 
   const [loading, setLoading] = useState(true);
-  const [classData, setClassData] = useState<ClassDetailData | null>(null);
+  const [classData, setClassData] = useState<any>(null);
   const [sessions, setSessions] = useState<ClassSession[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [rooms, setRooms] = useState<any[]>([]);
@@ -177,9 +141,8 @@ const ClassDetailInner: React.FC = () => {
     setIsSessionModalVisible(true);
     try {
       const { data } = await api.get(`/classes/sessions/${session.id}/attendance`);
-      // Map class students to attendance record if not exist in attendance response
       const mapped = (classData?.students || [])
-        .filter(cs => {
+        .filter((cs: any) => {
           const joined = dayjs(cs.joinedDate);
           const sess = dayjs(session.date);
           const isJoined = joined.isBefore(sess) || joined.isSame(sess, 'day');
@@ -192,7 +155,7 @@ const ClassDetailInner: React.FC = () => {
           }
           return false;
         })
-        .map(cs => {
+        .map((cs: any) => {
           const record = data.find((d: any) => d.studentId === cs.studentId);
           return {
             studentId: cs.studentId,
@@ -217,7 +180,6 @@ const ClassDetailInner: React.FC = () => {
       const { data } = await api.post(`/classes/sessions/${currentSession.id}/start-attendance?bypassTimeCheck=true`);
       message.success('Buổi học bắt đầu thành công. Trạng thái chuyển sang Đang học!');
       setCurrentSession(data);
-      // Reload lists
       const sessionsRes = await api.get(`/classes/${id}/sessions`);
       setSessions(sessionsRes.data);
     } catch (err: any) {
@@ -254,7 +216,6 @@ const ClassDetailInner: React.FC = () => {
       cancelText: 'Hủy',
       onOk: async () => {
         try {
-          // Auto save first
           await api.post(`/classes/sessions/${currentSession.id}/attendance`, {
             attendance: sessionAttendance.map(a => ({
               studentId: a.studentId,
@@ -267,7 +228,6 @@ const ClassDetailInner: React.FC = () => {
           message.success('Đã kết thúc buổi học!');
           setCurrentSession(data);
           setIsSessionModalVisible(false);
-          // Reload all
           loadAllData();
         } catch (err: any) {
           message.error(err.response?.data?.message || 'Lỗi khi hoàn thành buổi học');
@@ -368,151 +328,8 @@ const ClassDetailInner: React.FC = () => {
     return <div style={{ color: '#fff', textAlign: 'center', padding: '60px' }}>Không tìm thấy thông tin lớp học.</div>;
   }
 
-  // Columns for students table
-  const studentColumns = [
-    {
-      title: 'Học sinh',
-      key: 'name',
-      render: (_: any, record: any) => {
-        const fullName = record.student ? `${record.student.lastName} ${record.student.firstName}` : '-';
-        return (
-          <div>
-            <Text strong style={{ color: '#fff' }}>{fullName}</Text>
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
-              {record.student?.email || record.student?.user?.email || '-'}
-            </div>
-          </div>
-        );
-      },
-    },
-    {
-      title: 'Số điện thoại',
-      key: 'phone',
-      width: '180px',
-      render: (_: any, record: any) => record.student?.mobile || '-',
-    },
-    {
-      title: 'Ngày tham gia lớp',
-      dataIndex: 'joinedDate',
-      key: 'joinedDate',
-      width: '180px',
-      render: (v: string) => dayjs(v).format('DD/MM/YYYY'),
-    },
-    {
-      title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
-      width: '150px',
-      render: (s: string) => {
-        const color = s === 'Active' ? 'green' : 'red';
-        const label = s === 'Active' ? 'Đang học' : 'Đã kick (Dropped)';
-        return <Tag color={color}>{label}</Tag>;
-      },
-    },
-    {
-      title: 'Hành động',
-      key: 'action',
-      width: '120px',
-      render: (_: any, record: any) => {
-        const fullName = record.student ? `${record.student.lastName} ${record.student.firstName}` : '';
-        if (record.status === 'Active') {
-          return (
-            <Button
-              danger
-              type="text"
-              icon={<DeleteOutlined />}
-              onClick={() => handleKickStudent(record.studentId, fullName)}
-            />
-          );
-        } else if (record.status === 'Dropped') {
-          return (
-            <Button
-              type="text"
-              style={{ color: '#10b981', padding: 0 }}
-              icon={<PlusOutlined />}
-              onClick={() => handleReAddStudent(record.studentId)}
-            >
-              Thêm lại
-            </Button>
-          );
-        }
-        return null;
-      }
-    },
-  ];
-
-  // Columns for session list
-  const sessionColumns = [
-    {
-      title: 'Ngày học',
-      dataIndex: 'date',
-      key: 'date',
-      width: '150px',
-      render: (text: string) => <Text strong style={{ color: '#fff' }}>{dayjs(text).format('DD/MM/YYYY')}</Text>,
-    },
-    {
-      title: 'Giờ học',
-      key: 'time',
-      width: '150px',
-      render: (_: any, record: ClassSession) => `${record.startTime.substring(0,5)} - ${record.endTime.substring(0,5)}`,
-    },
-    {
-      title: 'Phòng học',
-      dataIndex: ['room', 'name'],
-      key: 'room',
-      render: (text: string) => text || <Text type="secondary">Chưa xếp phòng</Text>,
-    },
-    {
-      title: 'Giáo viên',
-      key: 'teacher',
-      render: (_: any, record: ClassSession) => {
-        return record.teacher
-          ? `${record.teacher.firstName} ${record.teacher.lastName}`
-          : <Text type="secondary">Chưa xếp gv</Text>;
-      },
-    },
-    {
-      title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
-      width: '160px',
-      render: (s: string) => {
-        let color = 'blue';
-        let label = 'Chưa diễn ra';
-
-        if (s === 'In-Progress') {
-          color = 'orange';
-          label = 'Đang học';
-        } else if (s === 'Completed') {
-          color = 'green';
-          label = 'Hoàn thành';
-        } else if (s === 'Cancelled') {
-          color = 'red';
-          label = 'Nghỉ học';
-        }
-        return <Tag color={color}>{label}</Tag>;
-      },
-    },
-    {
-      title: 'Hành động',
-      key: 'action',
-      width: '180px',
-      render: (_: any, record: ClassSession) => (
-        <Button
-          type="primary"
-          size="small"
-          style={{ background: 'rgba(99, 102, 241, 0.2)', border: '1px solid rgba(99, 102, 241, 0.4)', color: '#a5b4fc' }}
-          onClick={() => openSessionDetail(record)}
-        >
-          {record.status === 'Completed' ? 'Xem điểm danh' : 'Điểm danh / Đổi lịch'}
-        </Button>
-      ),
-    },
-  ];
-
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '12px 0' }}>
-      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <Button
           icon={<ArrowLeftOutlined />}
@@ -533,7 +350,6 @@ const ClassDetailInner: React.FC = () => {
         </Tag>
       </div>
 
-      {/* Ending Soon Warning */}
       {classData.finishDate && classData.status === 'Active' &&
         dayjs(classData.finishDate).diff(dayjs(), 'day') <= 7 &&
         dayjs(classData.finishDate).diff(dayjs(), 'day') >= 0 && (
@@ -561,132 +377,21 @@ const ClassDetailInner: React.FC = () => {
           {
             key: 'info',
             label: 'Thông tin chung',
-            children: (
-              <Row gutter={[24, 24]}>
-                <Col xs={24} md={16}>
-                  <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}>
-                    <Title level={5} style={{ color: '#fff', marginBottom: 16 }}>Chi tiết Lớp học</Title>
-                    <Descriptions column={{ xs: 1, sm: 2 }} labelStyle={{ color: 'rgba(255,255,255,0.5)' }} contentStyle={{ color: '#fff' }}>
-                      <Descriptions.Item label="Trung tâm">{classData.center?.name || '-'}</Descriptions.Item>
-                      <Descriptions.Item label="Chương trình">{classData.course?.name || '-'}</Descriptions.Item>
-                      <Descriptions.Item label="Mức độ (Level)">{classData.courseLevel?.levelName || '-'}</Descriptions.Item>
-                      <Descriptions.Item label="Giáo viên chính">
-                        {classData.mainTeacher ? `${classData.mainTeacher.firstName} ${classData.mainTeacher.lastName}` : '-'}
-                      </Descriptions.Item>
-                      <Descriptions.Item label="Khai giảng">{classData.startDate ? dayjs(classData.startDate).format('DD/MM/YYYY') : '-'}</Descriptions.Item>
-                      <Descriptions.Item label="Kết thúc dự kiến">{classData.finishDate ? dayjs(classData.finishDate).format('DD/MM/YYYY') : 'Chưa định'}</Descriptions.Item>
-                      <Descriptions.Item label="Sĩ số tối đa">{classData.maxSize || 'Không giới hạn'}</Descriptions.Item>
-                      <Descriptions.Item label="Bỏ qua ngày lễ">{classData.skipHolidays ? 'Có' : 'Không'}</Descriptions.Item>
-                    </Descriptions>
-                    {classData.description && (
-                      <>
-                        <Divider style={{ margin: '12px 0', borderColor: 'rgba(255,255,255,0.06)' }} />
-                        <div style={{ color: '#fff' }}>
-                          <div style={{ color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>Ghi chú lớp:</div>
-                          <div>{classData.description}</div>
-                        </div>
-                      </>
-                    )}
-                  </Card>
-                </Col>
-                <Col xs={24} md={8}>
-                  <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', height: '100%' }}>
-                    <Title level={5} style={{ color: '#fff', marginBottom: 16 }}>Lịch học cố định</Title>
-                    {classData.schedules.length === 0 ? (
-                      <Text type="secondary">Chưa xếp lịch cố định.</Text>
-                    ) : (
-                      <List
-                        dataSource={classData.schedules}
-                        renderItem={item => (
-                          <List.Item style={{ borderColor: 'rgba(255,255,255,0.06)', padding: '12px 0' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                              <Badge status="processing" />
-                              <div>
-                                <Text strong style={{ color: '#fff' }}>Thứ: {item.weekday}</Text>
-                                <div>
-                                  <Text type="secondary" style={{ fontSize: '13px' }}>
-                                    <CalendarOutlined style={{ marginRight: 4 }} />
-                                    {item.startTime.substring(0,5)} - {item.endTime.substring(0,5)}
-                                  </Text>
-                                </div>
-                                {item.room && (
-                                  <div style={{ fontSize: '12px', color: '#a5b4fc' }}>
-                                    <EnvironmentOutlined style={{ marginRight: 4 }} />
-                                    {item.room.name}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </List.Item>
-                        )}
-                      />
-                    )}
-                  </Card>
-                </Col>
-              </Row>
-            )
+            children: <GeneralTab classData={classData} />
           },
           {
             key: 'students',
-            label: `Học sinh (${classData.students.filter(s => s.status === 'Active').length})`,
-            children: (
-              <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <Title level={5} style={{ color: '#fff', margin: 0 }}>Danh sách Học sinh trong lớp</Title>
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => setIsAddStudentVisible(true)}
-                    style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
-                  >
-                    Thêm Học sinh vào lớp
-                  </Button>
-                </div>
-                <Table
-                  columns={studentColumns}
-                  dataSource={classData.students}
-                  rowKey="id"
-                  pagination={false}
-                  size="small"
-                />
-              </Card>
-            )
+            label: `Học sinh (${classData.students.filter((s:any) => s.status === 'Active').length})`,
+            children: <StudentsTab classData={classData} setIsAddStudentVisible={setIsAddStudentVisible} handleKickStudent={handleKickStudent} handleReAddStudent={handleReAddStudent} />
           },
           {
             key: 'sessions',
             label: `Lịch dạy & Điểm danh (${sessions.length})`,
-            children: (
-              <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <div>
-                    <Title level={5} style={{ color: '#fff', margin: 0 }}>Danh sách các buổi học</Title>
-                    <Text type="secondary" style={{ fontSize: '13px' }}>
-                      Các buổi học được sinh tự động dựa trên Lịch học cố định từ ngày Khai giảng.
-                    </Text>
-                  </div>
-                  <Button
-                    type="dashed"
-                    icon={<CalendarOutlined />}
-                    onClick={handleGenerateSessions}
-                    style={{ color: '#a5b4fc', borderColor: '#6366f1' }}
-                  >
-                    {sessions.length === 0 ? 'Sinh các buổi học' : 'Sinh lại / Đồng bộ buổi học tương lai'}
-                  </Button>
-                </div>
-                <Table
-                  columns={sessionColumns}
-                  dataSource={sessions}
-                  rowKey="id"
-                  size="small"
-                  pagination={{ pageSize: 20 }}
-                />
-              </Card>
-            )
+            children: <ScheduleTab sessions={sessions} handleGenerateSessions={handleGenerateSessions} openSessionDetail={openSessionDetail} />
           }
         ]}
       />
 
-      {/* Add Student Modal */}
       <Modal
         title="Thêm Học sinh vào Lớp"
         open={isAddStudentVisible}
@@ -706,7 +411,7 @@ const ClassDetailInner: React.FC = () => {
             value={selectedStudentId}
           >
             {allStudents
-              .filter(s => !classData.students.some(cs => cs.studentId === s.id && cs.status === 'Active'))
+              .filter(s => !classData.students.some((cs:any) => cs.studentId === s.id && cs.status === 'Active'))
               .map(s => {
                 const fullName = `${s.lastName} ${s.firstName}`;
                 const contact = s.email || s.loginEmail || s.mobile || 'Không có liên hệ';
@@ -721,7 +426,6 @@ const ClassDetailInner: React.FC = () => {
         </div>
       </Modal>
 
-      {/* Session Details / Attendance Modal */}
       <Modal
         title={
           <div>
@@ -746,7 +450,6 @@ const ClassDetailInner: React.FC = () => {
               </Descriptions.Item>
             </Descriptions>
 
-            {/* Actions for session details */}
             <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
               {!currentSession.attendanceLocked && (
                 <>
@@ -777,7 +480,6 @@ const ClassDetailInner: React.FC = () => {
                   )}
                 </>
               )}
-              {/* Reschedule option for future sessions */}
               {dayjs(currentSession.date).isAfter(dayjs().subtract(1, 'day')) && !currentSession.attendanceLocked && currentSession.status !== 'Cancelled' && (
                 <Button
                   icon={<EditOutlined />}
@@ -855,7 +557,6 @@ const ClassDetailInner: React.FC = () => {
         )}
       </Modal>
 
-      {/* Edit Session Modal */}
       <Modal
         title="Thay đổi lịch học hoặc Giáo viên / Phòng học"
         open={isEditSessionVisible}

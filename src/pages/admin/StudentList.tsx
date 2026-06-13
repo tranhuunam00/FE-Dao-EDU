@@ -22,12 +22,13 @@ import {
   CloseCircleFilled,
   ReloadOutlined,
 } from '@ant-design/icons';
-import { Resizable, ResizeCallbackData } from 'react-resizable';
+import { Resizable } from 'react-resizable';
+import type { ResizeCallbackData } from 'react-resizable';
 import dayjs from 'dayjs';
 import api from '../../services/api';
 import { PROVINCE_OPTIONS } from '../../assets/vietnam_divisions';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 const { Option } = Select;
 
 interface StudentData {
@@ -107,7 +108,7 @@ const StudentListInner: React.FC = () => {
     };
   });
 
-  const handleResize = (key: string) => (e: React.SyntheticEvent, { size }: ResizeCallbackData) => {
+  const handleResize = (key: string) => (_e: React.SyntheticEvent, { size }: ResizeCallbackData) => {
     setColWidths(prev => {
       const next = { ...prev, [key]: size.width };
       localStorage.setItem('student-list-columns-width', JSON.stringify(next));
@@ -278,43 +279,15 @@ const StudentListInner: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '12px 0' }}>
-      {/* Header Bar */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '24px',
-          paddingBottom: '16px',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-        }}
-      >
-        <div>
-          <Title level={2} style={{ color: '#fff', margin: 0, fontFamily: 'Outfit' }}>
-            Danh sách Học sinh
-          </Title>
-          <Text style={{ color: 'var(--text-secondary)' }}>
-            Quản lý và cập nhật thông tin hồ sơ học sinh toàn hệ thống DAO EDU.
-          </Text>
-        </div>
-        <Button
-          type="primary"
-          icon={<UserAddOutlined />}
-          size="large"
-          style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
-          onClick={() => navigate('/admin/students/create')}
-        >
-          Thêm Học sinh mới
-        </Button>
-      </div>
+    <div style={{ width: '100%' }}>
 
       {/* Filters Card */}
       <Card
         className="glass-panel"
-        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: '24px' }}
+        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: '16px' }}
+        bodyStyle={{ padding: '8px 12px' }}
       >
-        <Row gutter={[16, 16]} align="middle">
+        <Row gutter={[12, 12]} align="middle">
           {/* Search Bar */}
           <Col xs={24} md={8}>
             <Input
@@ -328,7 +301,7 @@ const StudentListInner: React.FC = () => {
           </Col>
 
           {/* Status Filter */}
-          <Col xs={12} md={5}>
+          <Col xs={12} md={4}>
             <Select
               style={{ width: '100%' }}
               placeholder="Lọc trạng thái"
@@ -344,7 +317,7 @@ const StudentListInner: React.FC = () => {
           </Col>
 
           {/* Province Filter */}
-          <Col xs={12} md={5}>
+          <Col xs={12} md={4}>
             <Select
               showSearch
               style={{ width: '100%' }}
@@ -363,7 +336,7 @@ const StudentListInner: React.FC = () => {
           </Col>
 
           {/* Actions */}
-          <Col xs={24} md={6} style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+          <Col xs={24} md={8} style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
             <Button
               icon={<ReloadOutlined />}
               onClick={handleResetFilters}
@@ -378,6 +351,14 @@ const StudentListInner: React.FC = () => {
               style={{ background: 'var(--primary)', border: 'none' }}
             >
               Tìm kiếm
+            </Button>
+            <Button
+              type="primary"
+              icon={<UserAddOutlined />}
+              style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
+              onClick={() => navigate('/admin/students/create')}
+            >
+              Thêm mới
             </Button>
           </Col>
         </Row>

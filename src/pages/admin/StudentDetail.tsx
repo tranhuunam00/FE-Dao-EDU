@@ -1,87 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  ConfigProvider,
-  Form,
-  Input,
-  DatePicker,
-  Select,
-  Button,
-  Tabs,
-  Card,
-  Row,
-  Col,
-  Space,
-  theme,
-  App,
-  Divider,
-  Avatar,
-  Upload,
-  Spin,
-  Tag,
-  Table,
-  Modal,
-  Typography,
-  Alert,
+  ConfigProvider, Form, Button, Tabs, Space, theme, App, Avatar, Upload, Spin, Tag, Modal, Select, Typography
 } from 'antd';
 import {
-  SaveOutlined,
-  ArrowLeftOutlined,
-  UserOutlined,
-  PhoneOutlined,
-  MailOutlined,
-  CalendarOutlined,
-  EnvironmentOutlined,
-  IdcardOutlined,
-  TeamOutlined,
-  LockOutlined,
-  CameraOutlined,
-  PlusOutlined,
-  DeleteOutlined,
-  DollarOutlined,
-  SearchOutlined,
+  SaveOutlined, ArrowLeftOutlined, UserOutlined, LockOutlined, TeamOutlined, CameraOutlined, DollarOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../services/api';
-import { PROVINCE_OPTIONS, DISTRICT_WARD_MAP } from '../../assets/vietnam_divisions';
+
+import { OverviewTab } from './StudentDetailTabs/OverviewTab';
+import { AccountTab } from './StudentDetailTabs/AccountTab';
+import { StatusTab } from './StudentDetailTabs/StatusTab';
+import { ClassesTab } from './StudentDetailTabs/ClassesTab';
+import { TuitionTab } from './StudentDetailTabs/TuitionTab';
 
 const { Option } = Select;
-const { TextArea } = Input;
 const { Text } = Typography;
-
-const RELATIONSHIP_OPTIONS = ['Bố', 'Mẹ', 'Anh', 'Chị', 'Ông', 'Bà', 'Người giám hộ khác'];
-
-interface StudentDetailData {
-  id: string;
-  studentId: string;
-  firstName: string;
-  lastName: string;
-  nickName?: string;
-  gender: string;
-  mobile: string;
-  email?: string;
-  birthdate: string;
-  parentGuardian1?: string;
-  parentGuardian2?: string;
-  parent1CitizenId?: string;
-  parent2CitizenId?: string;
-  studentCitizenId?: string;
-  relationship1?: string;
-  relationship2?: string;
-  otherPhone1?: string;
-  otherPhone2?: string;
-  description?: string;
-  country?: string;
-  province?: string;
-  districtWard?: string;
-  primaryAddress: string;
-  oldAddress?: string;
-  status: string;
-  avatar?: string;
-  loginEmail?: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -109,7 +44,7 @@ const StudentDetailInner: React.FC = () => {
   const { message, modal } = App.useApp();
   const [form] = Form.useForm();
 
-  const [student, setStudent] = useState<StudentDetailData | null>(null);
+  const [student, setStudent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [submittable, setSubmittable] = useState(false);
@@ -122,7 +57,6 @@ const StudentDetailInner: React.FC = () => {
   const [isAddClassVisible, setIsAddClassVisible] = useState(false);
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
 
-  // Tuition report state
   const [tuitionReport, setTuitionReport] = useState<any>(null);
   const [tuitionLoading, setTuitionLoading] = useState(false);
   const [tuitionDateRange, setTuitionDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null]>([null, null]);
@@ -170,7 +104,7 @@ const StudentDetailInner: React.FC = () => {
     if (!id) return;
     try {
       const res = await api.get(`/students/${id}`);
-      const data: StudentDetailData = res.data;
+      const data = res.data;
       setStudent(data);
       setAvatarPreview(data.avatar || undefined);
 
@@ -243,7 +177,6 @@ const StudentDetailInner: React.FC = () => {
   const birthdate = Form.useWatch('birthdate', form);
   const age = birthdate ? dayjs().diff(dayjs(birthdate), 'year') : null;
 
-  // Fetch student details
   useEffect(() => {
     const loadAll = async () => {
       setLoading(true);
@@ -340,7 +273,6 @@ const StudentDetailInner: React.FC = () => {
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '12px 0' }}>
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
-        {/* Header */}
         <div
           style={{
             display: 'flex',
@@ -352,7 +284,6 @@ const StudentDetailInner: React.FC = () => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            {/* Avatar with upload */}
             <div style={{ position: 'relative' }}>
               <Avatar
                 size={72}
@@ -364,53 +295,28 @@ const StudentDetailInner: React.FC = () => {
                   boxShadow: '0 0 20px rgba(99, 102, 241, 0.3)',
                 }}
               />
-              <Upload
-                accept="image/*"
-                showUploadList={false}
-                beforeUpload={() => false}
-                onChange={handleAvatarChange}
-              >
+              <Upload accept="image/*" showUploadList={false} beforeUpload={() => false} onChange={handleAvatarChange}>
                 <div
                   style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    right: 0,
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '50%',
-                    background: '#6366f1',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+                    position: 'absolute', bottom: 0, right: 0, width: '24px', height: '24px',
+                    borderRadius: '50%', background: '#6366f1', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
                   }}
                 >
                   <CameraOutlined style={{ fontSize: '12px', color: '#fff' }} />
                 </div>
               </Upload>
             </div>
-
-            {/* Student info header */}
             <div>
               <h2 style={{ fontSize: '1.6rem', color: '#fff', margin: 0, fontFamily: 'Outfit' }}>
                 {student.lastName} {student.firstName}
-                {student.nickName && (
-                  <span style={{ fontSize: '1rem', color: '#9ca3af', fontWeight: 400, marginLeft: '8px' }}>
-                    ({student.nickName})
-                  </span>
-                )}
+                {student.nickName && <span style={{ fontSize: '1rem', color: '#9ca3af', fontWeight: 400, marginLeft: '8px' }}>({student.nickName})</span>}
               </h2>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '6px' }}>
                 <span
                   style={{
-                    background: 'rgba(99, 102, 241, 0.15)',
-                    color: '#818cf8',
-                    padding: '2px 10px',
-                    borderRadius: '6px',
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                    border: '1px solid rgba(99, 102, 241, 0.3)',
+                    background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', padding: '2px 10px',
+                    borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600, border: '1px solid rgba(99, 102, 241, 0.3)',
                   }}
                 >
                   {student.studentId}
@@ -418,26 +324,18 @@ const StudentDetailInner: React.FC = () => {
                 <Tag
                   color={getStatusColor(currentStatus || student.status) === '#f59e0b' ? 'warning'
                     : getStatusColor(currentStatus || student.status) === '#10b981' ? 'success'
-                    : getStatusColor(currentStatus || student.status) === '#ef4444' ? 'error'
-                    : 'processing'}
+                      : getStatusColor(currentStatus || student.status) === '#ef4444' ? 'error'
+                        : 'processing'}
                 >
                   {getStatusLabel(currentStatus || student.status)}
                 </Tag>
-                {student.loginEmail && (
-                  <span style={{ color: '#4ade80', fontSize: '0.8rem' }}>
-                    ✓ Có tài khoản đăng nhập
-                  </span>
-                )}
+                {student.loginEmail && <span style={{ color: '#4ade80', fontSize: '0.8rem' }}>✓ Có tài khoản đăng nhập</span>}
               </div>
             </div>
           </div>
 
           <Space size="middle">
-            <Button
-              icon={<ArrowLeftOutlined />}
-              onClick={() => navigate('/admin/students')}
-              style={{ background: 'transparent' }}
-            >
+            <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/admin/students')} style={{ background: 'transparent' }}>
               Quay lại
             </Button>
             <Button
@@ -453,7 +351,6 @@ const StudentDetailInner: React.FC = () => {
           </Space>
         </div>
 
-        {/* Tabs */}
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
@@ -462,571 +359,34 @@ const StudentDetailInner: React.FC = () => {
             {
               key: 'overview',
               label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><UserOutlined /> Thông tin</span>,
-              children: (
-                <Row gutter={[24, 24]}>
-                  <Col xs={24} lg={15}>
-                    {/* Personal Info */}
-                    <Card
-                      title={<span style={{ fontFamily: 'Outfit' }}><UserOutlined /> Thông tin cá nhân</span>}
-                      className="glass-panel"
-                      style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
-                    >
-                      <Row gutter={16}>
-                        <Col xs={12}>
-                          <Form.Item
-                            name="lastName"
-                            label="Họ đệm"
-                            rules={[{ required: true, message: 'Vui lòng nhập họ đệm' }]}
-                          >
-                            <Input prefix={<UserOutlined style={{ color: '#6b7280' }} />} />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={12}>
-                          <Form.Item
-                            name="firstName"
-                            label="Tên"
-                            rules={[{ required: true, message: 'Vui lòng nhập tên' }]}
-                          >
-                            <Input prefix={<UserOutlined style={{ color: '#6b7280' }} />} />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-
-                      <Row gutter={16}>
-                        <Col xs={12}>
-                          <Form.Item name="nickName" label="Biệt danh">
-                            <Input prefix={<UserOutlined style={{ color: '#6b7280' }} />} />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={12}>
-                          <Form.Item name="gender" label="Giới tính" rules={[{ required: true }]}>
-                            <Select>
-                              <Option value="Nam">Nam</Option>
-                              <Option value="Nữ">Nữ</Option>
-                              <Option value="Khác">Khác</Option>
-                            </Select>
-                          </Form.Item>
-                        </Col>
-                      </Row>
-
-                      <Row gutter={16}>
-                        <Col xs={12}>
-                          <Form.Item name="birthdate" label="Ngày sinh" rules={[{ required: true }]}>
-                            <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={12}>
-                          <Form.Item label="Tuổi">
-                            <Input
-                              value={age !== null ? `${age} tuổi` : '—'}
-                              disabled
-                              style={{ background: 'rgba(0,0,0,0.2)', color: '#9ca3af' }}
-                            />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-
-                      <Form.Item name="studentCitizenId" label="Số CCCD học sinh">
-                        <Input prefix={<IdcardOutlined style={{ color: '#6b7280' }} />} />
-                      </Form.Item>
-                    </Card>
-
-                    {/* Guardian Info */}
-                    <Card
-                      title={<span style={{ fontFamily: 'Outfit' }}><TeamOutlined /> Phụ huynh / Người giám hộ</span>}
-                      className="glass-panel"
-                      style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginTop: '24px' }}
-                    >
-                      <Divider orientation={'left' as any} style={{ margin: '0 0 16px 0', borderColor: 'rgba(255,255,255,0.06)' }}>Người giám hộ 1</Divider>
-                      <Row gutter={16}>
-                        <Col xs={12}>
-                          <Form.Item name="parentGuardian1" label="Họ và tên">
-                            <Input prefix={<UserOutlined style={{ color: '#6b7280' }} />} />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={12}>
-                          <Form.Item name="relationship1" label="Quan hệ">
-                            <Select placeholder="Chọn mối quan hệ" allowClear>
-                              {RELATIONSHIP_OPTIONS.map(opt => <Option key={opt} value={opt}>{opt}</Option>)}
-                            </Select>
-                          </Form.Item>
-                        </Col>
-                      </Row>
-                      <Row gutter={16}>
-                        <Col xs={12}>
-                          <Form.Item name="parent1CitizenId" label="Số CCCD">
-                            <Input prefix={<IdcardOutlined style={{ color: '#6b7280' }} />} />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={12}>
-                          <Form.Item name="otherPhone1" label="Số điện thoại phụ">
-                            <Input prefix={<PhoneOutlined style={{ color: '#6b7280' }} />} />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-
-                      <Divider orientation={'left' as any} style={{ margin: '16px 0', borderColor: 'rgba(255,255,255,0.06)' }}>Người giám hộ 2</Divider>
-                      <Row gutter={16}>
-                        <Col xs={12}>
-                          <Form.Item name="parentGuardian2" label="Họ và tên">
-                            <Input prefix={<UserOutlined style={{ color: '#6b7280' }} />} />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={12}>
-                          <Form.Item name="relationship2" label="Quan hệ">
-                            <Select placeholder="Chọn mối quan hệ" allowClear>
-                              {RELATIONSHIP_OPTIONS.map(opt => <Option key={opt} value={opt}>{opt}</Option>)}
-                            </Select>
-                          </Form.Item>
-                        </Col>
-                      </Row>
-                      <Row gutter={16}>
-                        <Col xs={12}>
-                          <Form.Item name="parent2CitizenId" label="Số CCCD">
-                            <Input prefix={<IdcardOutlined style={{ color: '#6b7280' }} />} />
-                          </Form.Item>
-                        </Col>
-                        <Col xs={12}>
-                          <Form.Item name="otherPhone2" label="Số điện thoại phụ">
-                            <Input prefix={<PhoneOutlined style={{ color: '#6b7280' }} />} />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-                    </Card>
-                  </Col>
-
-                  <Col xs={24} lg={9}>
-                    {/* Contact & Address */}
-                    <Card
-                      title={<span style={{ fontFamily: 'Outfit' }}><EnvironmentOutlined /> Liên lạc & Địa chỉ</span>}
-                      className="glass-panel"
-                      style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
-                    >
-                      <Form.Item
-                        name="mobile"
-                        label="Số điện thoại chính"
-                        rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}
-                      >
-                        <Input prefix={<PhoneOutlined style={{ color: '#6b7280' }} />} />
-                      </Form.Item>
-
-                      <Form.Item name="email" label="Địa chỉ Email">
-                        <Input type="email" prefix={<MailOutlined style={{ color: '#6b7280' }} />} />
-                      </Form.Item>
-
-                      <Form.Item name="country" label="Quốc gia">
-                        <Input disabled style={{ background: 'rgba(0,0,0,0.2)', color: '#9ca3af' }} />
-                      </Form.Item>
-
-                      <Form.Item name="province" label="Tỉnh / Thành phố">
-                        <Select placeholder="Chọn Tỉnh/Thành phố" allowClear showSearch optionFilterProp="children">
-                          {PROVINCE_OPTIONS.map(opt => <Option key={opt.value} value={opt.value}>{opt.label}</Option>)}
-                        </Select>
-                      </Form.Item>
-
-                      <Form.Item name="districtWard" label="Phường / Xã">
-                        <Select placeholder="Chọn Phường/Xã" disabled={!selectedProvince} allowClear showSearch>
-                          {(DISTRICT_WARD_MAP[selectedProvince] || []).map((opt: string) => (
-                            <Option key={opt} value={opt}>{opt}</Option>
-                          ))}
-                        </Select>
-                      </Form.Item>
-
-                      <Form.Item
-                        name="primaryAddress"
-                        label="Địa chỉ chi tiết (Thường trú)"
-                        rules={[{ required: true, message: 'Vui lòng nhập địa chỉ' }]}
-                      >
-                        <TextArea rows={2} />
-                      </Form.Item>
-
-                      <Form.Item name="oldAddress" label="Địa chỉ cũ (nếu có)">
-                        <TextArea rows={1} />
-                      </Form.Item>
-                    </Card>
-
-                    {/* Notes */}
-                    <Card
-                      title={<span style={{ fontFamily: 'Outfit' }}><CalendarOutlined /> Ghi chú</span>}
-                      className="glass-panel"
-                      style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginTop: '24px' }}
-                    >
-                      <Form.Item name="description" label="Ghi chú về học sinh">
-                        <TextArea rows={4} placeholder="Sức khỏe, học lực, năng khiếu..." />
-                      </Form.Item>
-                    </Card>
-
-                    {/* Meta info */}
-                    <Card
-                      className="glass-panel"
-                      style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginTop: '24px' }}
-                    >
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ color: '#9ca3af', fontSize: '0.85rem' }}>Ngày tạo:</span>
-                          <span style={{ color: '#d1d5db', fontSize: '0.85rem' }}>
-                            {dayjs(student.createdAt).format('DD/MM/YYYY HH:mm')}
-                          </span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ color: '#9ca3af', fontSize: '0.85rem' }}>Cập nhật lần cuối:</span>
-                          <span style={{ color: '#d1d5db', fontSize: '0.85rem' }}>
-                            {dayjs(student.updatedAt).format('DD/MM/YYYY HH:mm')}
-                          </span>
-                        </div>
-                      </div>
-                    </Card>
-                  </Col>
-                </Row>
-              ),
+              children: <OverviewTab student={student} age={age} selectedProvince={selectedProvince} />
             },
             {
               key: 'login',
               label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><LockOutlined /> Tài khoản</span>,
-              children: (
-                <Card
-                  title={<span style={{ fontFamily: 'Outfit' }}><LockOutlined /> Tài khoản đăng nhập học sinh</span>}
-                  className="glass-panel"
-                  style={{ maxWidth: '600px', margin: '0 auto', border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
-                >
-                  {student.loginEmail ? (
-                    <div
-                      style={{
-                        background: 'rgba(74, 222, 128, 0.08)',
-                        border: '1px solid rgba(74, 222, 128, 0.2)',
-                        borderRadius: '8px',
-                        padding: '12px 16px',
-                        marginBottom: '20px',
-                        color: '#4ade80',
-                        fontSize: '0.9rem',
-                      }}
-                    >
-                      ✓ Học sinh này đã có tài khoản đăng nhập: <strong>{student.loginEmail}</strong>
-                    </div>
-                  ) : (
-                    <div
-                      style={{
-                        background: 'rgba(245, 158, 11, 0.08)',
-                        border: '1px solid rgba(245, 158, 11, 0.2)',
-                        borderRadius: '8px',
-                        padding: '12px 16px',
-                        marginBottom: '20px',
-                        color: '#f59e0b',
-                        fontSize: '0.9rem',
-                      }}
-                    >
-                      ⚠ Học sinh này chưa có tài khoản đăng nhập. Điền email và mật khẩu để tạo tài khoản.
-                    </div>
-                  )}
-
-                  <Form.Item
-                    name="loginEmail"
-                    label="Email đăng nhập"
-                    rules={[
-                      { required: true, message: 'Vui lòng điền email đăng nhập' },
-                      { type: 'email', message: 'Địa chỉ email không hợp lệ' }
-                    ]}
-                  >
-                    <Input
-                      placeholder="student.login@gmail.com"
-                      prefix={<MailOutlined style={{ color: '#6b7280' }} />}
-                    />
-                  </Form.Item>
-
-                  <Form.Item name="loginPassword" label="Mật khẩu mới (để trống nếu không đổi)">
-                    <Input.Password
-                      placeholder="Nhập mật khẩu mới..."
-                      prefix={<LockOutlined style={{ color: '#6b7280' }} />}
-                    />
-                  </Form.Item>
-                </Card>
-              ),
+              children: <AccountTab student={student} />
             },
             {
               key: 'membership',
               label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><TeamOutlined /> Trạng thái</span>,
-              children: (
-                <Card
-                  title={<span style={{ fontFamily: 'Outfit' }}><TeamOutlined /> Trạng thái học sinh</span>}
-                  className="glass-panel"
-                  style={{ maxWidth: '600px', margin: '0 auto', border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
-                >
-                  <Form.Item
-                    name="status"
-                    label="Trạng thái học tập"
-                    rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
-                  >
-                    <Select placeholder="Chọn trạng thái">
-                      <Option value="Waiting for class">Chờ xếp lớp (Waiting for class)</Option>
-                      <Option value="Studying">Đang học (Studying)</Option>
-                      <Option value="Suspended">Tạm nghỉ (Suspended)</Option>
-                      <Option value="Graduated">Đã tốt nghiệp (Graduated)</Option>
-                    </Select>
-                  </Form.Item>
-                </Card>
-              ),
+              children: <StatusTab />
             },
             {
               key: 'classes',
               label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><TeamOutlined /> Lớp học ({studentClasses.filter(c => c.status === 'Active').length})</span>,
-              children: (
-                <Card
-                  title={
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontFamily: 'Outfit' }}><TeamOutlined /> Danh sách Lớp học tham gia</span>
-                      <Button
-                        type="primary"
-                        icon={<PlusOutlined />}
-                        onClick={() => setIsAddClassVisible(true)}
-                        style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
-                      >
-                        Thêm vào lớp
-                      </Button>
-                    </div>
-                  }
-                  className="glass-panel"
-                  style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
-                >
-                  <Table
-                    dataSource={studentClasses}
-                    rowKey="id"
-                    pagination={false}
-                    size="small"
-                    columns={[
-                      {
-                        title: 'Mã lớp',
-                        dataIndex: ['classEntity', 'classCode'],
-                        key: 'classCode',
-                        render: (text, record: any) => (
-                          <Button
-                            type="link"
-                            onClick={() => navigate(`/admin/classes/${record.classId}`)}
-                            style={{ padding: 0, height: 'auto', fontWeight: 600, color: '#818cf8' }}
-                          >
-                            {text}
-                          </Button>
-                        ),
-                      },
-                      {
-                        title: 'Tên lớp',
-                        dataIndex: ['classEntity', 'className'],
-                        key: 'className',
-                      },
-                      {
-                        title: 'Khóa học',
-                        dataIndex: ['classEntity', 'course', 'name'],
-                        key: 'courseName',
-                      },
-                      {
-                        title: 'Trung tâm',
-                        dataIndex: ['classEntity', 'center', 'name'],
-                        key: 'centerName',
-                      },
-                      {
-                        title: 'Ngày tham gia',
-                        dataIndex: 'joinedDate',
-                        key: 'joinedDate',
-                        render: (v) => dayjs(v).format('DD/MM/YYYY'),
-                      },
-                      {
-                        title: 'Trạng thái',
-                        dataIndex: 'status',
-                        key: 'status',
-                        render: (s) => (
-                          <Tag color={s === 'Active' ? 'green' : 'red'}>
-                            {s === 'Active' ? 'Đang học' : 'Đã dừng học (Dropped)'}
-                          </Tag>
-                        )
-                      },
-                      {
-                        title: 'Hành động',
-                        key: 'action',
-                        width: 80,
-                        render: (_, record) => record.status === 'Active' && (
-                          <Button
-                            danger
-                            type="text"
-                            icon={<DeleteOutlined />}
-                            onClick={() => handleRemoveClass(record.classId, record.classEntity.className)}
-                          />
-                        )
-                      }
-                    ]}
-                  />
-                </Card>
-              )
+              children: <ClassesTab studentClasses={studentClasses} setIsAddClassVisible={setIsAddClassVisible} navigate={navigate} handleRemoveClass={handleRemoveClass} />
             },
             {
               key: 'tuition',
               label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><DollarOutlined /> Tính học phí</span>,
-              children: (
-                <div>
-                  <Card
-                    title={<span style={{ fontFamily: 'Outfit' }}><DollarOutlined /> Tính học phí theo khoảng thời gian</span>}
-                    className="glass-panel"
-                    style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: 16 }}
-                  >
-                    <Space size="middle" wrap>
-                      <div>
-                        <span style={{ color: 'rgba(255,255,255,0.6)', marginRight: 8, fontSize: '13px' }}>Khoảng thời gian:</span>
-                        <DatePicker.RangePicker
-                          value={tuitionDateRange}
-                          onChange={(vals) => setTuitionDateRange(vals as [dayjs.Dayjs | null, dayjs.Dayjs | null])}
-                          format="DD/MM/YYYY"
-                          placeholder={['Từ ngày', 'Đến ngày']}
-                        />
-                      </div>
-                      <Button
-                        type="primary"
-                        icon={<SearchOutlined />}
-                        onClick={fetchTuitionReport}
-                        loading={tuitionLoading}
-                        style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
-                      >
-                        Tính học phí
-                      </Button>
-                    </Space>
-                  </Card>
-
-                  {tuitionReport && (
-                    <>
-                      <Row gutter={16} style={{ marginBottom: 16 }}>
-                        <Col xs={12} md={8}>
-                          <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', textAlign: 'center' }}>
-                            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginBottom: 4 }}>Tổng buổi có mặt (tính tiền)</div>
-                            <div style={{ color: '#10b981', fontSize: '24px', fontWeight: 700 }}>{tuitionReport.totalSessions}</div>
-                          </Card>
-                        </Col>
-                        <Col xs={12} md={8}>
-                          <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', textAlign: 'center' }}>
-                            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginBottom: 4 }}>Tổng buổi đã hoàn thành</div>
-                            <div style={{ color: '#6366f1', fontSize: '24px', fontWeight: 700 }}>{(tuitionReport.sessions || []).length}</div>
-                          </Card>
-                        </Col>
-                        <Col xs={12} md={8}>
-                          <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', textAlign: 'center' }}>
-                            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginBottom: 4 }}>Tổng học phí</div>
-                            <div style={{ color: '#f59e0b', fontSize: '22px', fontWeight: 700 }}>
-                              {(tuitionReport.totalAmount || 0).toLocaleString('vi-VN')}&nbsp;₫
-                            </div>
-                          </Card>
-                        </Col>
-                      </Row>
-                      <Card
-                        title={<span style={{ fontFamily: 'Outfit' }}><DollarOutlined /> Lịch sử đơn giá chương trình học áp dụng trong kỳ</span>}
-                        className="glass-panel"
-                        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: 16 }}
-                      >
-                        <Table
-                          dataSource={tuitionReport.pricingHistory || []}
-                          rowKey="id"
-                          pagination={false}
-                          size="small"
-                          columns={[
-                            { title: 'Level', dataIndex: 'levelName', key: 'levelName' },
-                            {
-                              title: 'Đơn giá học viên',
-                              dataIndex: 'pricePerSession',
-                              render: (v: number) => <Text strong style={{ color: '#34d399' }}>{Number(v).toLocaleString()}đ</Text>,
-                            },
-                            {
-                              title: 'Từ ngày',
-                              dataIndex: 'effectiveFrom',
-                              render: (v: string) => dayjs(v).format('DD/MM/YYYY'),
-                            },
-                            {
-                              title: 'Đến ngày',
-                              dataIndex: 'effectiveTo',
-                              render: (v: string | null) => v ? dayjs(v).format('DD/MM/YYYY') : <Tag color="green">Hiện hành</Tag>,
-                            },
-                          ]}
-                        />
-                      </Card>
-                      <Card
-                        title={<span style={{ fontFamily: 'Outfit' }}>Chi tiết từng buổi học</span>}
-                        className="glass-panel"
-                        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
-                      >
-                        <Table
-                          dataSource={tuitionReport.sessions || []}
-                          rowKey="id"
-                          pagination={{ pageSize: 15 }}
-                          size="small"
-                          columns={[
-                            { title: 'Ngày', dataIndex: 'date', key: 'date', width: 120, render: (v: string) => dayjs(v).format('DD/MM/YYYY') },
-                            { title: 'Lớp học', dataIndex: 'className', key: 'className' },
-                            {
-                              title: 'Chương trình & Level', key: 'course',
-                              render: (_: any, r: any) => (
-                                <div>
-                                  <Text strong style={{ color: '#fff' }}>{r.courseName || '-'}</Text>
-                                  <div style={{ fontSize: '11px', color: '#818cf8' }}>Level: {r.levelName || '-'}</div>
-                                </div>
-                              ),
-                            },
-                            {
-                              title: 'Trạng thái', dataIndex: 'isPresent', key: 'isPresent', width: 120,
-                              render: (v: boolean) => v ? <Tag color="success">✓ Có mặt</Tag> : <Tag color="error">✗ Vắng mặt</Tag>,
-                            },
-                            {
-                              title: 'Giá/buổi', key: 'rate', width: 180,
-                              render: (_: any, r: any) => (
-                                <div>
-                                  <Text style={{ color: '#a5b4fc' }}>{(r.rate || 0).toLocaleString('vi-VN')}&nbsp;₫</Text>
-                                  {r.pricingEffectiveFrom && (
-                                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
-                                      {`Giá áp dụng: ${dayjs(r.pricingEffectiveFrom).format('DD/MM/YY')}${r.pricingEffectiveTo ? ` - ${dayjs(r.pricingEffectiveTo).format('DD/MM/YY')}` : ' +'}`}
-                                    </div>
-                                  )}
-                                </div>
-                              ),
-                            },
-                            {
-                              title: 'Thành tiền', dataIndex: 'amount', key: 'amount', width: 140,
-                              render: (v: number) => <Text strong style={{ color: '#f59e0b' }}>{(v || 0).toLocaleString('vi-VN')}&nbsp;₫</Text>,
-                            },
-                          ]}
-                          summary={() => (
-                            <Table.Summary.Row>
-                              <Table.Summary.Cell index={0} colSpan={5}>
-                                <Text strong style={{ color: '#fff' }}>Tổng cộng</Text>
-                              </Table.Summary.Cell>
-                              <Table.Summary.Cell index={1}>
-                                <Text strong style={{ color: '#f59e0b', fontSize: '16px' }}>
-                                  {(tuitionReport.totalAmount || 0).toLocaleString('vi-VN')}&nbsp;₫
-                                </Text>
-                              </Table.Summary.Cell>
-                            </Table.Summary.Row>
-                          )}
-                        />
-                      </Card>
-                    </>
-                  )}
-
-                  {!tuitionReport && !tuitionLoading && (
-                    <Alert
-                      type="info"
-                      showIcon
-                      message="Hướng dẫn"
-                      description="Chọn khoảng thời gian và nhấn 'Tính học phí' để xem báo cáo chi tiết học phí theo từng buổi học có mặt và mức giá hiệu lực tại thời điểm buổi học đó."
-                      style={{ background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.2)' }}
-                    />
-                  )}
-                </div>
-              ),
+              children: <TuitionTab tuitionDateRange={tuitionDateRange} setTuitionDateRange={setTuitionDateRange} fetchTuitionReport={fetchTuitionReport} tuitionLoading={tuitionLoading} tuitionReport={tuitionReport} />
             },
           ]}
         />
 
-        {/* Bottom Action Bar */}
         <div
           style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginTop: '24px',
-            paddingTop: '16px',
-            borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.06)',
           }}
         >
           <span style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
@@ -1051,7 +411,6 @@ const StudentDetailInner: React.FC = () => {
         </div>
       </Form>
 
-      {/* Add Class Modal */}
       <Modal
         title="Thêm Học sinh vào Lớp học"
         open={isAddClassVisible}

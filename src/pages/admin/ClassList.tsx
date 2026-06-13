@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import {
   Table, Input, Select, Button, Card, Tag, Typography, Row, Col, App, ConfigProvider, theme,
 } from 'antd';
-import { SearchOutlined, PlusOutlined, ReloadOutlined, TeamOutlined } from '@ant-design/icons';
-import { Resizable, ResizeCallbackData } from 'react-resizable';
+import { SearchOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Resizable } from 'react-resizable';
+import type { ResizeCallbackData } from 'react-resizable';
 import dayjs from 'dayjs';
 import api from '../../services/api';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 const { Option } = Select;
 
 interface ClassData {
@@ -84,7 +85,7 @@ const ClassListInner: React.FC = () => {
     };
   });
 
-  const handleResize = (key: string) => (e: React.SyntheticEvent, { size }: ResizeCallbackData) => {
+  const handleResize = (key: string) => (_e: React.SyntheticEvent, { size }: ResizeCallbackData) => {
     setColWidths(prev => {
       const next = { ...prev, [key]: size.width };
       localStorage.setItem('class-list-columns-width', JSON.stringify(next));
@@ -260,42 +261,14 @@ const ClassListInner: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '12px 0' }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '24px',
-          paddingBottom: '16px',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-        }}
-      >
-        <div>
-          <Title level={2} style={{ color: '#fff', margin: 0, fontFamily: 'Outfit' }}>
-            <TeamOutlined style={{ marginRight: 12, color: '#6366f1' }} />
-            Lớp học
-          </Title>
-          <Text style={{ color: 'var(--text-secondary)' }}>
-            Quản lý các lớp học, gán giáo viên và phân bổ lịch học.
-          </Text>
-        </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          size="large"
-          style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
-          onClick={() => navigate('/admin/classes/create')}
-        >
-          Thêm Lớp học
-        </Button>
-      </div>
+    <div style={{ width: '100%' }}>
 
       <Card
         className="glass-panel"
-        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: '24px' }}
+        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: '16px' }}
+        bodyStyle={{ padding: '8px 12px' }}
       >
-        <Row gutter={[16, 16]} align="middle">
+        <Row gutter={[12, 12]} align="middle">
           <Col xs={24} md={6}>
             <Input
               placeholder="Tìm kiếm Tên lớp, Mã lớp..."
@@ -306,7 +279,7 @@ const ClassListInner: React.FC = () => {
               allowClear
             />
           </Col>
-          <Col xs={12} md={4}>
+          <Col xs={12} md={3}>
             <Select
               style={{ width: '100%' }}
               placeholder="Trạng thái"
@@ -320,7 +293,7 @@ const ClassListInner: React.FC = () => {
               <Option value="Closed">Đã đóng</Option>
             </Select>
           </Col>
-          <Col xs={12} md={5}>
+          <Col xs={12} md={4}>
             <Select
               style={{ width: '100%' }}
               placeholder="Trung tâm"
@@ -333,7 +306,7 @@ const ClassListInner: React.FC = () => {
               {centers.map(c => <Option key={c.id} value={c.id}>{c.name}</Option>)}
             </Select>
           </Col>
-          <Col xs={12} md={5}>
+          <Col xs={12} md={4}>
             <Select
               style={{ width: '100%' }}
               placeholder="Chương trình học"
@@ -346,7 +319,7 @@ const ClassListInner: React.FC = () => {
               {courses.map(c => <Option key={c.id} value={c.id}>{c.name}</Option>)}
             </Select>
           </Col>
-          <Col xs={24} md={4} style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+          <Col xs={24} md={7} style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
             <Button
               icon={<ReloadOutlined />}
               onClick={() => {
@@ -361,6 +334,14 @@ const ClassListInner: React.FC = () => {
               Làm mới
             </Button>
             <Button type="primary" icon={<SearchOutlined />} onClick={fetchClasses}>Tìm</Button>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
+              onClick={() => navigate('/admin/classes/create')}
+            >
+              Thêm mới
+            </Button>
           </Col>
         </Row>
       </Card>
