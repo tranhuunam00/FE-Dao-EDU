@@ -9,7 +9,8 @@ import {
   TeamOutlined, DownloadOutlined, CalculatorOutlined,
   CheckCircleOutlined, CloseCircleOutlined,
   ArrowLeftOutlined, PlusOutlined, LockOutlined,
-  UnlockOutlined, DeleteOutlined, FileTextOutlined
+  UnlockOutlined, DeleteOutlined, FileTextOutlined,
+  DollarOutlined, CalendarOutlined, CheckSquareOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../services/api';
@@ -40,7 +41,7 @@ const AccountingInner: React.FC = () => {
   const { message } = App.useApp();
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState('periods');
+  const [activeTab, setActiveTab] = useState('tuition-create');
 
   // Periods list state
   const [periods, setPeriods] = useState<any[]>([]);
@@ -52,18 +53,25 @@ const AccountingInner: React.FC = () => {
   const [periodDetailLoading, setPeriodDetailLoading] = useState(false);
   const [ordersFilter, setOrdersFilter] = useState<'All' | 'Paid' | 'Unpaid'>('All');
 
-  // Create period state
-  const [isCreateVisible, setIsCreateVisible] = useState(false);
-  const [createForm] = Form.useForm();
-  const formType = Form.useWatch('type', createForm);
-  const formMonth = Form.useWatch('month', createForm);
-  const formDateRange = Form.useWatch('dateRange', createForm);
+  // Preview / Create state (Tuition)
+  const [tuitionEndDate, setTuitionEndDate] = useState<any>(dayjs());
+  const [tuitionMonth, setTuitionMonth] = useState<any>(dayjs());
+  const [tuitionPreviewData, setTuitionPreviewData] = useState<any[]>([]);
+  const [tuitionPreviewLoading, setTuitionPreviewLoading] = useState(false);
+  const [tuitionSelectedRowKeys, setTuitionSelectedRowKeys] = useState<React.Key[]>([]);
+  const [tuitionPreviewSearch, setTuitionPreviewSearch] = useState('');
+  const [isTuitionModalVisible, setIsTuitionModalVisible] = useState(false);
+  const [tuitionPeriodName, setTuitionPeriodName] = useState('');
 
-  // Preview state
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewData, setPreviewData] = useState<any[]>([]);
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const [previewSearch, setPreviewSearch] = useState('');
+  // Preview / Create state (Salary)
+  const [salaryEndDate, setSalaryEndDate] = useState<any>(dayjs());
+  const [salaryMonth, setSalaryMonth] = useState<any>(dayjs());
+  const [salaryPreviewData, setSalaryPreviewData] = useState<any[]>([]);
+  const [salaryPreviewLoading, setSalaryPreviewLoading] = useState(false);
+  const [salarySelectedRowKeys, setSalarySelectedRowKeys] = useState<React.Key[]>([]);
+  const [salaryPreviewSearch, setSalaryPreviewSearch] = useState('');
+  const [isSalaryModalVisible, setIsSalaryModalVisible] = useState(false);
+  const [salaryPeriodName, setSalaryPeriodName] = useState('');
 
   // Update payment state
   const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
@@ -77,12 +85,11 @@ const AccountingInner: React.FC = () => {
   const [detailItems, setDetailItems] = useState<any[]>([]);
   const [detailType, setDetailType] = useState<'student' | 'teacher'>('student');
 
-  // Tab: Student tuition ad-hoc calculator state
+  // Ad-hoc states
   const [tuitionRange, setTuitionRange] = useState<[any, any]>([null, null]);
   const [tuitionData, setTuitionData] = useState<any>(null);
   const [tuitionLoading, setTuitionLoading] = useState(false);
 
-  // Tab: Teacher wage ad-hoc calculator state
   const [wagesRange, setWagesRange] = useState<[any, any]>([null, null]);
   const [wagesData, setWagesData] = useState<any>(null);
   const [wagesLoading, setWagesLoading] = useState(false);
@@ -124,111 +131,121 @@ const AccountingInner: React.FC = () => {
     }
   }, [activeTab, selectedPeriodId]);
 
-  // Handle auto-naming for new periods
-  useEffect(() => {
-    if (formType && formMonth) {
-      const typeLabel = formType === 'tuition' ? 'Thu học phí' : 'Trả lương GV';
-      const monthLabel = formMonth.format('MM/YYYY');
-      createForm.setFieldsValue({
-        name: `Đợt ${typeLabel} Tháng ${monthLabel}`
-      });
+  // -- ACTION: Tuition Preview --
+  const handleFetchTuitionPreview = async () => {
+    if (!tuitionEndDate) {
+      message.warning('Vui lòng chọn ngày chốt sổ');
+      return;
     }
-  }, [formType, formMonth, createForm]);
-
-  // Fetch preview candidates when parameters change
-  useEffect(() => {
-    const fetchPreviewCandidates = async () => {
-      if (!formType || !formDateRange || formDateRange.length < 2) {
-        setPreviewData([]);
-        setSelectedRowKeys([]);
-        return;
-      }
-      setPreviewLoading(true);
-      try {
-        const startStr = formDateRange[0].format('YYYY-MM-DD');
-        const endStr = formDateRange[1].format('YYYY-MM-DD');
-        if (formType === 'tuition') {
-          const { data } = await api.get('/students/tuition-bulk', {
-            params: { startDate: startStr, endDate: endStr }
-          });
-          const list = (data.students || []).filter((s: any) => s.totalAmount > 0);
-          setPreviewData(list);
-          setSelectedRowKeys(list.map((s: any) => s.studentId));
-        } else {
-          const { data } = await api.get('/teachers/wages-bulk', {
-            params: { startDate: startStr, endDate: endStr }
-          });
-          const list = (data.teachers || []).filter((t: any) => t.totalAmount > 0);
-          setPreviewData(list);
-          setSelectedRowKeys(list.map((t: any) => t.teacherId));
-        }
-      } catch (err) {
-        console.error('Lỗi khi tải bản xem trước', err);
-      } finally {
-        setPreviewLoading(false);
-      }
-    };
-    if (isCreateVisible) {
-      fetchPreviewCandidates();
-    }
-  }, [formType, formDateRange, isCreateVisible]);
-
-  // Filter preview candidates locally
-  const filteredPreviewData = previewData.filter(item => {
-    const query = previewSearch.toLowerCase().trim();
-    if (!query) return true;
-    const code = (item.studentCode || item.teacherCode || '').toLowerCase();
-    const name = (item.name || '').toLowerCase();
-    return code.includes(query) || name.includes(query);
-  });
-
-  // Action: Create Period
-  const handleCreatePeriod = async () => {
+    setTuitionPreviewLoading(true);
     try {
-      const values = await createForm.validateFields();
-      const payload: any = {
-        name: values.name,
-        type: values.type,
-        month: values.month.format('YYYY-MM'),
-        startDate: values.dateRange[0].format('YYYY-MM-DD'),
-        endDate: values.dateRange[1].format('YYYY-MM-DD'),
-      };
-      if (values.type === 'tuition') {
-        payload.studentIds = selectedRowKeys;
-      } else {
-        payload.teacherIds = selectedRowKeys;
+      const endStr = tuitionEndDate.format('YYYY-MM-DD');
+      const { data } = await api.get('/payment-periods/preview/tuition', {
+        params: { endDate: endStr }
+      });
+      const list = data.students || [];
+      setTuitionPreviewData(list);
+      setTuitionSelectedRowKeys(list.map((s: any) => s.studentId));
+      if (list.length === 0) {
+        message.info('Không có học sinh nào phát sinh học phí mới đến ngày này.');
       }
-      await api.post('/payment-periods', payload);
-      message.success('Đã tạo đợt thanh toán mới thành công!');
-      setIsCreateVisible(false);
-      createForm.resetFields();
-      setPreviewData([]);
-      setSelectedRowKeys([]);
-      setPreviewSearch('');
-      loadPeriods();
     } catch (err: any) {
-      if (err.name === 'ValidationError') return;
+      message.error(err.response?.data?.message || 'Lỗi khi tải danh sách học phí');
+    } finally {
+      setTuitionPreviewLoading(false);
+    }
+  };
+
+  // -- ACTION: Create Tuition Period --
+  const handleCreateTuitionPeriod = async () => {
+    if (!tuitionPeriodName.trim()) {
+      message.error('Vui lòng nhập tên đợt thu');
+      return;
+    }
+    try {
+      await api.post('/payment-periods', {
+        name: tuitionPeriodName,
+        type: 'tuition',
+        month: tuitionMonth.format('YYYY-MM'),
+        startDate: '2000-01-01', // Dummy
+        endDate: tuitionEndDate.format('YYYY-MM-DD'),
+        studentIds: tuitionSelectedRowKeys
+      });
+      message.success('Đã tạo đợt thu học phí thành công!');
+      setIsTuitionModalVisible(false);
+      setTuitionPreviewData([]);
+      setTuitionSelectedRowKeys([]);
+      setActiveTab('periods');
+      setSelectedPeriodId(null);
+    } catch (err: any) {
       message.error(err.response?.data?.message || 'Lỗi khi tạo đợt thanh toán');
     }
   };
 
-  // Action: Toggle period lock status
+  // -- ACTION: Salary Preview --
+  const handleFetchSalaryPreview = async () => {
+    if (!salaryEndDate) {
+      message.warning('Vui lòng chọn ngày chốt sổ');
+      return;
+    }
+    setSalaryPreviewLoading(true);
+    try {
+      const endStr = salaryEndDate.format('YYYY-MM-DD');
+      const { data } = await api.get('/payment-periods/preview/salary', {
+        params: { endDate: endStr }
+      });
+      const list = data.teachers || [];
+      setSalaryPreviewData(list);
+      setSalarySelectedRowKeys(list.map((t: any) => t.teacherId));
+      if (list.length === 0) {
+        message.info('Không có giáo viên nào phát sinh lương mới đến ngày này.');
+      }
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi tải danh sách lương');
+    } finally {
+      setSalaryPreviewLoading(false);
+    }
+  };
+
+  // -- ACTION: Create Salary Period --
+  const handleCreateSalaryPeriod = async () => {
+    if (!salaryPeriodName.trim()) {
+      message.error('Vui lòng nhập tên đợt chi trả');
+      return;
+    }
+    try {
+      await api.post('/payment-periods', {
+        name: salaryPeriodName,
+        type: 'salary',
+        month: salaryMonth.format('YYYY-MM'),
+        startDate: '2000-01-01', // Dummy
+        endDate: salaryEndDate.format('YYYY-MM-DD'),
+        teacherIds: salarySelectedRowKeys
+      });
+      message.success('Đã tạo đợt chi trả lương thành công!');
+      setIsSalaryModalVisible(false);
+      setSalaryPreviewData([]);
+      setSalarySelectedRowKeys([]);
+      setActiveTab('periods');
+      setSelectedPeriodId(null);
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi tạo đợt thanh toán');
+    }
+  };
+
+  // -- History Actions --
   const handleTogglePeriodStatus = async (record: any) => {
     const newStatus = record.status === 'Active' ? 'Closed' : 'Active';
     try {
       await api.patch(`/payment-periods/${record.id}/status`, { status: newStatus });
       message.success(newStatus === 'Closed' ? 'Đã khóa đợt thanh toán thành công!' : 'Đã mở khóa đợt thanh toán!');
-      if (selectedPeriodId === record.id) {
-        loadPeriodDetail(record.id);
-      } else {
-        loadPeriods();
-      }
+      if (selectedPeriodId === record.id) loadPeriodDetail(record.id);
+      else loadPeriods();
     } catch (err: any) {
       message.error(err.response?.data?.message || 'Lỗi khi đổi trạng thái đợt');
     }
   };
 
-  // Action: Delete Period
   const handleDeletePeriod = async (id: string) => {
     try {
       await api.delete(`/payment-periods/${id}`);
@@ -236,15 +253,12 @@ const AccountingInner: React.FC = () => {
       if (selectedPeriodId === id) {
         setSelectedPeriodId(null);
         setPeriodDetail(null);
-      } else {
-        loadPeriods();
-      }
+      } else loadPeriods();
     } catch (err: any) {
       message.error(err.response?.data?.message || 'Lỗi khi xóa đợt thanh toán');
     }
   };
 
-  // Action: Confirm full payment
   const handleConfirmFullPayment = async (order: any, type: 'tuition' | 'salary') => {
     try {
       await api.patch(`/payment-periods/orders/${type}/${order.id}`, {
@@ -260,7 +274,6 @@ const AccountingInner: React.FC = () => {
     }
   };
 
-  // Action: Revert payment status
   const handleRevertPayment = async (order: any, type: 'tuition' | 'salary') => {
     try {
       await api.patch(`/payment-periods/orders/${type}/${order.id}`, {
@@ -276,7 +289,6 @@ const AccountingInner: React.FC = () => {
     }
   };
 
-  // Action: Remove order from period
   const handleRemoveOrder = async (orderId: string, type: 'tuition' | 'salary') => {
     try {
       await api.delete(`/payment-periods/orders/${type}/${orderId}`);
@@ -287,7 +299,6 @@ const AccountingInner: React.FC = () => {
     }
   };
 
-  // Action: Open Edit Payment Modal
   const openEditPayment = (order: any) => {
     setCurrentOrder(order);
     paymentForm.setFieldsValue({
@@ -299,7 +310,6 @@ const AccountingInner: React.FC = () => {
     setIsPaymentModalVisible(true);
   };
 
-  // Action: Save Edit Payment
   const saveEditPayment = async () => {
     if (!currentOrder || !periodDetail) return;
     try {
@@ -319,7 +329,7 @@ const AccountingInner: React.FC = () => {
     }
   };
 
-  // Ad-hoc Student Tuition Calculator
+  // -- Ad-hoc Calculators --
   const fetchTuitionBulk = async () => {
     const [start, end] = tuitionRange;
     if (!start || !end) { message.warning('Vui lòng chọn khoảng thời gian.'); return; }
@@ -336,7 +346,6 @@ const AccountingInner: React.FC = () => {
     }
   };
 
-  // Ad-hoc Teacher Wages Calculator
   const fetchWagesBulk = async () => {
     const [start, end] = wagesRange;
     if (!start || !end) { message.warning('Vui lòng chọn khoảng thời gian.'); return; }
@@ -353,12 +362,9 @@ const AccountingInner: React.FC = () => {
     }
   };
 
-  // Detail Modal session breakdown display
   const showDetailModal = (record: any, type: 'student' | 'teacher') => {
     setDetailTitle(record.name);
-    const startStr = periodDetail?.period?.startDate ? dayjs(periodDetail.period.startDate).format('DD/MM/YYYY') : '—';
-    const endStr = periodDetail?.period?.endDate ? dayjs(periodDetail.period.endDate).format('DD/MM/YYYY') : '—';
-    setDetailPeriodText(`Kỳ thanh toán: từ ${startStr} đến ${endStr}`);
+    setDetailPeriodText('Kỳ tính sổ');
     setDetailItems(record.items || []);
     setDetailType(type);
     setDetailVisible(true);
@@ -372,11 +378,22 @@ const AccountingInner: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  const filteredTuition = tuitionPreviewData.filter(item => {
+    const query = tuitionPreviewSearch.toLowerCase().trim();
+    if (!query) return true;
+    return (item.studentCode || '').toLowerCase().includes(query) || (item.name || '').toLowerCase().includes(query);
+  });
+
+  const filteredSalary = salaryPreviewData.filter(item => {
+    const query = salaryPreviewSearch.toLowerCase().trim();
+    if (!query) return true;
+    return (item.teacherCode || '').toLowerCase().includes(query) || (item.name || '').toLowerCase().includes(query);
+  });
+
   const cardStyle = { border: 'none', background: 'rgba(17, 24, 39, 0.75)' };
 
   return (
     <div style={{ fontFamily: 'Inter, sans-serif' }}>
-      {/* Header */}
       <div style={{ marginBottom: 32 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
           <div style={{
@@ -390,7 +407,7 @@ const AccountingInner: React.FC = () => {
           <div>
             <Title level={3} style={{ margin: 0, fontFamily: 'Outfit', color: '#fff' }}>Kế Toán</Title>
             <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13 }}>
-              Tạo và quản lý các đợt thu học phí học viên và trả lương giáo viên
+              Tính học phí và lương hàng loạt cho toàn bộ học sinh / giáo viên
             </Text>
           </div>
         </div>
@@ -409,27 +426,301 @@ const AccountingInner: React.FC = () => {
         tabBarStyle={{ marginBottom: 24 }}
         items={[
           {
+            key: 'tuition-create',
+            label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><DollarOutlined /> Thu học phí tháng</span>,
+            children: (
+              <div>
+                <Card className="glass-panel" style={{ ...cardStyle, marginBottom: 20 }}>
+                  <Space size="middle" wrap align="center">
+                    <div>
+                      <Text style={{ color: 'rgba(255,255,255,0.55)', marginRight: 10, fontSize: 13 }}>Tháng áp dụng:</Text>
+                      <DatePicker
+                        picker="month"
+                        value={tuitionMonth}
+                        onChange={(v) => setTuitionMonth(v)}
+                        format="MM/YYYY"
+                        style={{ width: 140 }}
+                      />
+                    </div>
+                    <div>
+                      <Text style={{ color: 'rgba(255,255,255,0.55)', marginRight: 10, fontSize: 13 }}>Ngày chốt sổ:</Text>
+                      <DatePicker
+                        value={tuitionEndDate}
+                        onChange={(v) => setTuitionEndDate(v)}
+                        format="DD/MM/YYYY"
+                        style={{ width: 140 }}
+                      />
+                    </div>
+                    <Button
+                      type="primary"
+                      icon={<SearchOutlined />}
+                      onClick={handleFetchTuitionPreview}
+                      loading={tuitionPreviewLoading}
+                      size="large"
+                      style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
+                    >
+                      Xem danh sách
+                    </Button>
+                    {tuitionPreviewData.length > 0 && (
+                      <Button
+                        icon={<DownloadOutlined />}
+                        onClick={() => exportCSV(
+                          tuitionPreviewData,
+                          `Danh_sach_thu_hoc_phi_${tuitionMonth?.format('YYYY_MM')}.csv`,
+                          ['Mã HS', 'Họ tên', 'SĐT', 'Trạng thái', 'Tổng học phí (₫)'],
+                          ['studentCode', 'name', 'mobile', 'status', 'totalAmount']
+                        )}
+                        style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}
+                      >
+                        Xuất CSV
+                      </Button>
+                    )}
+                  </Space>
+                </Card>
+
+                {tuitionPreviewData.length > 0 && (
+                  <>
+                    <Row gutter={16} style={{ marginBottom: 20 }}>
+                      <Col xs={12} md={8}>
+                        <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
+                          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>Tổng học sinh</div>
+                          <div style={{ color: '#6366f1', fontSize: 24, fontWeight: 700 }}>{tuitionPreviewData.length}</div>
+                        </Card>
+                      </Col>
+                      <Col xs={12} md={8}>
+                        <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
+                          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>Tổng học phí dự kiến thu</div>
+                          <div style={{ color: '#38bdf8', fontSize: 20, fontWeight: 700 }}>
+                            {tuitionPreviewData.reduce((sum, s) => sum + s.totalAmount, 0).toLocaleString('vi-VN')} ₫
+                          </div>
+                        </Card>
+                      </Col>
+                      <Col xs={12} md={8}>
+                        <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
+                          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>Học sinh đã chọn tạo đợt</div>
+                          <div style={{ color: '#10b981', fontSize: 24, fontWeight: 700 }}>
+                            {tuitionSelectedRowKeys.length} / {tuitionPreviewData.length}
+                          </div>
+                        </Card>
+                      </Col>
+                    </Row>
+
+                    <Card
+                      className="glass-panel"
+                      style={cardStyle}
+                      title={
+                        <Space>
+                          <UserOutlined style={{ color: '#6366f1' }} />
+                          <span style={{ fontFamily: 'Outfit', color: '#fff' }}>Học phí tháng</span>
+                        </Space>
+                      }
+                      extra={
+                        <Space>
+                          <Input
+                            placeholder="Tìm kiếm mã, tên..."
+                            value={tuitionPreviewSearch}
+                            onChange={(e) => setTuitionPreviewSearch(e.target.value)}
+                            style={{ width: 200 }}
+                            allowClear
+                          />
+                          {tuitionSelectedRowKeys.length > 0 && (
+                            <Button
+                              type="primary"
+                              icon={<CheckSquareOutlined />}
+                              onClick={() => {
+                                setTuitionPeriodName(`Đợt thu học phí Tháng ${tuitionMonth.format('MM/YYYY')}`);
+                                setIsTuitionModalVisible(true);
+                              }}
+                              style={{ background: '#10b981', border: 'none' }}
+                            >
+                              Tạo đợt thu cho {tuitionSelectedRowKeys.length} HS
+                            </Button>
+                          )}
+                        </Space>
+                      }
+                    >
+                      <Table
+                        dataSource={filteredTuition}
+                        rowKey="studentId"
+                        pagination={{ pageSize: 20 }}
+                        size="small"
+                        rowSelection={{
+                          selectedRowKeys: tuitionSelectedRowKeys,
+                          onChange: (keys) => setTuitionSelectedRowKeys(keys),
+                        }}
+                        scroll={{ x: 'max-content' }}
+                        columns={[
+                          { title: 'Mã HS', dataIndex: 'studentCode', key: 'studentCode', width: 110, render: (v: string) => <Text style={{ color: '#818cf8', fontWeight: 600 }}>{v}</Text> },
+                          {
+                            title: 'Họ tên', dataIndex: 'name', key: 'name', width: 220,
+                            render: (v: string, r: any) => (
+                              <div>
+                                <Text style={{ color: '#fff' }}>{v}</Text>
+                                {r.nickName && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>({r.nickName})</div>}
+                              </div>
+                            ),
+                          },
+                          { title: 'SĐT', dataIndex: 'mobile', key: 'mobile', width: 130, render: (v: string) => <Text style={{ color: 'rgba(255,255,255,0.6)' }}>{v}</Text> },
+                          { title: 'Trạng thái học', dataIndex: 'status', key: 'status', width: 130, render: (v: string) => <Tag color={statusColor[v] || 'default'}>{statusLabel[v] || v}</Tag> },
+                          { title: 'Số buổi', dataIndex: 'totalSessions', key: 'totalSessions', width: 100, align: 'center', render: (v: number) => <Text style={{ color: '#10b981', fontWeight: 600 }}>{v}</Text> },
+                          { title: 'Số tiền cần thu', dataIndex: 'totalAmount', key: 'totalAmount', width: 160, align: 'right', render: (v: number) => <Text strong style={{ color: '#f59e0b', fontSize: 14 }}>{v.toLocaleString('vi-VN')} ₫</Text> },
+                        ]}
+                      />
+                    </Card>
+                  </>
+                )}
+              </div>
+            )
+          },
+          {
+            key: 'salary-create',
+            label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><TeamOutlined /> Chi trả lương tháng</span>,
+            children: (
+              <div>
+                <Card className="glass-panel" style={{ ...cardStyle, marginBottom: 20 }}>
+                  <Space size="middle" wrap align="center">
+                    <div>
+                      <Text style={{ color: 'rgba(255,255,255,0.55)', marginRight: 10, fontSize: 13 }}>Tháng áp dụng:</Text>
+                      <DatePicker
+                        picker="month"
+                        value={salaryMonth}
+                        onChange={(v) => setSalaryMonth(v)}
+                        format="MM/YYYY"
+                        style={{ width: 140 }}
+                      />
+                    </div>
+                    <div>
+                      <Text style={{ color: 'rgba(255,255,255,0.55)', marginRight: 10, fontSize: 13 }}>Ngày chốt sổ:</Text>
+                      <DatePicker
+                        value={salaryEndDate}
+                        onChange={(v) => setSalaryEndDate(v)}
+                        format="DD/MM/YYYY"
+                        style={{ width: 140 }}
+                      />
+                    </div>
+                    <Button
+                      type="primary"
+                      icon={<SearchOutlined />}
+                      onClick={handleFetchSalaryPreview}
+                      loading={salaryPreviewLoading}
+                      size="large"
+                      style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
+                    >
+                      Xem danh sách
+                    </Button>
+                    {salaryPreviewData.length > 0 && (
+                      <Button
+                        icon={<DownloadOutlined />}
+                        onClick={() => exportCSV(
+                          salaryPreviewData,
+                          `Danh_sach_luong_gv_${salaryMonth?.format('YYYY_MM')}.csv`,
+                          ['Mã GV', 'Họ tên', 'SĐT', 'Loại', 'Tổng lương (₫)'],
+                          ['teacherCode', 'name', 'mobile', 'type', 'totalAmount']
+                        )}
+                        style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}
+                      >
+                        Xuất CSV
+                      </Button>
+                    )}
+                  </Space>
+                </Card>
+
+                {salaryPreviewData.length > 0 && (
+                  <>
+                    <Row gutter={16} style={{ marginBottom: 20 }}>
+                      <Col xs={12} md={8}>
+                        <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
+                          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>Tổng giáo viên</div>
+                          <div style={{ color: '#6366f1', fontSize: 24, fontWeight: 700 }}>{salaryPreviewData.length}</div>
+                        </Card>
+                      </Col>
+                      <Col xs={12} md={8}>
+                        <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
+                          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>Tổng lương dự kiến chi</div>
+                          <div style={{ color: '#38bdf8', fontSize: 20, fontWeight: 700 }}>
+                            {salaryPreviewData.reduce((sum, s) => sum + s.totalAmount, 0).toLocaleString('vi-VN')} ₫
+                          </div>
+                        </Card>
+                      </Col>
+                      <Col xs={12} md={8}>
+                        <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
+                          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>GV đã chọn tạo đợt</div>
+                          <div style={{ color: '#10b981', fontSize: 24, fontWeight: 700 }}>
+                            {salarySelectedRowKeys.length} / {salaryPreviewData.length}
+                          </div>
+                        </Card>
+                      </Col>
+                    </Row>
+
+                    <Card
+                      className="glass-panel"
+                      style={cardStyle}
+                      title={
+                        <Space>
+                          <TeamOutlined style={{ color: '#6366f1' }} />
+                          <span style={{ fontFamily: 'Outfit', color: '#fff' }}>Lương tháng</span>
+                        </Space>
+                      }
+                      extra={
+                        <Space>
+                          <Input
+                            placeholder="Tìm kiếm mã, tên..."
+                            value={salaryPreviewSearch}
+                            onChange={(e) => setSalaryPreviewSearch(e.target.value)}
+                            style={{ width: 200 }}
+                            allowClear
+                          />
+                          {salarySelectedRowKeys.length > 0 && (
+                            <Button
+                              type="primary"
+                              icon={<CheckSquareOutlined />}
+                              onClick={() => {
+                                setSalaryPeriodName(`Đợt trả lương Tháng ${salaryMonth.format('MM/YYYY')}`);
+                                setIsSalaryModalVisible(true);
+                              }}
+                              style={{ background: '#10b981', border: 'none' }}
+                            >
+                              Tạo đợt chi trả cho {salarySelectedRowKeys.length} GV
+                            </Button>
+                          )}
+                        </Space>
+                      }
+                    >
+                      <Table
+                        dataSource={filteredSalary}
+                        rowKey="teacherId"
+                        pagination={{ pageSize: 20 }}
+                        size="small"
+                        rowSelection={{
+                          selectedRowKeys: salarySelectedRowKeys,
+                          onChange: (keys) => setSalarySelectedRowKeys(keys),
+                        }}
+                        scroll={{ x: 'max-content' }}
+                        columns={[
+                          { title: 'Mã GV', dataIndex: 'teacherCode', key: 'teacherCode', width: 110, render: (v: string) => <Text style={{ color: '#818cf8', fontWeight: 600 }}>{v}</Text> },
+                          { title: 'Họ tên', dataIndex: 'name', key: 'name', width: 220, render: (v: string) => <Text style={{ color: '#fff' }}>{v}</Text> },
+                          { title: 'SĐT', dataIndex: 'mobile', key: 'mobile', width: 130, render: (v: string) => <Text style={{ color: 'rgba(255,255,255,0.6)' }}>{v}</Text> },
+                          { title: 'Loại', dataIndex: 'type', key: 'type', width: 110, render: (v: string) => <Tag color={v === 'Teacher' ? 'blue' : 'cyan'}>{v === 'Teacher' ? 'Giáo viên' : 'Trợ giảng'}</Tag> },
+                          { title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 130, render: (v: string) => <Tag color={statusColor[v] || 'default'}>{statusLabel[v] || v}</Tag> },
+                          { title: 'Số buổi', dataIndex: 'totalSessions', key: 'totalSessions', width: 100, align: 'center', render: (v: number) => <Text style={{ color: '#10b981', fontWeight: 600 }}>{v}</Text> },
+                          { title: 'Số tiền cần chi', dataIndex: 'totalAmount', key: 'totalAmount', width: 160, align: 'right', render: (v: number) => <Text strong style={{ color: '#f59e0b', fontSize: 14 }}>{v.toLocaleString('vi-VN')} ₫</Text> },
+                        ]}
+                      />
+                    </Card>
+                  </>
+                )}
+              </div>
+            )
+          },
+          {
             key: 'periods',
-            label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><FileTextOutlined /> Quản lý Đợt thanh toán</span>,
+            label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><FileTextOutlined /> Lịch sử Đợt thanh toán</span>,
             children: (
               <div>
                 {!selectedPeriodId ? (
-                  // ================= PERIOD MASTER LIST VIEW =================
                   <div>
                     <Card className="glass-panel" style={{ ...cardStyle, marginBottom: 20 }}>
                       <Space size="middle" wrap align="center">
-                        <Button
-                          type="primary"
-                          icon={<PlusOutlined />}
-                          onClick={() => {
-                            createForm.resetFields();
-                            setIsCreateVisible(true);
-                          }}
-                          size="large"
-                          style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none', padding: '0 24px' }}
-                        >
-                          Tạo đợt thanh toán mới
-                        </Button>
                         <Button
                           icon={<SearchOutlined />}
                           onClick={loadPeriods}
@@ -437,7 +728,7 @@ const AccountingInner: React.FC = () => {
                           size="large"
                           style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: '#fff' }}
                         >
-                          Làm mới
+                          Làm mới danh sách
                         </Button>
                       </Space>
                     </Card>
@@ -445,14 +736,14 @@ const AccountingInner: React.FC = () => {
                     <Card
                       className="glass-panel"
                       style={cardStyle}
-                      title={<span style={{ fontFamily: 'Outfit', color: '#fff' }}>Danh sách các đợt thanh toán</span>}
+                      title={<span style={{ fontFamily: 'Outfit', color: '#fff' }}>Danh sách các đợt đã tạo</span>}
                     >
                       <Table
                         dataSource={periods}
                         rowKey="id"
                         pagination={{ pageSize: 10 }}
                         loading={periodsLoading}
-                        size="middle"
+                        size="small"
                         scroll={{ x: 'max-content' }}
                         columns={[
                           {
@@ -484,13 +775,12 @@ const AccountingInner: React.FC = () => {
                             render: (v: string) => <Text style={{ color: '#fff', fontWeight: 500 }}>{v}</Text>
                           },
                           {
-                            title: 'Khoảng thời gian',
+                            title: 'Ngày chốt',
                             key: 'range',
-                            width: 200,
+                            width: 150,
                             render: (_, r: any) => {
-                              const start = dayjs(r.startDate).format('DD/MM/YYYY');
                               const end = dayjs(r.endDate).format('DD/MM/YYYY');
-                              return <Text style={{ color: 'rgba(255,255,255,0.7)' }}>{start} - {end}</Text>;
+                              return <Text style={{ color: 'rgba(255,255,255,0.7)' }}>{end}</Text>;
                             }
                           },
                           {
@@ -501,7 +791,7 @@ const AccountingInner: React.FC = () => {
                             render: (v: number) => <Text style={{ color: '#38bdf8', fontWeight: 600 }}>{v.toLocaleString('vi-VN')} ₫</Text>
                           },
                           {
-                            title: 'Đã thu/chi',
+                            title: 'Đã hoàn tất',
                             dataIndex: 'totalPaid',
                             key: 'totalPaid',
                             align: 'right' as const,
@@ -512,25 +802,23 @@ const AccountingInner: React.FC = () => {
                             )
                           },
                           {
-                            title: 'Đơn hàng (Đã thanh toán)',
-                            key: 'ordersProgress',
-                            align: 'center' as const,
-                            render: (_, r: any) => (
-                              <Text style={{ color: '#fff' }}>
-                                <Text style={{ color: '#10b981', fontWeight: 600 }}>{r.paidOrders}</Text> / {r.totalOrders}
-                              </Text>
-                            )
-                          },
-                          {
                             title: 'Trạng thái',
-                            dataIndex: 'status',
                             key: 'status',
-                            width: 120,
-                            render: (v: string) => (
-                              <Tag color={v === 'Active' ? 'green' : 'default'} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                                {v === 'Active' ? <UnlockOutlined /> : <LockOutlined />} {v === 'Active' ? 'Hoạt động' : 'Đã khóa'}
-                              </Tag>
-                            )
+                            width: 140,
+                            render: (_, r: any) => {
+                              const isCompleted = r.totalOrders > 0 && r.paidOrders === r.totalOrders;
+                              if (r.status === 'Closed') {
+                                return <Tag color="default" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><LockOutlined /> Đã khóa</Tag>;
+                              }
+                              if (isCompleted) {
+                                return <Tag color="green" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><CheckCircleOutlined /> Hoàn thành</Tag>;
+                              }
+                              return (
+                                <Tag color="blue" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                  <UnlockOutlined /> {r.type === 'tuition' ? 'Đang thu' : 'Đang chi trả'}
+                                </Tag>
+                              );
+                            }
                           },
                           {
                             title: 'Thao tác',
@@ -555,7 +843,7 @@ const AccountingInner: React.FC = () => {
                                 </Button>
                                 <Popconfirm
                                   title="Xóa đợt thanh toán?"
-                                  description="Xóa đợt này sẽ xóa toàn bộ hóa đơn/lương của đợt đó và giải phóng các buổi học về trạng thái chờ tính. Không thể hoàn tác!"
+                                  description="Xóa đợt này sẽ hủy toàn bộ số liệu của đợt và giải phóng các buổi học về trạng thái chờ tính. Không thể hoàn tác!"
                                   onConfirm={() => handleDeletePeriod(r.id)}
                                   okText="Xóa"
                                   cancelText="Hủy"
@@ -571,7 +859,6 @@ const AccountingInner: React.FC = () => {
                     </Card>
                   </div>
                 ) : (
-                  // ================= PERIOD DETAILED VIEW =================
                   <div>
                     <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Button
@@ -582,14 +869,25 @@ const AccountingInner: React.FC = () => {
                         }}
                         style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: '#fff' }}
                       >
-                        Quay lại danh sách đợt
+                        Quay lại danh sách
                       </Button>
                       <Space>
                         {periodDetail?.period && (
                           <>
-                            <Tag color={periodDetail.period.status === 'Active' ? 'green' : 'default'} style={{ padding: '4px 12px', fontSize: 13 }}>
-                              {periodDetail.period.status === 'Active' ? 'Đang hoạt động' : 'Đã khóa (Closed)'}
-                            </Tag>
+                            {(() => {
+                              const isCompleted = periodDetail.orders.length > 0 && periodDetail.orders.every((o: any) => o.status === 'Paid');
+                              if (periodDetail.period.status === 'Closed') {
+                                return <Tag color="default" style={{ padding: '4px 12px', fontSize: 13 }}><LockOutlined /> Đã khóa</Tag>;
+                              }
+                              if (isCompleted) {
+                                return <Tag color="green" style={{ padding: '4px 12px', fontSize: 13 }}><CheckCircleOutlined /> Hoàn thành</Tag>;
+                              }
+                              return (
+                                <Tag color="blue" style={{ padding: '4px 12px', fontSize: 13 }}>
+                                  <UnlockOutlined /> {periodDetail.period.type === 'tuition' ? 'Đang thu' : 'Đang chi trả'}
+                                </Tag>
+                              );
+                            })()}
                             <Button
                               icon={periodDetail.period.status === 'Active' ? <LockOutlined /> : <UnlockOutlined />}
                               onClick={() => handleTogglePeriodStatus(periodDetail.period)}
@@ -627,7 +925,6 @@ const AccountingInner: React.FC = () => {
                     ) : (
                       periodDetail && (
                         <div>
-                          {/* Summary stats */}
                           <Row gutter={16} style={{ marginBottom: 20 }}>
                             <Col xs={12} md={6}>
                               <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
@@ -676,7 +973,7 @@ const AccountingInner: React.FC = () => {
                               <div style={{ color: '#fff' }}>
                                 <span style={{ fontFamily: 'Outfit' }}>{periodDetail.period.name}</span>
                                 <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', marginLeft: 12 }}>
-                                  (Kỳ tính: {dayjs(periodDetail.period.startDate).format('DD/MM/YYYY')} - {dayjs(periodDetail.period.endDate).format('DD/MM/YYYY')})
+                                  (Tháng {periodDetail.period.month} - Từ: {dayjs(periodDetail.period.startDate).format('DD/MM/YYYY')} đến {dayjs(periodDetail.period.endDate).format('DD/MM/YYYY')})
                                 </span>
                               </div>
                             }
@@ -687,8 +984,8 @@ const AccountingInner: React.FC = () => {
                                 style={{ width: 180 }}
                                 options={[
                                   { value: 'All', label: 'Tất cả đơn hàng' },
-                                  { value: 'Paid', label: 'Đã thanh toán' },
-                                  { value: 'Unpaid', label: 'Chưa thanh toán' },
+                                  { value: 'Paid', label: 'Đã hoàn tất' },
+                                  { value: 'Unpaid', label: 'Chưa hoàn tất' },
                                 ]}
                               />
                             }
@@ -853,7 +1150,7 @@ const AccountingInner: React.FC = () => {
           },
           {
             key: 'tuition-report',
-            label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><UserOutlined /> Báo cáo học phí (Khoảng ngày)</span>,
+            label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><UserOutlined /> BC Học phí (Tham khảo)</span>,
             children: (
               <div>
                 <Card className="glass-panel" style={{ ...cardStyle, marginBottom: 20 }}>
@@ -876,14 +1173,14 @@ const AccountingInner: React.FC = () => {
                       size="large"
                       style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none', padding: '0 24px' }}
                     >
-                      Tính học phí tất cả
+                      Xem báo cáo
                     </Button>
                     {tuitionData && (
                       <Button
                         icon={<DownloadOutlined />}
                         onClick={() => exportCSV(
                           tuitionData.students,
-                          `hoc-phi-${tuitionRange[0]?.format('YYYYMMDD')}-${tuitionRange[1]?.format('YYYYMMDD')}.csv`,
+                          `bao-cao-hoc-phi.csv`,
                           ['Mã HS', 'Họ tên', 'SĐT', 'Trạng thái', 'Buổi có mặt', 'Tổng học phí (₫)'],
                           ['studentCode', 'name', 'mobile', 'status', 'totalSessions', 'totalAmount']
                         )}
@@ -896,117 +1193,27 @@ const AccountingInner: React.FC = () => {
                 </Card>
 
                 {tuitionData && (
-                  <>
-                    <Row gutter={16} style={{ marginBottom: 20 }}>
-                      <Col xs={12} md={8}>
-                        <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
-                          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>Tổng số học sinh</div>
-                          <div style={{ color: '#6366f1', fontSize: 28, fontWeight: 700 }}>{tuitionData.students?.length || 0}</div>
-                        </Card>
-                      </Col>
-                      <Col xs={12} md={8}>
-                        <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
-                          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>HS có buổi tính tiền</div>
-                          <div style={{ color: '#10b981', fontSize: 28, fontWeight: 700 }}>
-                            {(tuitionData.students || []).filter((s: any) => s.totalSessions > 0).length}
-                          </div>
-                        </Card>
-                      </Col>
-                      <Col xs={12} md={8}>
-                        <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
-                          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>Tổng học phí kỳ này</div>
-                          <div style={{ color: '#f59e0b', fontSize: 22, fontWeight: 700 }}>
-                            {(tuitionData.grandTotal || 0).toLocaleString('vi-VN')}&nbsp;₫
-                          </div>
-                        </Card>
-                      </Col>
-                    </Row>
-
-                    <Card
-                      className="glass-panel"
-                      style={cardStyle}
-                      title={
-                        <Space>
-                          <UserOutlined style={{ color: '#6366f1' }} />
-                          <span style={{ fontFamily: 'Outfit', color: '#fff' }}>
-                            Chi tiết học phí — Kỳ {tuitionRange[0]?.format('DD/MM/YYYY')} đến {tuitionRange[1]?.format('DD/MM/YYYY')}
-                          </span>
-                        </Space>
-                      }
-                    >
-                      <Table
-                        dataSource={tuitionData.students || []}
-                        rowKey="studentId"
-                        pagination={{ pageSize: 15 }}
-                        size="small"
-                        rowClassName={(r: any) => r.totalAmount > 0 ? '' : 'ant-table-row-muted'}
-                        scroll={{ x: 'max-content' }}
-                        columns={[
-                          {
-                            title: 'Mã HS', dataIndex: 'studentCode', key: 'studentCode', width: 100,
-                            render: (v: string) => <Text style={{ color: '#818cf8', fontWeight: 600 }}>{v}</Text>,
-                          },
-                          {
-                            title: 'Họ tên', dataIndex: 'name', key: 'name', width: 220,
-                            render: (v: string, r: any) => (
-                              <div>
-                                <Text style={{ color: '#fff' }}>{v}</Text>
-                                {r.nickName && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>({r.nickName})</div>}
-                              </div>
-                            ),
-                          },
-                          { title: 'SĐT', dataIndex: 'mobile', key: 'mobile', width: 130, render: (v: string) => <Text style={{ color: 'rgba(255,255,255,0.6)' }}>{v}</Text> },
-                          {
-                            title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 130,
-                            render: (v: string) => <Tag color={statusColor[v] || 'default'}>{statusLabel[v] || v}</Tag>,
-                          },
-                          {
-                            title: 'Buổi có mặt', dataIndex: 'totalSessions', key: 'totalSessions', width: 120, align: 'center' as const,
-                            sorter: (a: any, b: any) => a.totalSessions - b.totalSessions,
-                            render: (v: number) => <Text style={{ color: v > 0 ? '#10b981' : 'rgba(255,255,255,0.3)', fontWeight: 600 }}>{v}</Text>,
-                          },
-                          {
-                            title: 'Tổng học phí', dataIndex: 'totalAmount', key: 'totalAmount', width: 160, align: 'right' as const,
-                            sorter: (a: any, b: any) => a.totalAmount - b.totalAmount,
-                            defaultSortOrder: 'descend' as const,
-                            render: (v: number) => (
-                              <Text strong style={{ color: v > 0 ? '#f59e0b' : 'rgba(255,255,255,0.3)', fontSize: v > 0 ? 14 : 12 }}>
-                                {v > 0 ? `${v.toLocaleString('vi-VN')} ₫` : '—'}
-                              </Text>
-                            ),
-                          },
-                        ]}
-                        summary={() => (
-                          <Table.Summary.Row>
-                            <Table.Summary.Cell index={0} colSpan={5}>
-                              <Text strong style={{ color: '#fff' }}>Tổng cộng</Text>
-                            </Table.Summary.Cell>
-                            <Table.Summary.Cell index={1} align="right">
-                              <Text strong style={{ color: '#f59e0b', fontSize: 16 }}>
-                                {(tuitionData.grandTotal || 0).toLocaleString('vi-VN')}&nbsp;₫
-                              </Text>
-                            </Table.Summary.Cell>
-                          </Table.Summary.Row>
-                        )}
-                      />
-                    </Card>
-                  </>
-                )}
-
-                {!tuitionData && !tuitionLoading && (
-                  <Alert
-                    type="info" showIcon
-                    message="Hướng dẫn sử dụng"
-                    description="Chọn khoảng ngày và bấm 'Tính học phí tất cả'. Công cụ này dùng để tính toán báo cáo nhanh học phí cho toàn bộ học sinh tại các lớp học trong khoảng thời gian đã chọn mà không lưu vào cơ sở dữ liệu."
-                    style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}
-                  />
+                  <Card className="glass-panel" style={cardStyle}>
+                    <Table
+                      dataSource={tuitionData.students || []}
+                      rowKey="studentId"
+                      pagination={{ pageSize: 15 }}
+                      size="small"
+                      columns={[
+                        { title: 'Mã HS', dataIndex: 'studentCode', key: 'studentCode', width: 100 },
+                        { title: 'Họ tên', dataIndex: 'name', key: 'name', width: 220 },
+                        { title: 'Buổi có mặt', dataIndex: 'totalSessions', key: 'totalSessions', width: 120, align: 'center' as const },
+                        { title: 'Tổng học phí', dataIndex: 'totalAmount', key: 'totalAmount', width: 160, align: 'right' as const, render: (v: number) => `${v.toLocaleString('vi-VN')} ₫` },
+                      ]}
+                    />
+                  </Card>
                 )}
               </div>
             ),
           },
           {
             key: 'wages-report',
-            label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><TeamOutlined /> Báo cáo lương GV (Khoảng ngày)</span>,
+            label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><TeamOutlined /> BC Lương (Tham khảo)</span>,
             children: (
               <div>
                 <Card className="glass-panel" style={{ ...cardStyle, marginBottom: 20 }}>
@@ -1029,16 +1236,16 @@ const AccountingInner: React.FC = () => {
                       size="large"
                       style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none', padding: '0 24px' }}
                     >
-                      Tính lương tất cả
+                      Xem báo cáo
                     </Button>
                     {wagesData && (
                       <Button
                         icon={<DownloadOutlined />}
                         onClick={() => exportCSV(
                           wagesData.teachers,
-                          `luong-gv-${wagesRange[0]?.format('YYYYMMDD')}-${wagesRange[1]?.format('YYYYMMDD')}.csv`,
-                          ['Mã GV', 'Họ tên', 'SĐT', 'Loại', 'Trạng thái', 'Số buổi dạy', 'Tổng lương (₫)'],
-                          ['teacherCode', 'name', 'mobile', 'type', 'status', 'totalSessions', 'totalAmount']
+                          `bao-cao-luong.csv`,
+                          ['Mã GV', 'Họ tên', 'SĐT', 'Tổng lương (₫)'],
+                          ['teacherCode', 'name', 'mobile', 'totalAmount']
                         )}
                         style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}
                       >
@@ -1049,105 +1256,20 @@ const AccountingInner: React.FC = () => {
                 </Card>
 
                 {wagesData && (
-                  <>
-                    <Row gutter={16} style={{ marginBottom: 20 }}>
-                      <Col xs={12} md={8}>
-                        <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
-                          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>Tổng số giáo viên</div>
-                          <div style={{ color: '#6366f1', fontSize: 28, fontWeight: 700 }}>{wagesData.teachers?.length || 0}</div>
-                        </Card>
-                      </Col>
-                      <Col xs={12} md={8}>
-                        <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
-                          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>GV có buổi dạy</div>
-                          <div style={{ color: '#10b981', fontSize: 28, fontWeight: 700 }}>
-                            {(wagesData.teachers || []).filter((t: any) => t.totalSessions > 0).length}
-                          </div>
-                        </Card>
-                      </Col>
-                      <Col xs={12} md={8}>
-                        <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
-                          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>Tổng lương kỳ này</div>
-                          <div style={{ color: '#f59e0b', fontSize: 22, fontWeight: 700 }}>
-                            {(wagesData.grandTotal || 0).toLocaleString('vi-VN')}&nbsp;₫
-                          </div>
-                        </Card>
-                      </Col>
-                    </Row>
-
-                    <Card
-                      className="glass-panel"
-                      style={cardStyle}
-                      title={
-                        <Space>
-                          <TeamOutlined style={{ color: '#6366f1' }} />
-                          <span style={{ fontFamily: 'Outfit', color: '#fff' }}>
-                            Chi tiết lương — Kỳ {wagesRange[0]?.format('DD/MM/YYYY')} đến {wagesRange[1]?.format('DD/MM/YYYY')}
-                          </span>
-                        </Space>
-                      }
-                    >
-                      <Table
-                        dataSource={wagesData.teachers || []}
-                        rowKey="teacherId"
-                        pagination={{ pageSize: 15 }}
-                        size="small"
-                        scroll={{ x: 'max-content' }}
-                        columns={[
-                          {
-                            title: 'Mã GV', dataIndex: 'teacherCode', key: 'teacherCode', width: 100,
-                            render: (v: string) => <Text style={{ color: '#818cf8', fontWeight: 600 }}>{v}</Text>,
-                          },
-                          { title: 'Họ tên', dataIndex: 'name', key: 'name', width: 220, render: (v: string) => <Text style={{ color: '#fff' }}>{v}</Text> },
-                          { title: 'SĐT', dataIndex: 'mobile', key: 'mobile', width: 130, render: (v: string) => <Text style={{ color: 'rgba(255,255,255,0.6)' }}>{v}</Text> },
-                          {
-                            title: 'Loại', dataIndex: 'type', key: 'type', width: 110,
-                            render: (v: string) => <Tag color={v === 'Teacher' ? 'blue' : 'cyan'}>{v === 'Teacher' ? 'Giáo viên' : 'Trợ giảng'}</Tag>,
-                          },
-                          {
-                            title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 120,
-                            render: (v: string) => <Tag color={statusColor[v] || 'default'}>{statusLabel[v] || v}</Tag>,
-                          },
-                          {
-                            title: 'Số buổi dạy', dataIndex: 'totalSessions', key: 'totalSessions', width: 120, align: 'center' as const,
-                            sorter: (a: any, b: any) => a.totalSessions - b.totalSessions,
-                            render: (v: number) => <Text style={{ color: v > 0 ? '#10b981' : 'rgba(255,255,255,0.3)', fontWeight: 600 }}>{v}</Text>,
-                          },
-                          {
-                            title: 'Tổng lương', dataIndex: 'totalAmount', key: 'totalAmount', width: 160, align: 'right' as const,
-                            sorter: (a: any, b: any) => a.totalAmount - b.totalAmount,
-                            defaultSortOrder: 'descend' as const,
-                            render: (v: number) => (
-                              <Text strong style={{ color: v > 0 ? '#f59e0b' : 'rgba(255,255,255,0.3)', fontSize: v > 0 ? 14 : 12 }}>
-                                {v > 0 ? `${v.toLocaleString('vi-VN')} ₫` : '—'}
-                              </Text>
-                            ),
-                          },
-                        ]}
-                        summary={() => (
-                          <Table.Summary.Row>
-                            <Table.Summary.Cell index={0} colSpan={6}>
-                              <Text strong style={{ color: '#fff' }}>Tổng cộng</Text>
-                            </Table.Summary.Cell>
-                            <Table.Summary.Cell index={1} align="right">
-                              <Text strong style={{ color: '#f59e0b', fontSize: 16 }}>
-                                {(wagesData.grandTotal || 0).toLocaleString('vi-VN')}&nbsp;₫
-                              </Text>
-                            </Table.Summary.Cell>
-                          </Table.Summary.Row>
-                        )}
-                      />
-                    </Card>
-                  </>
-                )}
-
-                {!wagesData && !wagesLoading && (
-                  <Alert
-                    type="info" showIcon
-                    message="Hướng dẫn sử dụng"
-                    description="Chọn khoảng ngày và bấm 'Tính lương tất cả'. Hệ thống sẽ tự động tính toán báo cáo nhanh tiền lương giáo viên dựa trên số buổi đã dạy và mức lương hiệu lực mà không lưu vào cơ sở dữ liệu."
-                    style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}
-                  />
+                  <Card className="glass-panel" style={cardStyle}>
+                    <Table
+                      dataSource={wagesData.teachers || []}
+                      rowKey="teacherId"
+                      pagination={{ pageSize: 15 }}
+                      size="small"
+                      columns={[
+                        { title: 'Mã GV', dataIndex: 'teacherCode', key: 'teacherCode', width: 100 },
+                        { title: 'Họ tên', dataIndex: 'name', key: 'name', width: 220 },
+                        { title: 'Số buổi dạy', dataIndex: 'totalSessions', key: 'totalSessions', width: 120, align: 'center' as const },
+                        { title: 'Tổng lương', dataIndex: 'totalAmount', key: 'totalAmount', width: 160, align: 'right' as const, render: (v: number) => `${v.toLocaleString('vi-VN')} ₫` },
+                      ]}
+                    />
+                  </Card>
                 )}
               </div>
             )
@@ -1155,218 +1277,51 @@ const AccountingInner: React.FC = () => {
         ]}
       />
 
-      {/* Detailed Breakdown Modal */}
+      {/* Breakdown Modal */}
       <Modal
         title={
           <div style={{ color: '#fff', fontSize: 18, fontFamily: 'Outfit' }}>
-            {detailType === 'student' ? 'Chi Tiết Học Phí Đơn Hàng' : 'Chi Tiết Lương Giáo Viên'} — {detailTitle}
+            {detailType === 'student' ? 'Chi Tiết Học Phí' : 'Chi Tiết Lương'} — {detailTitle}
           </div>
         }
         open={detailVisible}
         onCancel={() => setDetailVisible(false)}
-        footer={[
-          <Button key="close" type="primary" onClick={() => setDetailVisible(false)}>
-            Đóng
-          </Button>
-        ]}
+        footer={[<Button key="close" type="primary" onClick={() => setDetailVisible(false)}>Đóng</Button>]}
         width={750}
-        styles={{
-          body: { background: '#111827', color: '#fff' }
-        }}
+        styles={{ body: { background: '#111827', color: '#fff' } }}
       >
-        <div style={{ marginBottom: 16 }}>
-          <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>
-            {detailPeriodText}
-          </Text>
-        </div>
         <Table
           dataSource={detailItems}
           rowKey={(r, index) => r.classId || String(index)}
           pagination={false}
           size="small"
           columns={[
-            {
-              title: 'Lớp học',
-              key: 'classInfo',
-              render: (_, item) => (
-                <div>
-                  <Text style={{ color: '#fff', fontWeight: 600 }}>{item.className}</Text>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
-                    {item.courseName} - {item.levelName}
-                  </div>
-                </div>
-              )
-            },
-            {
-              title: detailType === 'student' ? 'Số buổi học tính tiền' : 'Số buổi dạy',
-              dataIndex: 'sessionsCount',
-              key: 'sessionsCount',
+            { 
+              title: 'Ngày học', 
+              dataIndex: 'className', 
+              key: 'sessionDate', 
               align: 'center',
-              render: (v) => <Text style={{ color: '#10b981', fontWeight: 600 }}>{v}</Text>
+              render: (v) => {
+                const match = v?.match(/\(Buổi (.*?)\)/);
+                return match ? match[1] : '-';
+              }
             },
-            {
-              title: 'Đơn giá ca',
-              dataIndex: 'rate',
-              key: 'rate',
-              align: 'right',
-              render: (v) => <Text style={{ color: 'rgba(255,255,255,0.7)' }}>{Number(v).toLocaleString('vi-VN')} ₫</Text>
+            { 
+              title: 'Lớp học', 
+              dataIndex: 'className', 
+              key: 'className',
+              render: (v) => v?.replace(/\(Buổi .*?\)/, '').trim() || v
             },
-            {
-              title: 'Thành tiền',
-              dataIndex: 'totalAmount',
-              key: 'totalAmount',
-              align: 'right',
-              render: (v) => <Text style={{ color: '#f59e0b', fontWeight: 600 }}>{Number(v).toLocaleString('vi-VN')} ₫</Text>
-            }
+            { title: 'Số buổi', dataIndex: 'sessionsCount', key: 'sessionsCount', align: 'center' },
+            { title: 'Đơn giá', dataIndex: 'rate', key: 'rate', align: 'right', render: (v) => `${Number(v).toLocaleString('vi-VN')} ₫` },
+            { title: 'Thành tiền', dataIndex: 'totalAmount', key: 'totalAmount', align: 'right', render: (v) => `${Number(v).toLocaleString('vi-VN')} ₫` }
           ]}
-          summary={() => (
-            <Table.Summary.Row>
-              <Table.Summary.Cell index={0} colSpan={3}>
-                <Text strong style={{ color: '#fff' }}>Tổng cộng</Text>
-              </Table.Summary.Cell>
-              <Table.Summary.Cell index={1} align="right">
-                <Text strong style={{ color: '#f59e0b', fontSize: 15 }}>
-                  {detailItems.reduce((sum, item) => sum + Number(item.totalAmount), 0).toLocaleString('vi-VN')} ₫
-                </Text>
-              </Table.Summary.Cell>
-            </Table.Summary.Row>
-          )}
         />
       </Modal>
 
-      {/* Create Period Modal */}
+      {/* Edit Payment Modal */}
       <Modal
-        title={<span style={{ color: '#fff', fontFamily: 'Outfit', fontSize: 18 }}>Tạo đợt thanh toán mới</span>}
-        open={isCreateVisible}
-        onOk={handleCreatePeriod}
-        onCancel={() => {
-          setIsCreateVisible(false);
-          setPreviewData([]);
-          setSelectedRowKeys([]);
-          setPreviewSearch('');
-        }}
-        okText="Bắt đầu tạo & chốt"
-        cancelText="Hủy"
-        width={750}
-      >
-        <Form form={createForm} layout="vertical" initialValues={{ type: 'tuition' }} style={{ padding: '10px 0' }}>
-          <Form.Item name="type" label="Loại đợt thanh toán" rules={[{ required: true }]}>
-            <Select>
-              <Select.Option value="tuition">Thu học phí học sinh</Select.Option>
-              <Select.Option value="salary">Chi trả lương giáo viên</Select.Option>
-            </Select>
-          </Form.Item>
-
-          <Row gutter={12}>
-            <Col span={12}>
-              <Form.Item name="month" label="Tháng áp dụng" rules={[{ required: true }]}>
-                <DatePicker picker="month" format="MM/YYYY" style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="dateRange" label="Khoảng ngày tính buổi học/dạy" rules={[{ required: true }]}>
-                <DatePicker.RangePicker format="DD/MM/YYYY" style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item name="name" label="Tên đợt thanh toán" rules={[{ required: true, message: 'Nhập tên đợt thanh toán' }]}>
-            <Input placeholder="Nhập tên đợt" />
-          </Form.Item>
-        </Form>
-
-        {/* Dynamic Candidates Preview Section */}
-        {previewData.length > 0 && (
-          <div style={{ marginTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 16 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <Text strong style={{ color: '#fff', fontSize: 13 }}>
-                Danh sách {formType === 'tuition' ? 'học sinh' : 'giáo viên'} tạm tính (Chọn đối tượng thu/chi)
-              </Text>
-              <Input
-                placeholder="Tìm theo tên hoặc mã..."
-                value={previewSearch}
-                onChange={(e) => setPreviewSearch(e.target.value)}
-                style={{ width: 220 }}
-                size="small"
-                allowClear
-              />
-            </div>
-            <Table
-              dataSource={filteredPreviewData}
-              rowKey={formType === 'tuition' ? 'studentId' : 'teacherId'}
-              pagination={{ pageSize: 5, showSizeChanger: false, size: 'small' }}
-              size="small"
-              loading={previewLoading}
-              scroll={{ y: 180 }}
-              rowSelection={{
-                selectedRowKeys,
-                onChange: (keys) => setSelectedRowKeys(keys),
-              }}
-              columns={[
-                {
-                  title: 'Mã',
-                  dataIndex: formType === 'tuition' ? 'studentCode' : 'teacherCode',
-                  key: 'code',
-                  width: 100,
-                  render: (v) => <Text style={{ color: '#818cf8', fontWeight: 600 }}>{v}</Text>,
-                },
-                {
-                  title: 'Họ tên',
-                  dataIndex: 'name',
-                  key: 'name',
-                  render: (v) => <Text style={{ color: '#fff' }}>{v}</Text>,
-                },
-                {
-                  title: 'Số buổi',
-                  dataIndex: 'totalSessions',
-                  key: 'totalSessions',
-                  align: 'center',
-                  width: 90,
-                  render: (v) => <Text style={{ fontWeight: 600 }}>{v}</Text>,
-                },
-                {
-                  title: 'Số tiền tạm tính',
-                  dataIndex: 'totalAmount',
-                  key: 'totalAmount',
-                  align: 'right',
-                  width: 140,
-                  render: (v) => <Text style={{ color: '#f59e0b', fontWeight: 600 }}>{Number(v).toLocaleString('vi-VN')} ₫</Text>,
-                },
-              ]}
-              summary={() => {
-                const selectedItems = filteredPreviewData.filter((item) =>
-                  selectedRowKeys.includes(formType === 'tuition' ? item.studentId : item.teacherId)
-                );
-                const total = selectedItems.reduce((sum, item) => sum + Number(item.totalAmount), 0);
-                return (
-                  <Table.Summary.Row>
-                    <Table.Summary.Cell index={0} colSpan={3}>
-                      <Text strong style={{ color: 'rgba(255,255,255,0.45)' }}>
-                        Đã chọn: {selectedRowKeys.length} / {previewData.length} đối tượng
-                      </Text>
-                    </Table.Summary.Cell>
-                    <Table.Summary.Cell index={1} align="right">
-                      <Text strong style={{ color: '#f59e0b', fontSize: 13 }}>
-                        {total.toLocaleString('vi-VN')} ₫
-                      </Text>
-                    </Table.Summary.Cell>
-                  </Table.Summary.Row>
-                );
-              }}
-            />
-          </div>
-        )}
-
-        {previewData.length === 0 && formDateRange && formDateRange.length >= 2 && !previewLoading && (
-          <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.35)', padding: '20px 0', fontSize: 12 }}>
-            Không tìm thấy buổi học/dạy nào chưa tính tiền trong khoảng thời gian đã chọn.
-          </div>
-        )}
-      </Modal>
-
-      {/* Edit Order Payment Modal */}
-      <Modal
-        title={<span style={{ color: '#fff', fontFamily: 'Outfit', fontSize: 17 }}>Cập nhật thông tin giao dịch</span>}
+        title={<span style={{ color: '#fff', fontFamily: 'Outfit', fontSize: 17 }}>Cập nhật giao dịch</span>}
         open={isPaymentModalVisible}
         onOk={saveEditPayment}
         onCancel={() => setIsPaymentModalVisible(false)}
@@ -1381,7 +1336,6 @@ const AccountingInner: React.FC = () => {
               <Select.Option value="Unpaid">Chưa thanh toán (Chờ giao dịch)</Select.Option>
             </Select>
           </Form.Item>
-
           <Form.Item noStyle shouldUpdate={(prev, curr) => prev.status !== curr.status}>
             {({ getFieldValue }) => {
               const isPaid = getFieldValue('status') === 'Paid';
@@ -1389,17 +1343,12 @@ const AccountingInner: React.FC = () => {
               return (
                 <Row gutter={12}>
                   <Col span={12}>
-                    <Form.Item name="paidAmount" label="Số tiền thực tế đóng/trả" rules={[{ required: true, message: 'Nhập số tiền thực tế' }]}>
-                      <InputNumber
-                        formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                        parser={(v) => v!.replace(/\$\s?|(, *)/g, '')}
-                        style={{ width: '100%' }}
-                        addonAfter="₫"
-                      />
+                    <Form.Item name="paidAmount" label="Số tiền thực tế">
+                      <InputNumber style={{ width: '100%' }} />
                     </Form.Item>
                   </Col>
                   <Col span={12}>
-                    <Form.Item name="paymentDate" label="Ngày giao dịch thực tế" rules={[{ required: true }]}>
+                    <Form.Item name="paymentDate" label="Ngày giao dịch">
                       <DatePicker showTime format="DD/MM/YYYY HH:mm" style={{ width: '100%' }} />
                     </Form.Item>
                   </Col>
@@ -1407,12 +1356,68 @@ const AccountingInner: React.FC = () => {
               );
             }}
           </Form.Item>
-
-          <Form.Item name="note" label="Ghi chú giao dịch">
-            <Input.TextArea placeholder="Nhập ghi chú giao dịch, thông tin chuyển khoản..." rows={3} />
+          <Form.Item name="note" label="Ghi chú">
+            <Input.TextArea rows={3} />
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* Tuition Create Modal */}
+      <Modal
+        title={<span style={{ color: '#fff', fontFamily: 'Outfit', fontSize: 17 }}>Xác nhận Tạo Đợt Thu Học Phí</span>}
+        open={isTuitionModalVisible}
+        onOk={handleCreateTuitionPeriod}
+        onCancel={() => setIsTuitionModalVisible(false)}
+        okText="Tạo đợt thu"
+        cancelText="Hủy"
+      >
+        <div style={{ marginBottom: 16 }}>
+          <Text style={{ color: 'rgba(255,255,255,0.7)' }}>
+            Bạn đang tạo đợt thu học phí cho <strong style={{ color: '#10b981' }}>{tuitionSelectedRowKeys.length} học sinh</strong> đã chọn (chốt sổ đến {tuitionEndDate?.format('DD/MM/YYYY')}).
+            Tổng số tiền dự kiến là <strong style={{ color: '#f59e0b' }}>
+              {tuitionPreviewData.filter((s:any) => tuitionSelectedRowKeys.includes(s.studentId)).reduce((sum:any, s:any) => sum + s.totalAmount, 0).toLocaleString('vi-VN')} ₫
+            </strong>.
+          </Text>
+        </div>
+        <div style={{ marginBottom: 8 }}>
+          <Text style={{ color: '#fff', fontWeight: 500 }}>Tên đợt thu (có thể sửa):</Text>
+        </div>
+        <Input 
+          value={tuitionPeriodName}
+          onChange={e => setTuitionPeriodName(e.target.value)}
+          placeholder="Ví dụ: Đợt thu học phí Tháng 06/2026..."
+          size="large"
+        />
+      </Modal>
+
+      {/* Salary Create Modal */}
+      <Modal
+        title={<span style={{ color: '#fff', fontFamily: 'Outfit', fontSize: 17 }}>Xác nhận Tạo Đợt Chi Trả Lương</span>}
+        open={isSalaryModalVisible}
+        onOk={handleCreateSalaryPeriod}
+        onCancel={() => setIsSalaryModalVisible(false)}
+        okText="Tạo đợt chi trả"
+        cancelText="Hủy"
+      >
+        <div style={{ marginBottom: 16 }}>
+          <Text style={{ color: 'rgba(255,255,255,0.7)' }}>
+            Bạn đang tạo đợt lương cho <strong style={{ color: '#10b981' }}>{salarySelectedRowKeys.length} giáo viên</strong> đã chọn (chốt sổ đến {salaryEndDate?.format('DD/MM/YYYY')}).
+            Tổng số tiền dự kiến là <strong style={{ color: '#f59e0b' }}>
+              {salaryPreviewData.filter((t:any) => salarySelectedRowKeys.includes(t.teacherId)).reduce((sum:any, t:any) => sum + t.totalAmount, 0).toLocaleString('vi-VN')} ₫
+            </strong>.
+          </Text>
+        </div>
+        <div style={{ marginBottom: 8 }}>
+          <Text style={{ color: '#fff', fontWeight: 500 }}>Tên đợt chi trả (có thể sửa):</Text>
+        </div>
+        <Input 
+          value={salaryPeriodName}
+          onChange={e => setSalaryPeriodName(e.target.value)}
+          placeholder="Ví dụ: Đợt chi trả lương Tháng 06/2026..."
+          size="large"
+        />
+      </Modal>
+
     </div>
   );
 };
