@@ -11,7 +11,6 @@ import {
   Shield, 
   GraduationCap,
   Bell,
-  Search,
   ClipboardList,
   BookMarked,
   BarChart2,
