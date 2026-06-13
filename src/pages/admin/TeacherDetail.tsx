@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  Form, Input, Select, DatePicker, Button, Card, Typography, Row, Col, Upload, Tabs, App, Space, Spin, Alert, ConfigProvider, theme, Avatar
+  Form, Input, Select, DatePicker, Button, Card, Typography, Row, Col, Upload, Tabs, App, Space, Spin, Alert, ConfigProvider, theme, Avatar, Table, Tag
 } from 'antd';
-import { CameraOutlined, ArrowLeftOutlined, SaveOutlined, LockOutlined, UserOutlined, EnvironmentOutlined } from '@ant-design/icons';
+import { CameraOutlined, ArrowLeftOutlined, SaveOutlined, LockOutlined, UserOutlined, EnvironmentOutlined, DollarOutlined, SearchOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../services/api';
 import { PROVINCE_OPTIONS, getDistrictsOrWards } from '../../assets/vietnam_divisions';
@@ -25,6 +25,11 @@ const TeacherDetailInner: React.FC = () => {
   
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
   const [avatarBase64, setAvatarBase64] = useState<string | undefined>(undefined);
+
+  // Wages report state
+  const [wagesReport, setWagesReport] = useState<any>(null);
+  const [wagesLoading, setWagesLoading] = useState(false);
+  const [wagesDateRange, setWagesDateRange] = useState<[any, any]>([null, null]);
 
   const selectedProvince = Form.useWatch('province', form);
   const [districtOptions, setDistrictOptions] = useState<{label: string, value: string}[]>([]);
@@ -70,6 +75,26 @@ const TeacherDetailInner: React.FC = () => {
       setDistrictOptions([]);
     }
   }, [selectedProvince]);
+
+  const fetchWagesReport = async () => {
+    if (!id) return;
+    const [start, end] = wagesDateRange;
+    if (!start || !end) {
+      message.warning('Vui lòng chọn khoảng thời gian cần tính.');
+      return;
+    }
+    setWagesLoading(true);
+    try {
+      const { data } = await api.get(`/teachers/${id}/wages-report`, {
+        params: { startDate: start.format('YYYY-MM-DD'), endDate: end.format('YYYY-MM-DD') },
+      });
+      setWagesReport(data);
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi tải báo cáo lương');
+    } finally {
+      setWagesLoading(false);
+    }
+  };
 
   const handleAvatarChange = (info: any) => {
     const file = info.file.originFileObj || info.file;
@@ -346,6 +371,167 @@ const TeacherDetailInner: React.FC = () => {
             { key: 'overview', label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><UserOutlined /> Thông tin chung</span>, children: renderOverviewTab() },
             { key: 'address', label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><EnvironmentOutlined /> Địa chỉ & Liên hệ</span>, children: renderAddressTab() },
             { key: 'login', label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><LockOutlined /> Tài khoản Đăng nhập</span>, children: renderLoginTab() },
+            {
+              key: 'wages',
+              label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><DollarOutlined /> Tính lương</span>,
+              children: (
+                <div>
+                  <Card
+                    title={<span style={{ fontFamily: 'Outfit' }}><DollarOutlined /> Tính lương theo khoảng thời gian</span>}
+                    className="glass-panel"
+                    style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: 16 }}
+                  >
+                    <Space size="middle" wrap>
+                      <div>
+                        <span style={{ color: 'rgba(255,255,255,0.6)', marginRight: 8, fontSize: '13px' }}>Khoảng thời gian:</span>
+                        <DatePicker.RangePicker
+                          value={wagesDateRange}
+                          onChange={(vals) => setWagesDateRange(vals as [any, any])}
+                          format="DD/MM/YYYY"
+                          placeholder={['Từ ngày', 'Đến ngày']}
+                        />
+                      </div>
+                      <Button
+                        type="primary"
+                        icon={<SearchOutlined />}
+                        onClick={fetchWagesReport}
+                        loading={wagesLoading}
+                        style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
+                      >
+                        Tính lương
+                      </Button>
+                    </Space>
+                  </Card>
+
+                  {wagesReport && (
+                    <>
+                      <Row gutter={16} style={{ marginBottom: 16 }}>
+                        <Col xs={12} md={8}>
+                          <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', textAlign: 'center' }}>
+                            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginBottom: 4 }}>Tổng buổi dạy</div>
+                            <div style={{ color: '#6366f1', fontSize: '24px', fontWeight: 700 }}>{wagesReport.totalSessions}</div>
+                          </Card>
+                        </Col>
+                        <Col xs={12} md={8}>
+                          <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', textAlign: 'center' }}>
+                            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginBottom: 4 }}>Tổng buổi tính lương</div>
+                            <div style={{ color: '#10b981', fontSize: '24px', fontWeight: 700 }}>{wagesReport.totalSessions}</div>
+                          </Card>
+                        </Col>
+                        <Col xs={12} md={8}>
+                          <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', textAlign: 'center' }}>
+                            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginBottom: 4 }}>Tổng lương</div>
+                            <div style={{ color: '#f59e0b', fontSize: '22px', fontWeight: 700 }}>
+                              {(wagesReport.totalAmount || 0).toLocaleString('vi-VN')}&nbsp;₫
+                            </div>
+                          </Card>
+                        </Col>
+                      </Row>
+                      <Card
+                        title={<span style={{ fontFamily: 'Outfit' }}><DollarOutlined /> Lịch sử đơn giá lương áp dụng trong kỳ</span>}
+                        className="glass-panel"
+                        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: 16 }}
+                      >
+                        <Table
+                          dataSource={wagesReport.pricingHistory || []}
+                          rowKey="id"
+                          pagination={false}
+                          size="small"
+                          columns={[
+                            { title: 'Level', dataIndex: 'levelName', key: 'levelName' },
+                            {
+                              title: 'Lương giáo viên / buổi',
+                              dataIndex: 'teacherWagePerSession',
+                              render: (v: number) => <Text strong style={{ color: '#fbbf24' }}>{Number(v).toLocaleString()}đ</Text>,
+                            },
+                            {
+                              title: 'Từ ngày',
+                              dataIndex: 'effectiveFrom',
+                              render: (v: string) => dayjs(v).format('DD/MM/YYYY'),
+                            },
+                            {
+                              title: 'Đến ngày',
+                              dataIndex: 'effectiveTo',
+                              render: (v: string | null) => v ? dayjs(v).format('DD/MM/YYYY') : <Tag color="green">Hiện hành</Tag>,
+                            },
+                          ]}
+                        />
+                      </Card>
+                      <Card
+                        title={<span style={{ fontFamily: 'Outfit' }}>Chi tiết từng buổi dạy</span>}
+                        className="glass-panel"
+                        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
+                      >
+                        <Table
+                          dataSource={wagesReport.sessions || []}
+                          rowKey="id"
+                          pagination={{ pageSize: 15 }}
+                          size="small"
+                          columns={[
+                            { title: 'Ngày', dataIndex: 'date', key: 'date', width: 120, render: (v: string) => dayjs(v).format('DD/MM/YYYY') },
+                            { title: 'Lớp học', dataIndex: 'className', key: 'className' },
+                            {
+                              title: 'Chương trình & Level', key: 'course',
+                              render: (_: any, r: any) => (
+                                <div>
+                                  <Text strong style={{ color: '#fff' }}>{r.courseName || '-'}</Text>
+                                  <div style={{ fontSize: '11px', color: '#818cf8' }}>Level: {r.levelName || '-'}</div>
+                                </div>
+                              ),
+                            },
+                            {
+                              title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 130,
+                              render: (v: string) => <Tag color={v === 'Completed' ? 'success' : v === 'Cancelled' ? 'error' : 'blue'}>
+                                {v === 'Completed' ? 'Hoàn thành' : v === 'Cancelled' ? 'Nghỉ' : 'Chưa dạy'}
+                              </Tag>,
+                            },
+                            {
+                              title: 'Lương/buổi', key: 'rate', width: 180,
+                              render: (_: any, r: any) => (
+                                <div>
+                                  <Text style={{ color: '#a5b4fc' }}>{(r.rate || 0).toLocaleString('vi-VN')}&nbsp;₫</Text>
+                                  {r.pricingEffectiveFrom && (
+                                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
+                                      {`Lương áp dụng: ${dayjs(r.pricingEffectiveFrom).format('DD/MM/YY')}${r.pricingEffectiveTo ? ` - ${dayjs(r.pricingEffectiveTo).format('DD/MM/YY')}` : ' +'}`}
+                                    </div>
+                                  )}
+                                </div>
+                              ),
+                            },
+                            {
+                              title: 'Thành tiền', dataIndex: 'amount', key: 'amount', width: 140,
+                              render: (v: number) => <Text strong style={{ color: '#f59e0b' }}>{(v || 0).toLocaleString('vi-VN')}&nbsp;₫</Text>,
+                            },
+                          ]}
+                          summary={() => (
+                            <Table.Summary.Row>
+                              <Table.Summary.Cell index={0} colSpan={5}>
+                                <Text strong style={{ color: '#fff' }}>Tổng cộng</Text>
+                              </Table.Summary.Cell>
+                              <Table.Summary.Cell index={1}>
+                                <Text strong style={{ color: '#f59e0b', fontSize: '16px' }}>
+                                  {(wagesReport.totalAmount || 0).toLocaleString('vi-VN')}&nbsp;₫
+                                </Text>
+                              </Table.Summary.Cell>
+                            </Table.Summary.Row>
+                          )}
+                        />
+                      </Card>
+                    </>
+                  )}
+
+                  {!wagesReport && !wagesLoading && (
+                    <Alert
+                      type="info"
+                      showIcon
+                      message="Hướng dẫn"
+                      description="Chọn khoảng thời gian và nhấn 'Tính lương' để xem báo cáo chi tiết lương giáo viên theo từng buổi dạy hoàn thành và mức lương hiệu lực tại thời điểm đó."
+                      style={{ background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.2)' }}
+                    />
+                  )}
+                </div>
+              ),
+            },
           ]}
           className="custom-tabs"
         />

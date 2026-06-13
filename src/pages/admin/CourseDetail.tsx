@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  Card, Typography, Row, Col, App, ConfigProvider, theme, Tag, Table, Button, Spin, Descriptions, Divider,
+  Card, Typography, Row, Col, App, ConfigProvider, theme, Tag, Table, Button, Spin, Descriptions,
+  Modal, Form, InputNumber, DatePicker
 } from 'antd';
-import { ArrowLeftOutlined, BookOutlined, DollarOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, BookOutlined, DollarOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../services/api';
 
@@ -12,6 +13,7 @@ const { Title, Text } = Typography;
 interface PricingData {
   id: string;
   pricePerSession: number;
+  teacherWagePerSession: number;
   effectiveFrom: string;
   effectiveTo: string | null;
 }
@@ -61,19 +63,26 @@ const CourseDetailInner: React.FC = () => {
   const [course, setCourse] = useState<CourseDetailData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Modal states for setting new pricing
+  const [pricingModalVisible, setPricingModalVisible] = useState(false);
+  const [selectedLevel, setSelectedLevel] = useState<LevelData | null>(null);
+  const [submittingPricing, setSubmittingPricing] = useState(false);
+  const [form] = Form.useForm();
+
+  const fetchCourse = async () => {
+    try {
+      const { data } = await api.get(`/courses/${id}`);
+      setCourse(data);
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Không thể tải thông tin chương trình.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchCourse = async () => {
-      try {
-        const { data } = await api.get(`/courses/${id}`);
-        setCourse(data);
-      } catch (err: any) {
-        message.error(err.response?.data?.message || 'Không thể tải thông tin chương trình.');
-      } finally {
-        setLoading(false);
-      }
-    };
     if (id) fetchCourse();
-  }, [id, message]);
+  }, [id]);
 
   if (loading) {
     return (
@@ -86,6 +95,49 @@ const CourseDetailInner: React.FC = () => {
   if (!course) {
     return <div style={{ color: '#fff', textAlign: 'center', padding: '60px' }}>Không tìm thấy chương trình học.</div>;
   }
+
+  const handleOpenPricingModal = (level: LevelData) => {
+    setSelectedLevel(level);
+    // Find current active pricing to prefill values
+    const current = level.pricing?.find((p) => !p.effectiveTo || new Date(p.effectiveTo) >= new Date());
+    if (current) {
+      form.setFieldsValue({
+        pricePerSession: Number(current.pricePerSession),
+        teacherWagePerSession: Number(current.teacherWagePerSession),
+        effectiveFrom: dayjs(),
+        effectiveTo: undefined,
+      });
+    } else {
+      form.setFieldsValue({
+        pricePerSession: undefined,
+        teacherWagePerSession: undefined,
+        effectiveFrom: dayjs(),
+        effectiveTo: undefined,
+      });
+    }
+    setPricingModalVisible(true);
+  };
+
+  const handlePricingSubmit = async (values: any) => {
+    if (!selectedLevel) return;
+    setSubmittingPricing(true);
+    try {
+      const payload = {
+        pricePerSession: Number(values.pricePerSession),
+        teacherWagePerSession: Number(values.teacherWagePerSession),
+        effectiveFrom: values.effectiveFrom.format('YYYY-MM-DD'),
+        effectiveTo: values.effectiveTo ? values.effectiveTo.format('YYYY-MM-DD') : undefined,
+      };
+      await api.post(`/courses/levels/${selectedLevel.id}/pricing`, payload);
+      message.success('Cập nhật bảng giá cho level thành công!');
+      setPricingModalVisible(false);
+      fetchCourse();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Không thể cập nhật bảng giá.');
+    } finally {
+      setSubmittingPricing(false);
+    }
+  };
 
   const levelColumns = [
     {
@@ -108,15 +160,42 @@ const CourseDetailInner: React.FC = () => {
       render: (v: number) => `${Number(v).toLocaleString()}`,
     },
     {
-      title: 'Giá hiện hành',
+      title: 'Giá học viên hiện hành',
       key: 'currentPrice',
-      width: 150,
+      width: 180,
       render: (_: any, record: LevelData) => {
         const current = record.pricing?.find((p) => !p.effectiveTo || new Date(p.effectiveTo) >= new Date());
         return current
           ? <Text strong style={{ color: '#34d399' }}>{Number(current.pricePerSession).toLocaleString()}đ / buổi</Text>
-          : <Text type="secondary">Chưa có giá</Text>;
+          : <Text type="secondary">Chưa cấu hình</Text>;
       },
+    },
+    {
+      title: 'Lương giáo viên hiện hành',
+      key: 'currentWage',
+      width: 180,
+      render: (_: any, record: LevelData) => {
+        const current = record.pricing?.find((p) => !p.effectiveTo || new Date(p.effectiveTo) >= new Date());
+        return current
+          ? <Text strong style={{ color: '#fbbf24' }}>{Number(current.teacherWagePerSession).toLocaleString()}đ / buổi</Text>
+          : <Text type="secondary">Chưa cấu hình</Text>;
+      },
+    },
+    {
+      title: 'Hành động',
+      key: 'action',
+      width: 140,
+      render: (_: any, record: LevelData) => (
+        <Button
+          type="primary"
+          size="small"
+          icon={<PlusOutlined />}
+          onClick={() => handleOpenPricingModal(record)}
+          style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)', border: 'none' }}
+        >
+          Cấu hình giá
+        </Button>
+      ),
     },
   ];
 
@@ -187,9 +266,14 @@ const CourseDetailInner: React.FC = () => {
                     size="small"
                     columns={[
                       {
-                        title: 'Đơn giá / buổi',
+                        title: 'Đơn giá học viên / buổi',
                         dataIndex: 'pricePerSession',
                         render: (v: number) => <Text strong style={{ color: '#34d399' }}>{Number(v).toLocaleString()}đ</Text>,
+                      },
+                      {
+                        title: 'Lương trả giáo viên / buổi',
+                        dataIndex: 'teacherWagePerSession',
+                        render: (v: number) => <Text strong style={{ color: '#fbbf24' }}>{Number(v).toLocaleString()}đ</Text>,
                       },
                       {
                         title: 'Từ ngày',
@@ -211,6 +295,80 @@ const CourseDetailInner: React.FC = () => {
           }}
         />
       </Card>
+
+      {/* Pricing Modal */}
+      <Modal
+        title={`Cấu hình đơn giá & lương: ${selectedLevel?.levelName}`}
+        open={pricingModalVisible}
+        onCancel={() => setPricingModalVisible(false)}
+        onOk={() => form.submit()}
+        confirmLoading={submittingPricing}
+        okText="Lưu bảng giá"
+        cancelText="Hủy"
+        destroyOnClose
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handlePricingSubmit}
+          style={{ marginTop: 16 }}
+        >
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="pricePerSession"
+                label="Đơn giá thu học viên / buổi"
+                rules={[{ required: true, message: 'Vui lòng nhập đơn giá học sinh!' }]}
+              >
+                <InputNumber
+                  style={{ width: '100%' }}
+                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  parser={(value) => value!.replace(/\$\s?|(,*)/g, '') as any}
+                  addonAfter="VND"
+                  placeholder="Ví dụ: 150,000"
+                  min={0}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="teacherWagePerSession"
+                label="Đơn giá trả giáo viên / buổi"
+                rules={[{ required: true, message: 'Vui lòng nhập lương giáo viên!' }]}
+              >
+                <InputNumber
+                  style={{ width: '100%' }}
+                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  parser={(value) => value!.replace(/\$\s?|(,*)/g, '') as any}
+                  addonAfter="VND"
+                  placeholder="Ví dụ: 80,000"
+                  min={0}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="effectiveFrom"
+                label="Ngày bắt đầu áp dụng"
+                rules={[{ required: true, message: 'Vui lòng chọn ngày áp dụng!' }]}
+              >
+                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="effectiveTo"
+                label="Ngày kết thúc (Không bắt buộc)"
+              >
+                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder="Để trống nếu hiện hành" />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </Modal>
     </div>
   );
 };

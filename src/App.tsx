@@ -25,6 +25,7 @@ import CourseDetail from './pages/admin/CourseDetail';
 import ClassList from './pages/admin/ClassList';
 import CreateClass from './pages/admin/CreateClass';
 import ClassDetail from './pages/admin/ClassDetail';
+import Accounting from './pages/admin/Accounting';
 
 // Pages — Teacher
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
@@ -76,6 +77,7 @@ function App() {
                     <Route path="classes" element={<ClassList />} />
                     <Route path="classes/create" element={<CreateClass />} />
                     <Route path="classes/:id" element={<ClassDetail />} />
+                    <Route path="accounting" element={<Accounting />} />
                     <Route path="/logs" element={
                       <Placeholder title="Nhật ký hệ thống" desc="Lịch sử hoạt động và nhật ký bảo mật." />
                     } />

@@ -13,9 +13,9 @@ import {
   Bell,
   Search,
   ClipboardList,
-  UserPlus,
   BookMarked,
-  BarChart2
+  BarChart2,
+  DollarSign
 } from 'lucide-react';
 import { TeamOutlined as AntdTeamOutlined, BankOutlined as AntdBankOutlined } from '@ant-design/icons';
 
@@ -41,6 +41,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
           { name: 'Trung tâm', path: '/admin/centers', icon: <AntdBankOutlined style={{ fontSize: '20px' }} /> },
           { name: 'Chương trình học', path: '/admin/courses', icon: <BookMarked size={20} /> },
           { name: 'Lớp học', path: '/admin/classes', icon: <AntdTeamOutlined style={{ fontSize: '20px' }} /> },
+          { name: 'Kế Toán', path: '/admin/accounting', icon: <DollarSign size={20} /> },
           { name: 'Nhật ký hệ thống', path: '/admin/logs', icon: <Shield size={20} /> },
         ];
       case Role.TEACHER:

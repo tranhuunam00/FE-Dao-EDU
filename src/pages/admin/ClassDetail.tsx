@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Card, Typography, Row, Col, App, ConfigProvider, theme, Tag, Table, Button, Spin,
-  Descriptions, Tabs, Modal, Form, Select, DatePicker, TimePicker, Switch, Input, Badge, Divider, List
+  Descriptions, Tabs, Modal, Form, Select, DatePicker, TimePicker, Switch, Input, Badge, Divider, List, Alert
 } from 'antd';
 import {
-  ArrowLeftOutlined, TeamOutlined, CalendarOutlined, BookOutlined, UserOutlined,
+  ArrowLeftOutlined, TeamOutlined, CalendarOutlined,
   EnvironmentOutlined, PlusOutlined, DeleteOutlined, EditOutlined, SaveOutlined, CheckCircleOutlined, StopOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -13,11 +13,7 @@ import api from '../../services/api';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
-const { TextArea } = Input;
 
-interface PricingData {
-  pricePerSession: number;
-}
 
 interface StudentAttendance {
   studentId: string;
@@ -69,9 +65,14 @@ interface ClassDetailData {
     studentId: string;
     status: string;
     joinedDate: string;
+    updatedAt?: string;
     student: {
       name: string;
+      firstName?: string;
+      lastName?: string;
       phone?: string;
+      mobile?: string;
+      email?: string | null;
       user?: { email: string };
     };
   }[];
@@ -475,7 +476,7 @@ const ClassDetailInner: React.FC = () => {
       dataIndex: 'status',
       key: 'status',
       width: '160px',
-      render: (s: string, record: ClassSession) => {
+      render: (s: string) => {
         let color = 'blue';
         let label = 'Chưa diễn ra';
 
@@ -531,6 +532,28 @@ const ClassDetailInner: React.FC = () => {
           {classData.status === 'Active' ? 'Hoạt động' : 'Nháp/Lên kế hoạch'}
         </Tag>
       </div>
+
+      {/* Ending Soon Warning */}
+      {classData.finishDate && classData.status === 'Active' &&
+        dayjs(classData.finishDate).diff(dayjs(), 'day') <= 7 &&
+        dayjs(classData.finishDate).diff(dayjs(), 'day') >= 0 && (
+        <Alert
+          type="warning"
+          showIcon
+          style={{ marginBottom: 16, border: '1px solid rgba(245, 158, 11, 0.4)', background: 'rgba(245, 158, 11, 0.08)' }}
+          message={
+            <span style={{ color: '#f59e0b', fontWeight: 600 }}>
+              ⚠ Lớp học sắp kết thúc trong {dayjs(classData.finishDate).diff(dayjs(), 'day')} ngày
+            </span>
+          }
+          description={
+            <span style={{ color: 'rgba(255,255,255,0.7)' }}>
+              Ngày kết thúc dự kiến: <strong style={{ color: '#f59e0b' }}>{dayjs(classData.finishDate).format('DD/MM/YYYY')}</strong>.
+              Hãy xác nhận với phụ huynh và học sinh về việc tiếp tục hay kết thúc khóa học.
+            </span>
+          }
+        />
+      )}
 
       <Tabs
         defaultActiveKey="info"

@@ -22,6 +22,7 @@ import {
   Table,
   Modal,
   Typography,
+  Alert,
 } from 'antd';
 import {
   SaveOutlined,
@@ -37,6 +38,8 @@ import {
   CameraOutlined,
   PlusOutlined,
   DeleteOutlined,
+  DollarOutlined,
+  SearchOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../services/api';
@@ -119,6 +122,11 @@ const StudentDetailInner: React.FC = () => {
   const [isAddClassVisible, setIsAddClassVisible] = useState(false);
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
 
+  // Tuition report state
+  const [tuitionReport, setTuitionReport] = useState<any>(null);
+  const [tuitionLoading, setTuitionLoading] = useState(false);
+  const [tuitionDateRange, setTuitionDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null]>([null, null]);
+
   const fetchStudentClasses = async () => {
     if (!id) return;
     try {
@@ -135,6 +143,26 @@ const StudentDetailInner: React.FC = () => {
       setAllClasses(data.classes || []);
     } catch (err) {
       console.error('Error fetching classes:', err);
+    }
+  };
+
+  const fetchTuitionReport = async () => {
+    if (!id) return;
+    const [start, end] = tuitionDateRange;
+    if (!start || !end) {
+      message.warning('Vui lòng chọn khoảng thời gian cần tính.');
+      return;
+    }
+    setTuitionLoading(true);
+    try {
+      const { data } = await api.get(`/students/${id}/tuition-report`, {
+        params: { startDate: start.format('YYYY-MM-DD'), endDate: end.format('YYYY-MM-DD') },
+      });
+      setTuitionReport(data);
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi tải báo cáo học phí');
+    } finally {
+      setTuitionLoading(false);
     }
   };
 
@@ -827,6 +855,165 @@ const StudentDetailInner: React.FC = () => {
                   />
                 </Card>
               )
+            },
+            {
+              key: 'tuition',
+              label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><DollarOutlined /> Tính học phí</span>,
+              children: (
+                <div>
+                  <Card
+                    title={<span style={{ fontFamily: 'Outfit' }}><DollarOutlined /> Tính học phí theo khoảng thời gian</span>}
+                    className="glass-panel"
+                    style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: 16 }}
+                  >
+                    <Space size="middle" wrap>
+                      <div>
+                        <span style={{ color: 'rgba(255,255,255,0.6)', marginRight: 8, fontSize: '13px' }}>Khoảng thời gian:</span>
+                        <DatePicker.RangePicker
+                          value={tuitionDateRange}
+                          onChange={(vals) => setTuitionDateRange(vals as [dayjs.Dayjs | null, dayjs.Dayjs | null])}
+                          format="DD/MM/YYYY"
+                          placeholder={['Từ ngày', 'Đến ngày']}
+                        />
+                      </div>
+                      <Button
+                        type="primary"
+                        icon={<SearchOutlined />}
+                        onClick={fetchTuitionReport}
+                        loading={tuitionLoading}
+                        style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
+                      >
+                        Tính học phí
+                      </Button>
+                    </Space>
+                  </Card>
+
+                  {tuitionReport && (
+                    <>
+                      <Row gutter={16} style={{ marginBottom: 16 }}>
+                        <Col xs={12} md={8}>
+                          <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', textAlign: 'center' }}>
+                            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginBottom: 4 }}>Tổng buổi có mặt (tính tiền)</div>
+                            <div style={{ color: '#10b981', fontSize: '24px', fontWeight: 700 }}>{tuitionReport.totalSessions}</div>
+                          </Card>
+                        </Col>
+                        <Col xs={12} md={8}>
+                          <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', textAlign: 'center' }}>
+                            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginBottom: 4 }}>Tổng buổi đã hoàn thành</div>
+                            <div style={{ color: '#6366f1', fontSize: '24px', fontWeight: 700 }}>{(tuitionReport.sessions || []).length}</div>
+                          </Card>
+                        </Col>
+                        <Col xs={12} md={8}>
+                          <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', textAlign: 'center' }}>
+                            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginBottom: 4 }}>Tổng học phí</div>
+                            <div style={{ color: '#f59e0b', fontSize: '22px', fontWeight: 700 }}>
+                              {(tuitionReport.totalAmount || 0).toLocaleString('vi-VN')}&nbsp;₫
+                            </div>
+                          </Card>
+                        </Col>
+                      </Row>
+                      <Card
+                        title={<span style={{ fontFamily: 'Outfit' }}><DollarOutlined /> Lịch sử đơn giá chương trình học áp dụng trong kỳ</span>}
+                        className="glass-panel"
+                        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: 16 }}
+                      >
+                        <Table
+                          dataSource={tuitionReport.pricingHistory || []}
+                          rowKey="id"
+                          pagination={false}
+                          size="small"
+                          columns={[
+                            { title: 'Level', dataIndex: 'levelName', key: 'levelName' },
+                            {
+                              title: 'Đơn giá học viên',
+                              dataIndex: 'pricePerSession',
+                              render: (v: number) => <Text strong style={{ color: '#34d399' }}>{Number(v).toLocaleString()}đ</Text>,
+                            },
+                            {
+                              title: 'Từ ngày',
+                              dataIndex: 'effectiveFrom',
+                              render: (v: string) => dayjs(v).format('DD/MM/YYYY'),
+                            },
+                            {
+                              title: 'Đến ngày',
+                              dataIndex: 'effectiveTo',
+                              render: (v: string | null) => v ? dayjs(v).format('DD/MM/YYYY') : <Tag color="green">Hiện hành</Tag>,
+                            },
+                          ]}
+                        />
+                      </Card>
+                      <Card
+                        title={<span style={{ fontFamily: 'Outfit' }}>Chi tiết từng buổi học</span>}
+                        className="glass-panel"
+                        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
+                      >
+                        <Table
+                          dataSource={tuitionReport.sessions || []}
+                          rowKey="id"
+                          pagination={{ pageSize: 15 }}
+                          size="small"
+                          columns={[
+                            { title: 'Ngày', dataIndex: 'date', key: 'date', width: 120, render: (v: string) => dayjs(v).format('DD/MM/YYYY') },
+                            { title: 'Lớp học', dataIndex: 'className', key: 'className' },
+                            {
+                              title: 'Chương trình & Level', key: 'course',
+                              render: (_: any, r: any) => (
+                                <div>
+                                  <Text strong style={{ color: '#fff' }}>{r.courseName || '-'}</Text>
+                                  <div style={{ fontSize: '11px', color: '#818cf8' }}>Level: {r.levelName || '-'}</div>
+                                </div>
+                              ),
+                            },
+                            {
+                              title: 'Trạng thái', dataIndex: 'isPresent', key: 'isPresent', width: 120,
+                              render: (v: boolean) => v ? <Tag color="success">✓ Có mặt</Tag> : <Tag color="error">✗ Vắng mặt</Tag>,
+                            },
+                            {
+                              title: 'Giá/buổi', key: 'rate', width: 180,
+                              render: (_: any, r: any) => (
+                                <div>
+                                  <Text style={{ color: '#a5b4fc' }}>{(r.rate || 0).toLocaleString('vi-VN')}&nbsp;₫</Text>
+                                  {r.pricingEffectiveFrom && (
+                                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
+                                      {`Giá áp dụng: ${dayjs(r.pricingEffectiveFrom).format('DD/MM/YY')}${r.pricingEffectiveTo ? ` - ${dayjs(r.pricingEffectiveTo).format('DD/MM/YY')}` : ' +'}`}
+                                    </div>
+                                  )}
+                                </div>
+                              ),
+                            },
+                            {
+                              title: 'Thành tiền', dataIndex: 'amount', key: 'amount', width: 140,
+                              render: (v: number) => <Text strong style={{ color: '#f59e0b' }}>{(v || 0).toLocaleString('vi-VN')}&nbsp;₫</Text>,
+                            },
+                          ]}
+                          summary={() => (
+                            <Table.Summary.Row>
+                              <Table.Summary.Cell index={0} colSpan={5}>
+                                <Text strong style={{ color: '#fff' }}>Tổng cộng</Text>
+                              </Table.Summary.Cell>
+                              <Table.Summary.Cell index={1}>
+                                <Text strong style={{ color: '#f59e0b', fontSize: '16px' }}>
+                                  {(tuitionReport.totalAmount || 0).toLocaleString('vi-VN')}&nbsp;₫
+                                </Text>
+                              </Table.Summary.Cell>
+                            </Table.Summary.Row>
+                          )}
+                        />
+                      </Card>
+                    </>
+                  )}
+
+                  {!tuitionReport && !tuitionLoading && (
+                    <Alert
+                      type="info"
+                      showIcon
+                      message="Hướng dẫn"
+                      description="Chọn khoảng thời gian và nhấn 'Tính học phí' để xem báo cáo chi tiết học phí theo từng buổi học có mặt và mức giá hiệu lực tại thời điểm buổi học đó."
+                      style={{ background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.2)' }}
+                    />
+                  )}
+                </div>
+              ),
             },
           ]}
         />

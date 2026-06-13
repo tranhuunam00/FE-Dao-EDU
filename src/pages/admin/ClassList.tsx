@@ -23,6 +23,7 @@ interface ClassData {
   mainTeacher?: { firstName: string; lastName: string };
   center?: { name: string };
   createdAt: string;
+  isEndingSoon?: boolean;
 }
 
 const ClassListInner: React.FC = () => {
@@ -111,7 +112,28 @@ const ClassListInner: React.FC = () => {
       render: (_: any, record: ClassData) => {
         const start = record.startDate ? dayjs(record.startDate).format('DD/MM/YYYY') : '?';
         const finish = record.finishDate ? dayjs(record.finishDate).format('DD/MM/YYYY') : 'Chưa xác định';
-        return <Text style={{ fontSize: '13px' }}>{start} - {finish}</Text>;
+        const isEndingSoon = record.finishDate
+          ? dayjs(record.finishDate).diff(dayjs(), 'day') <= 7 && dayjs(record.finishDate).diff(dayjs(), 'day') >= 0 && record.status === 'Active'
+          : false;
+        return (
+          <div>
+            <Text style={{ fontSize: '13px' }}>{start} - {finish}</Text>
+            {isEndingSoon && (
+              <div style={{
+                marginTop: 4,
+                fontSize: '11px',
+                color: '#f59e0b',
+                background: 'rgba(245, 158, 11, 0.1)',
+                border: '1px solid rgba(245, 158, 11, 0.3)',
+                borderRadius: '4px',
+                padding: '1px 6px',
+                display: 'inline-block',
+              }}>
+                ⚠ Sắp kết thúc
+              </div>
+            )}
+          </div>
+        );
       },
     },
     {
@@ -125,8 +147,8 @@ const ClassListInner: React.FC = () => {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
-      width: '120px',
-      render: (s: string) => {
+      width: '150px',
+      render: (s: string, record: ClassData) => {
         let color = 'gold';
         let label = s;
         if (s === 'Active') {
@@ -142,7 +164,15 @@ const ClassListInner: React.FC = () => {
           color = 'red';
           label = 'Đã đóng';
         }
-        return <Tag color={color}>{label}</Tag>;
+        const isEndingSoon = record.finishDate
+          ? dayjs(record.finishDate).diff(dayjs(), 'day') <= 7 && dayjs(record.finishDate).diff(dayjs(), 'day') >= 0 && s === 'Active'
+          : false;
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Tag color={color}>{label}</Tag>
+            {isEndingSoon && <Tag color="warning" style={{ fontSize: '11px' }}>⚠ Sắp kết thúc</Tag>}
+          </div>
+        );
       },
     },
     {

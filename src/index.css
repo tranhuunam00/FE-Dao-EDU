@@ -46,13 +46,48 @@
   box-sizing: border-box;
 }
 
+html {
+  font-size: 13.5px;
+}
+
 body {
   font-family: var(--font-primary);
+  font-size: 13.5px;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   overflow-x: hidden;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Global Font Size Reductions for Ant Design Components */
+.ant-btn,
+.ant-input,
+.ant-input-number,
+.ant-select,
+.ant-table,
+.ant-tabs,
+.ant-form,
+.ant-modal,
+.ant-tag,
+.ant-picker,
+.ant-descriptions-item,
+.ant-alert,
+.ant-badge {
+  font-size: 13px !important;
+}
+
+.ant-table-thead > tr > th {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+.ant-form-item-label > label {
+  font-size: 12px !important;
+}
+
+.ant-select-dropdown .ant-select-item {
+  font-size: 13px !important;
 }
 
 h1, h2, h3, h4, h5, h6 {

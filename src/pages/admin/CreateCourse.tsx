@@ -7,7 +7,7 @@ import {
 import { ArrowLeftOutlined, SaveOutlined, PlusOutlined, DeleteOutlined, BookOutlined } from '@ant-design/icons';
 import api from '../../services/api';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 

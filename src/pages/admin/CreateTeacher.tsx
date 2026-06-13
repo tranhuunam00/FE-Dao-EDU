@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Form, Input, Select, DatePicker, Button, Card, Typography, Row, Col, message, Upload, Tabs, App, Space, ConfigProvider, theme, Avatar
+  Form, Input, Select, DatePicker, Button, Card, Typography, Row, Col, Upload, Tabs, App, Space, ConfigProvider, theme, Avatar
 } from 'antd';
 import { CameraOutlined, ArrowLeftOutlined, SaveOutlined, LockOutlined, UserOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import api from '../../services/api';
