@@ -5,15 +5,12 @@ import {
   LayoutDashboard, 
   Users, 
   BookOpen,
-  FileText, 
   LogOut, 
   User as UserIcon,
   Shield, 
-  GraduationCap,
   Bell,
   ClipboardList,
   BookMarked,
-  BarChart2,
   DollarSign
 } from 'lucide-react';
 import { TeamOutlined as AntdTeamOutlined, BankOutlined as AntdBankOutlined } from '@ant-design/icons';
@@ -46,16 +43,16 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
       case Role.TEACHER:
         return [
           { name: 'Tổng quan', path: '/teacher', icon: <LayoutDashboard size={20} /> },
+          { name: 'Lịch sử nhận lương', path: '/teacher/salary', icon: <DollarSign size={20} /> },
           { name: 'Danh sách Học sinh', path: '/teacher/students', icon: <Users size={20} /> },
           { name: 'Bài tập & Chấm điểm', path: '/teacher/grades', icon: <ClipboardList size={20} /> },
           { name: 'Tài liệu học tập', path: '/teacher/materials', icon: <BookMarked size={20} /> },
         ];
       case Role.STUDENT:
         return [
-          { name: 'Trang cá nhân', path: '/student', icon: <GraduationCap size={20} /> },
-          { name: 'Kết quả học tập', path: '/student/grades', icon: <BarChart2 size={20} /> },
-          { name: 'Tài liệu môn học', path: '/student/materials', icon: <BookOpen size={20} /> },
-          { name: 'Thời khóa biểu', path: '/student/schedule', icon: <FileText size={20} /> },
+          { name: 'Dashboard', path: '/student', icon: <LayoutDashboard size={20} /> },
+          { name: 'Học phí', path: '/student/tuition', icon: <DollarSign size={20} /> },
+          { name: 'Hồ sơ cá nhân', path: '/student/profile', icon: <UserIcon size={20} /> },
         ];
       default:
         return [];

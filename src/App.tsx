@@ -29,9 +29,13 @@ import Accounting from './pages/admin/Accounting';
 
 // Pages — Teacher
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
+import TeacherSalaryHistory from './pages/teacher/TeacherSalaryHistory';
 
 // Pages — Student
 import StudentDashboard from './pages/student/StudentDashboard';
+import StudentProfile from './pages/student/StudentProfile';
+import StudentCalendar from './pages/student/StudentCalendar';
+import StudentTuition from './pages/student/StudentTuition';
 
 // Placeholder component
 const Placeholder = ({ title, desc }: { title: string; desc: string }) => (
@@ -95,6 +99,7 @@ function App() {
                 <DashboardLayout>
                   <Routes>
                     <Route path="/" element={<TeacherDashboard />} />
+                    <Route path="salary" element={<TeacherSalaryHistory />} />
                     <Route path="/students" element={
                       <Placeholder title="Danh sách Học sinh" desc="Xem danh sách học sinh trong lớp đang phụ trách." />
                     } />
@@ -118,15 +123,9 @@ function App() {
                 <DashboardLayout>
                   <Routes>
                     <Route path="/" element={<StudentDashboard />} />
-                    <Route path="/grades" element={
-                      <Placeholder title="Kết quả học tập" desc="Xem điểm số và đánh giá từ các giáo viên." />
-                    } />
-                    <Route path="/materials" element={
-                      <Placeholder title="Tài liệu môn học" desc="Xem và tải tài liệu học tập theo từng môn." />
-                    } />
-                    <Route path="/schedule" element={
-                      <Placeholder title="Thời khóa biểu" desc="Lịch học hàng tuần của bạn." />
-                    } />
+                    <Route path="/profile" element={<StudentProfile />} />
+                    <Route path="/schedule" element={<StudentCalendar />} />
+                    <Route path="/tuition" element={<StudentTuition />} />
                   </Routes>
                 </DashboardLayout>
               </RouteGuard>

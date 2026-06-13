@@ -1,19 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
-import { Calendar, Users, BookOpen, CheckCircle, RefreshCw } from 'lucide-react';
+import { Calendar, BookOpen, RefreshCw } from 'lucide-react';
+import TeacherCalendar from './TeacherCalendar';
+import { AttendanceModal } from './AttendanceModal';
 
 interface TeacherData {
   message: string;
   teacherInfo: {
     id: string;
-    email: string;
+    name: string;
     role: string;
+    avatar?: string;
   };
-  schedules: Array<{
+  sessions: Array<{
     id: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    classCode: string;
     className: string;
-    time: string;
-    subject: string;
+    roomName: string;
+    status: string;
+    attendanceLocked: boolean;
+    isPast: boolean;
+    attendanceColor?: string;
   }>;
   pendingGradingCount: number;
 }
@@ -22,12 +32,30 @@ export const TeacherDashboard: React.FC = () => {
   const [data, setData] = useState<TeacherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedSession, setSelectedSession] = useState<any | null>(null);
 
   const fetchTeacherData = async () => {
     setLoading(true);
     setError(null);
     try {
       const response = await api.get('/dashboard/teacher');
+      
+      // Process sessions for calendar colors
+      if (response.data && response.data.sessions) {
+        response.data.sessions = response.data.sessions.map((s: any) => {
+          let color = 'blue';
+          if (s.isPast) {
+            // Check if attendance is done. For now we assume if it's past and attendanceLocked is true, or status is Completed
+            if (s.attendanceLocked || s.status === 'Completed') {
+              color = 'green';
+            } else {
+              color = 'red';
+            }
+          }
+          return { ...s, attendanceColor: color };
+        });
+      }
+
       setData(response.data);
     } catch (err: any) {
       console.error(err);
@@ -35,6 +63,10 @@ export const TeacherDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSessionClick = (session: any) => {
+    setSelectedSession(session);
   };
 
   useEffect(() => {
@@ -93,7 +125,9 @@ export const TeacherDashboard: React.FC = () => {
           </div>
           <div>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Lịch dạy hôm nay</div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#fff', marginTop: '4px' }}>{data?.schedules.length} ca dạy</div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#fff', marginTop: '4px' }}>
+              {data?.sessions?.filter((s: any) => s.date === new Date().toISOString().split('T')[0]).length || 0} ca dạy
+            </div>
           </div>
         </div>
 
@@ -119,49 +153,21 @@ export const TeacherDashboard: React.FC = () => {
       </div>
 
       {/* Main Sections */}
-      <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-        {/* Schedules table */}
-        <div className="glass-panel" style={{ flex: '2 1 500px', padding: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-            <Users size={20} style={{ color: 'var(--secondary)' }} />
-            <h3 style={{ fontSize: '1.25rem', color: '#fff' }}>Lịch lên lớp giảng dạy</h3>
-          </div>
-
-          <div className="table-container">
-            <table className="custom-table">
-              <thead>
-                <tr>
-                  <th>Thời gian</th>
-                  <th>Lớp học</th>
-                  <th>Môn học</th>
-                  <th>Hành động</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data?.schedules.map((sch) => (
-                  <tr key={sch.id}>
-                    <td style={{ color: 'var(--secondary)', fontWeight: 600 }}>{sch.time}</td>
-                    <td style={{ fontWeight: 500 }}>{sch.className}</td>
-                    <td>{sch.subject}</td>
-                    <td>
-                      <button className="btn btn-outline" style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'inline-flex', gap: '4px' }}>
-                        <CheckCircle size={14} /> Điểm danh
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', flexDirection: 'column' }}>
+        
+        {/* Calendar View */}
+        <TeacherCalendar 
+          embeddedSessions={data?.sessions} 
+          onSessionClick={handleSessionClick} 
+        />
 
         {/* Quick info Card */}
-        <div className="glass-panel" style={{ flex: '1 1 300px', padding: '24px', background: 'rgba(255,255,255,0.01)' }}>
+        <div className="glass-panel" style={{ padding: '24px', background: 'rgba(255,255,255,0.01)' }}>
           <h3 style={{ fontSize: '1.25rem', color: '#fff', marginBottom: '16px' }}>Thông tin giảng viên</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.95rem' }}>
             <div>
-              <span style={{ color: 'var(--text-muted)' }}>Email: </span>
-              <span style={{ color: '#fff', fontWeight: 500 }}>{data?.teacherInfo.email}</span>
+              <span style={{ color: 'var(--text-muted)' }}>Họ tên: </span>
+              <span style={{ color: '#fff', fontWeight: 500 }}>{data?.teacherInfo.name}</span>
             </div>
             <div>
               <span style={{ color: 'var(--text-muted)' }}>Mã giáo viên: </span>
@@ -176,6 +182,14 @@ export const TeacherDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {selectedSession && (
+        <AttendanceModal 
+          session={selectedSession} 
+          onClose={() => setSelectedSession(null)} 
+          onSuccess={fetchTeacherData} 
+        />
+      )}
     </div>
   );
 };

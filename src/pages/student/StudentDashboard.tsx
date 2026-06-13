@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
-import { GraduationCap, BarChart2, BookOpen, Calendar, RefreshCw, Clock, MapPin, User, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { GraduationCap, BarChart2, Calendar, RefreshCw, BookOpen } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { StudentCalendar } from './StudentCalendar';
 
 interface SessionData {
   id: string;
@@ -118,95 +119,8 @@ export const StudentDashboard: React.FC = () => {
       {/* Main Section */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
         
-        {/* TimeTable (Calendar style cards) */}
-        <div className="glass-panel" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-            <Calendar size={20} style={{ color: 'var(--primary)' }} />
-            <h3 style={{ fontSize: '1.2rem', color: '#fff' }}>Thời khóa biểu & Lịch điểm danh</h3>
-          </div>
-
-          {data?.sessions && data.sessions.length > 0 ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
-              {data.sessions.map((session) => {
-                // Determine CSS background / borders based on color coding
-                let cardBorder = 'rgba(255,255,255,0.06)';
-                let badgeBg = 'rgba(59, 130, 246, 0.1)';
-                let badgeText = 'var(--primary)';
-                let statusIcon = <Clock size={16} />;
-
-                if (session.attendanceColor === 'green') {
-                  cardBorder = 'rgba(16, 185, 129, 0.2)';
-                  badgeBg = 'rgba(16, 185, 129, 0.12)';
-                  badgeText = 'var(--secondary)';
-                  statusIcon = <CheckCircle2 size={16} style={{ color: 'var(--secondary)' }} />;
-                } else if (session.attendanceColor === 'red') {
-                  cardBorder = 'rgba(239, 68, 68, 0.25)';
-                  badgeBg = 'rgba(239, 68, 68, 0.12)';
-                  badgeText = 'var(--danger)';
-                  statusIcon = <XCircle size={16} style={{ color: 'var(--danger)' }} />;
-                }
-
-                return (
-                  <div
-                    key={session.id}
-                    className="glass-panel"
-                    style={{
-                      padding: '18px',
-                      borderColor: cardBorder,
-                      background: 'rgba(17,24,39,0.4)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      gap: '12px'
-                    }}
-                  >
-                    <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                        <div>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{session.classCode}</span>
-                          <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: '#fff', marginTop: '2px' }}>{session.className}</h4>
-                        </div>
-                        <span style={{
-                          padding: '3px 10px',
-                          borderRadius: '99px',
-                          fontSize: '0.78rem',
-                          fontWeight: 600,
-                          backgroundColor: badgeBg,
-                          color: badgeText,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                        }}>
-                          {statusIcon} {session.attendanceText}
-                        </span>
-                      </div>
-
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '12px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <Clock size={14} style={{ color: 'var(--primary)' }} />
-                          <span>{session.date} | {session.startTime.substring(0, 5)} - {session.endTime.substring(0, 5)}</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <MapPin size={14} style={{ color: 'var(--secondary)' }} />
-                          <span>Phòng: {session.roomName}</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <User size={14} style={{ color: 'var(--accent)' }} />
-                          <span>GV: {session.teacherName}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>
-              <AlertCircle size={32} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
-              <p>Bạn chưa được xếp lịch học nào. Vui lòng liên hệ Admin để được xếp lớp.</p>
-            </div>
-          )}
-        </div>
+        {/* TimeTable (Calendar View) */}
+        <StudentCalendar embeddedSessions={data?.sessions || []} />
 
         <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
           {/* Grades Table */}
