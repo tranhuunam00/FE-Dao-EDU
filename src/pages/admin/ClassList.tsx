@@ -4,6 +4,7 @@ import {
   Table, Input, Select, Button, Card, Tag, Typography, Row, Col, App, ConfigProvider, theme,
 } from 'antd';
 import { SearchOutlined, PlusOutlined, ReloadOutlined, TeamOutlined } from '@ant-design/icons';
+import { Resizable, ResizeCallbackData } from 'react-resizable';
 import dayjs from 'dayjs';
 import api from '../../services/api';
 
@@ -26,6 +27,33 @@ interface ClassData {
   isEndingSoon?: boolean;
 }
 
+const ResizableTitle = (props: any) => {
+  const { onResize, width, ...restProps } = props;
+
+  if (!width) {
+    return <th {...restProps} />;
+  }
+
+  return (
+    <Resizable
+      width={width}
+      height={0}
+      handle={
+        <span
+          className="react-resizable-handle"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        />
+      }
+      onResize={onResize}
+      draggableOpts={{ enableUserSelectHack: false }}
+    >
+      <th {...restProps} />
+    </Resizable>
+  );
+};
+
 const ClassListInner: React.FC = () => {
   const navigate = useNavigate();
   const { message } = App.useApp();
@@ -41,6 +69,28 @@ const ClassListInner: React.FC = () => {
   const [courses, setCourses] = useState<any[]>([]);
   const [centerId, setCenterId] = useState<string | undefined>(undefined);
   const [courseId, setCourseId] = useState<string | undefined>(undefined);
+
+  const [colWidths, setColWidths] = useState<Record<string, number>>(() => {
+    const saved = localStorage.getItem('class-list-columns-width');
+    return saved ? JSON.parse(saved) : {
+      classCode: 150,
+      className: 300,
+      centerName: 180,
+      teacherName: 180,
+      dates: 220,
+      maxSize: 100,
+      status: 160,
+      actions: 120
+    };
+  });
+
+  const handleResize = (key: string) => (e: React.SyntheticEvent, { size }: ResizeCallbackData) => {
+    setColWidths(prev => {
+      const next = { ...prev, [key]: size.width };
+      localStorage.setItem('class-list-columns-width', JSON.stringify(next));
+      return next;
+    });
+  };
 
   // Fetch filter options
   useEffect(() => {
@@ -72,13 +122,14 @@ const ClassListInner: React.FC = () => {
       title: 'Mã lớp',
       dataIndex: 'classCode',
       key: 'classCode',
-      width: '150px',
+      width: colWidths.classCode,
       render: (text: string) => <Text strong style={{ color: '#6366f1' }}>{text}</Text>,
     },
     {
       title: 'Tên lớp',
       dataIndex: 'className',
       key: 'className',
+      width: colWidths.className,
       render: (text: string, record: ClassData) => (
         <div>
           <Text strong style={{ color: '#fff' }}>{text}</Text>
@@ -92,13 +143,13 @@ const ClassListInner: React.FC = () => {
       title: 'Trung tâm',
       dataIndex: ['center', 'name'],
       key: 'centerName',
-      width: '150px',
+      width: colWidths.centerName,
       render: (text: string) => text || '-',
     },
     {
       title: 'Giáo viên',
       key: 'teacherName',
-      width: '150px',
+      width: colWidths.teacherName,
       render: (_: any, record: ClassData) => {
         return record.mainTeacher
           ? `${record.mainTeacher.firstName} ${record.mainTeacher.lastName}`
@@ -108,7 +159,7 @@ const ClassListInner: React.FC = () => {
     {
       title: 'Thời gian',
       key: 'dates',
-      width: '200px',
+      width: colWidths.dates,
       render: (_: any, record: ClassData) => {
         const start = record.startDate ? dayjs(record.startDate).format('DD/MM/YYYY') : '?';
         const finish = record.finishDate ? dayjs(record.finishDate).format('DD/MM/YYYY') : 'Chưa xác định';
@@ -140,14 +191,14 @@ const ClassListInner: React.FC = () => {
       title: 'Sĩ số',
       dataIndex: 'maxSize',
       key: 'maxSize',
-      width: '80px',
+      width: colWidths.maxSize,
       render: (val: number) => val || '-',
     },
     {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
-      width: '150px',
+      width: colWidths.status,
       render: (s: string, record: ClassData) => {
         let color = 'gold';
         let label = s;
@@ -178,7 +229,8 @@ const ClassListInner: React.FC = () => {
     {
       title: 'Hành động',
       key: 'actions',
-      width: '110px',
+      dataIndex: 'actions',
+      width: colWidths.actions,
       render: (_: any, record: ClassData) => (
         <Button
           type="primary"
@@ -193,7 +245,19 @@ const ClassListInner: React.FC = () => {
         </Button>
       ),
     },
-  ];
+  ].map(col => ({
+    ...col,
+    onHeaderCell: (column: any) => ({
+      width: column.width,
+      onResize: handleResize(column.dataIndex || column.key),
+    }),
+  }));
+
+  const components = {
+    header: {
+      cell: ResizableTitle,
+    },
+  };
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '12px 0' }}>
@@ -303,7 +367,8 @@ const ClassListInner: React.FC = () => {
 
       <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}>
         <Table
-          columns={columns}
+          components={components}
+          columns={columns as any}
           dataSource={classes}
           rowKey="id"
           loading={loading}
@@ -319,7 +384,7 @@ const ClassListInner: React.FC = () => {
             onClick: () => navigate(`/admin/classes/${record.id}`),
             style: { cursor: 'pointer' },
           })}
-          scroll={{ x: 1000 }}
+          scroll={{ x: Object.values(colWidths).reduce((a, b) => a + b, 0) || 1500 }}
         />
       </Card>
     </div>

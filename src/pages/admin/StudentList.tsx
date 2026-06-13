@@ -22,6 +22,7 @@ import {
   CloseCircleFilled,
   ReloadOutlined,
 } from '@ant-design/icons';
+import { Resizable, ResizeCallbackData } from 'react-resizable';
 import dayjs from 'dayjs';
 import api from '../../services/api';
 import { PROVINCE_OPTIONS } from '../../assets/vietnam_divisions';
@@ -48,6 +49,33 @@ interface StudentData {
   loginEmail?: string;
 }
 
+const ResizableTitle = (props: any) => {
+  const { onResize, width, ...restProps } = props;
+
+  if (!width) {
+    return <th {...restProps} />;
+  }
+
+  return (
+    <Resizable
+      width={width}
+      height={0}
+      handle={
+        <span
+          className="react-resizable-handle"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        />
+      }
+      onResize={onResize}
+      draggableOpts={{ enableUserSelectHack: false }}
+    >
+      <th {...restProps} />
+    </Resizable>
+  );
+};
+
 const StudentListInner: React.FC = () => {
   const navigate = useNavigate();
   const { message } = App.useApp();
@@ -63,6 +91,29 @@ const StudentListInner: React.FC = () => {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<string | undefined>(undefined);
   const [province, setProvince] = useState<string | undefined>(undefined);
+
+  const [colWidths, setColWidths] = useState<Record<string, number>>(() => {
+    const saved = localStorage.getItem('student-list-columns-width');
+    return saved ? JSON.parse(saved) : {
+      studentId: 120,
+      fullName: 250,
+      gender: 100,
+      birthdate: 120,
+      mobile: 150,
+      province: 160,
+      status: 140,
+      primaryAddress: 300,
+      createdAt: 120
+    };
+  });
+
+  const handleResize = (key: string) => (e: React.SyntheticEvent, { size }: ResizeCallbackData) => {
+    setColWidths(prev => {
+      const next = { ...prev, [key]: size.width };
+      localStorage.setItem('student-list-columns-width', JSON.stringify(next));
+      return next;
+    });
+  };
 
   // Fetch data
   const fetchStudents = useCallback(async () => {
@@ -120,7 +171,7 @@ const StudentListInner: React.FC = () => {
       title: 'Mã HS',
       dataIndex: 'studentId',
       key: 'studentId',
-      width: '120px',
+      width: colWidths.studentId,
       render: (text: string, record: StudentData) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Text strong style={{ color: 'var(--primary)' }}>{text}</Text>
@@ -139,6 +190,8 @@ const StudentListInner: React.FC = () => {
     {
       title: 'Họ và tên',
       key: 'fullName',
+      dataIndex: 'fullName',
+      width: colWidths.fullName,
       render: (_: any, record: StudentData) => (
         <div>
           <Text style={{ color: '#fff', fontWeight: 600 }}>{`${record.lastName} ${record.firstName}`}</Text>
@@ -154,7 +207,7 @@ const StudentListInner: React.FC = () => {
       title: 'Giới tính',
       dataIndex: 'gender',
       key: 'gender',
-      width: '90px',
+      width: colWidths.gender,
       render: (text: string) => (
         <Tag color={text === 'Nam' ? 'blue' : text === 'Nữ' ? 'magenta' : 'default'}>
           {text}
@@ -165,32 +218,35 @@ const StudentListInner: React.FC = () => {
       title: 'Ngày sinh',
       dataIndex: 'birthdate',
       key: 'birthdate',
-      width: '110px',
+      width: colWidths.birthdate,
       render: (text: string) => dayjs(text).format('DD/MM/YYYY'),
     },
     {
       title: 'Số điện thoại',
       dataIndex: 'mobile',
       key: 'mobile',
+      width: colWidths.mobile,
       render: (text: string) => <Text style={{ color: '#d1d5db' }}>{text}</Text>,
     },
     {
       title: 'Tỉnh / Thành',
       dataIndex: 'province',
       key: 'province',
+      width: colWidths.province,
       render: (text: string) => text || <Text type="secondary">—</Text>,
     },
     {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
-      width: '130px',
+      width: colWidths.status,
       render: (statusVal: string) => getStatusTag(statusVal),
     },
     {
       title: 'Địa chỉ chi tiết',
       dataIndex: 'primaryAddress',
       key: 'primaryAddress',
+      width: colWidths.primaryAddress,
       ellipsis: {
         showTitle: false,
       },
@@ -204,10 +260,22 @@ const StudentListInner: React.FC = () => {
       title: 'Ngày tạo',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      width: '110px',
+      width: colWidths.createdAt,
       render: (text: string) => dayjs(text).format('DD/MM/YYYY'),
     },
-  ];
+  ].map(col => ({
+    ...col,
+    onHeaderCell: (column: any) => ({
+      width: column.width,
+      onResize: handleResize(column.dataIndex || column.key),
+    }),
+  }));
+
+  const components = {
+    header: {
+      cell: ResizableTitle,
+    },
+  };
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '12px 0' }}>
@@ -322,8 +390,9 @@ const StudentListInner: React.FC = () => {
         bodyStyle={{ padding: 0 }}
       >
         <Table
+          components={components}
           dataSource={students}
-          columns={columns}
+          columns={columns as any}
           rowKey="id"
           loading={loading}
           onRow={(record) => ({
@@ -343,6 +412,7 @@ const StudentListInner: React.FC = () => {
             },
             style: { padding: '16px', margin: 0, borderTop: '1px solid rgba(255, 255, 255, 0.06)' },
           }}
+          scroll={{ x: Object.values(colWidths).reduce((a, b) => a + b, 0) || 1500 }}
           style={{ background: 'transparent' }}
           className="custom-antd-table"
         />
