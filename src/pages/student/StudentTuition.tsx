@@ -12,7 +12,8 @@ import {
   Button,
   Statistic,
   Row,
-  Col
+  Col,
+  Modal,
 } from 'antd';
 import {
   DollarOutlined,
@@ -20,7 +21,7 @@ import {
   CalendarOutlined,
   CheckCircleOutlined,
   ExclamationCircleOutlined,
-  CreditCardOutlined
+  CreditCardOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
@@ -30,6 +31,8 @@ const { Panel } = Collapse;
 export const StudentTuition: React.FC = () => {
   const [bills, setBills] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [qrRequest, setQrRequest] = useState<any>(null);
+  const [qrVisible, setQrVisible] = useState(false);
 
   useEffect(() => {
     fetchTuition();
@@ -53,6 +56,15 @@ export const StudentTuition: React.FC = () => {
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+  };
+
+  const showPaymentQr = (bill: any) => {
+    if (!bill.paymentRequest) {
+      message.info('Trung tâm chưa gửi QR thanh toán cho hóa đơn này.');
+      return;
+    }
+    setQrRequest(bill.paymentRequest);
+    setQrVisible(true);
   };
 
   // Group bills by Period
@@ -225,7 +237,7 @@ export const StudentTuition: React.FC = () => {
                             {formatCurrency(Number(bill.totalAmount))}
                           </div>
                           {bill.status === 'Unpaid' && (
-                            <Button type="primary" danger icon={<CreditCardOutlined />}>
+                            <Button type="primary" danger icon={<CreditCardOutlined />} onClick={() => showPaymentQr(bill)}>
                               Thanh toán ngay
                             </Button>
                           )}
@@ -251,6 +263,27 @@ export const StudentTuition: React.FC = () => {
             })}
           </Collapse>
         )}
+
+        <Modal
+          title="Chuyển khoản học phí"
+          open={qrVisible}
+          onCancel={() => setQrVisible(false)}
+          footer={<Button type="primary" onClick={() => setQrVisible(false)}>Đóng</Button>}
+        >
+          {qrRequest && (
+            <div style={{ textAlign: 'center' }}>
+              <img src={qrRequest.qrUrl} alt="QR chuyển khoản học phí" style={{ width: '100%', maxWidth: 360, borderRadius: 8 }} />
+              <div style={{ marginTop: 12, color: 'var(--text-secondary)' }}>
+                <div>{qrRequest.accountName} - {qrRequest.accountNumber}</div>
+                <div style={{ fontWeight: 700, color: '#fff', fontSize: 18, marginTop: 4 }}>{formatCurrency(Number(qrRequest.amount))}</div>
+                <div>
+                  Nội dung: <Text copyable={{ text: qrRequest.transferContent }} style={{ color: '#a78bfa' }}>{qrRequest.transferContent}</Text>
+                </div>
+                <div style={{ marginTop: 10, fontSize: 12 }}>Sau khi chuyển khoản, vui lòng chờ trung tâm xác nhận.</div>
+              </div>
+            </div>
+          )}
+        </Modal>
       </div>
     </ConfigProvider>
   );

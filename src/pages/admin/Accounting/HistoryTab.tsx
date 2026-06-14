@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Button, Table, Typography, Space, Tag, Spin, App, Modal, Popconfirm, Select, InputNumber, DatePicker, Form, Input } from 'antd';
-import { LockOutlined, UnlockOutlined, CheckCircleOutlined, DeleteOutlined, CloseCircleOutlined, ArrowLeftOutlined, DownloadOutlined } from '@ant-design/icons';
+import { LockOutlined, UnlockOutlined, CheckCircleOutlined, DeleteOutlined, CloseCircleOutlined, ArrowLeftOutlined, DownloadOutlined, QrcodeOutlined, SendOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../../services/api';
 
@@ -41,6 +41,9 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
   const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
   const [paymentForm] = Form.useForm();
   const [currentOrder, setCurrentOrder] = useState<any>(null);
+  const [qrRequest, setQrRequest] = useState<any>(null);
+  const [qrVisible, setQrVisible] = useState(false);
+  const [qrSending, setQrSending] = useState(false);
 
   const loadPeriods = async () => {
     setPeriodsLoading(true);
@@ -105,8 +108,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
 
   const handleConfirmFullPayment = async (order: any, type: string) => {
     try {
-      const url = type === 'tuition' ? `/payment-periods/student-bill/${order.id}/pay` : `/payment-periods/teacher-salary/${order.id}/pay`;
-      await api.patch(url, { paidAmount: order.totalAmount, status: 'Paid', paymentDate: dayjs().toISOString(), note: 'Thanh toán đủ' });
+      await api.patch(`/payment-periods/orders/${type}/${order.id}`, { paidAmount: order.totalAmount, status: 'Paid', paymentDate: dayjs().toISOString(), note: 'Thanh toán đủ' });
       message.success('Xác nhận thanh toán thành công');
       loadPeriodDetail(selectedPeriodId!);
     } catch (err: any) {
@@ -116,8 +118,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
 
   const handleRevertPayment = async (order: any, type: string) => {
     try {
-      const url = type === 'tuition' ? `/payment-periods/student-bill/${order.id}/pay` : `/payment-periods/teacher-salary/${order.id}/pay`;
-      await api.patch(url, { paidAmount: 0, status: 'Unpaid', paymentDate: null, note: '' });
+      await api.patch(`/payment-periods/orders/${type}/${order.id}`, { paidAmount: 0, status: 'Unpaid', paymentDate: null, note: '' });
       message.success('Đã hủy thanh toán');
       loadPeriodDetail(selectedPeriodId!);
     } catch (err: any) {
@@ -127,8 +128,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
 
   const handleRemoveOrder = async (orderId: string, type: string) => {
     try {
-      const url = type === 'tuition' ? `/payment-periods/student-bill/${orderId}` : `/payment-periods/teacher-salary/${orderId}`;
-      await api.delete(url);
+      await api.delete(`/payment-periods/orders/${type}/${orderId}`);
       message.success('Đã xóa đơn hàng khỏi đợt thu');
       loadPeriodDetail(selectedPeriodId!);
     } catch (err: any) {
@@ -150,8 +150,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
   const saveEditPayment = async () => {
     try {
       const values = await paymentForm.validateFields();
-      const url = periodDetail.period.type === 'tuition' ? `/payment-periods/student-bill/${currentOrder.id}/pay` : `/payment-periods/teacher-salary/${currentOrder.id}/pay`;
-      await api.patch(url, {
+      await api.patch(`/payment-periods/orders/${periodDetail.period.type}/${currentOrder.id}`, {
         status: values.status,
         paidAmount: values.status === 'Paid' ? (values.paidAmount || currentOrder.totalAmount) : 0,
         paymentDate: values.status === 'Paid' ? (values.paymentDate ? values.paymentDate.toISOString() : dayjs().toISOString()) : null,
@@ -163,6 +162,28 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
     } catch (err: any) {
       if (err.response) message.error(err.response?.data?.message || 'Lỗi khi cập nhật giao dịch');
     }
+  };
+
+  const sendTuitionQr = async (order: any) => {
+    setCurrentOrder(order);
+    setQrSending(true);
+    try {
+      const { data } = await api.post(`/tuition-payment-requests/bills/${order.id}/send`);
+      setQrRequest(data);
+      setQrVisible(true);
+      message.success('Đã gửi QR và thông báo cho học sinh');
+      loadPeriodDetail(selectedPeriodId!);
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Không thể gửi QR thanh toán');
+    } finally {
+      setQrSending(false);
+    }
+  };
+
+  const showTuitionQr = (order: any) => {
+    setCurrentOrder(order);
+    setQrRequest(order.paymentRequest);
+    setQrVisible(true);
   };
 
   const showDetailModal = (record: any, type: string) => {
@@ -489,7 +510,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                   {
                     title: 'Thao tác',
                     key: 'action',
-                    width: 250,
+                    width: 360,
                     align: 'center' as const,
                     render: (_, r: any) => {
                       const isClosed = periodDetail.period.status === 'Closed';
@@ -510,6 +531,17 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                                 </Popconfirm>
                               ) : (
                                 <>
+                                  {periodDetail.period.type === 'tuition' && (
+                                    r.paymentRequest ? (
+                                      <Button type="link" size="small" icon={<QrcodeOutlined />} onClick={() => showTuitionQr(r)} style={{ color: '#a78bfa', padding: 0 }}>
+                                        Xem QR
+                                      </Button>
+                                    ) : (
+                                      <Button size="small" icon={<SendOutlined />} loading={qrSending} onClick={() => sendTuitionQr(r)}>
+                                        Gửi QR
+                                      </Button>
+                                    )
+                                  )}
                                   <Popconfirm
                                     title="Xác nhận thanh toán?"
                                     onConfirm={() => handleConfirmFullPayment(r, periodDetail.period.type)}
@@ -580,6 +612,30 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                   <Input.TextArea rows={3} />
                 </Form.Item>
               </Form>
+            </Modal>
+
+            <Modal
+              title="QR chuyển khoản học phí"
+              open={qrVisible}
+              onCancel={() => setQrVisible(false)}
+              footer={[
+                <Button key="resend" icon={<SendOutlined />} loading={qrSending} onClick={() => currentOrder && sendTuitionQr(currentOrder)}>
+                  Gửi lại
+                </Button>,
+                <Button key="close" type="primary" onClick={() => setQrVisible(false)}>Đóng</Button>
+              ]}
+            >
+              {qrRequest && (
+                <div style={{ textAlign: 'center' }}>
+                  <img src={qrRequest.qrUrl} alt="QR chuyển khoản học phí" style={{ width: '100%', maxWidth: 360, borderRadius: 8 }} />
+                  <div style={{ marginTop: 12, color: 'rgba(255,255,255,.75)' }}>
+                    <div>{qrRequest.accountName} - {qrRequest.accountNumber}</div>
+                    <div style={{ fontWeight: 700, color: '#fff', marginTop: 4 }}>{Number(qrRequest.amount).toLocaleString('vi-VN')} ₫</div>
+                    <div>Nội dung: <Text copyable={{ text: qrRequest.transferContent }} style={{ color: '#a78bfa' }}>{qrRequest.transferContent}</Text></div>
+                    <div style={{ marginTop: 8, fontSize: 12 }}>Tạo QR không đồng nghĩa với đã thu tiền.</div>
+                  </div>
+                </div>
+              )}
             </Modal>
 
             <Modal
