@@ -18,7 +18,7 @@ if ! flock -n 9; then
   exit 1
 fi
 
-for command in git npm pm2 curl; do
+for command in git npm pm2 curl grep; do
   command -v "${command}" >/dev/null 2>&1 || {
     echo "Missing required command: ${command}"
     exit 1
@@ -51,13 +51,20 @@ npm ci
 npm run build
 
 echo "Reloading frontend with PM2..."
-pm2 startOrReload ecosystem.config.cjs --env production --update-env
+pm2 delete dao-edu-web >/dev/null 2>&1 || true
+pm2 serve "${REPOSITORY_ROOT}/dist" 5001 \
+  --name dao-edu-web \
+  --spa
 pm2 save
 
 WEB_HEALTH_URL="${WEB_HEALTH_URL:-http://127.0.0.1:5001}"
 
 echo "Checking frontend health..."
-curl --fail --silent --show-error --retry 10 --retry-delay 2 "${WEB_HEALTH_URL}" >/dev/null
+curl --fail --silent --show-error \
+  --retry 10 \
+  --retry-delay 2 \
+  "${WEB_HEALTH_URL}/index.html" |
+  grep -q '<div id="root"></div>'
 
 echo "Frontend deployment completed successfully."
 pm2 status
