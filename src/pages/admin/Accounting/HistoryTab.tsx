@@ -517,6 +517,11 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                       return (
                         <Space size="small">
                           <Button type="link" size="small" onClick={() => showDetailModal(r, periodDetail.period.type)} style={{ color: '#38bdf8' }}>Chi tiết</Button>
+                          {periodDetail.period.type === 'tuition' && r.paymentRequest && (
+                            <Button type="link" size="small" icon={<QrcodeOutlined />} onClick={() => showTuitionQr(r)} style={{ color: '#a78bfa', padding: 0 }}>
+                              Đối soát
+                            </Button>
+                          )}
                           {!isClosed && (
                             <>
                               {r.status === 'Paid' ? (
@@ -531,16 +536,10 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                                 </Popconfirm>
                               ) : (
                                 <>
-                                  {periodDetail.period.type === 'tuition' && (
-                                    r.paymentRequest ? (
-                                      <Button type="link" size="small" icon={<QrcodeOutlined />} onClick={() => showTuitionQr(r)} style={{ color: '#a78bfa', padding: 0 }}>
-                                        Xem QR
-                                      </Button>
-                                    ) : (
+                                  {periodDetail.period.type === 'tuition' && !r.paymentRequest && (
                                       <Button size="small" icon={<SendOutlined />} loading={qrSending} onClick={() => sendTuitionQr(r)}>
                                         Gửi QR
                                       </Button>
-                                    )
                                   )}
                                   <Popconfirm
                                     title="Xác nhận thanh toán?"
@@ -632,7 +631,23 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                     <div>{qrRequest.accountName} - {qrRequest.accountNumber}</div>
                     <div style={{ fontWeight: 700, color: '#fff', marginTop: 4 }}>{Number(qrRequest.amount).toLocaleString('vi-VN')} ₫</div>
                     <div>Nội dung: <Text copyable={{ text: qrRequest.transferContent }} style={{ color: '#a78bfa' }}>{qrRequest.transferContent}</Text></div>
-                    <div style={{ marginTop: 8, fontSize: 12 }}>Tạo QR không đồng nghĩa với đã thu tiền.</div>
+                    <div style={{ marginTop: 8 }}>
+                      <Tag color={qrRequest.status === 'reconciled' ? 'green' : qrRequest.status === 'processing' ? 'gold' : 'blue'}>
+                        {qrRequest.status === 'reconciled' ? 'Đã tự động đối soát' : qrRequest.status === 'processing' ? 'Đang chuyển tiền' : 'Chờ học sinh chuyển khoản'}
+                      </Tag>
+                    </div>
+                    {(qrRequest.logs || []).length > 0 && (
+                      <div style={{ marginTop: 14, textAlign: 'left' }}>
+                        <Text strong style={{ color: '#fff' }}>Nhật ký thanh toán</Text>
+                        {[...qrRequest.logs].sort((a: any, b: any) => dayjs(a.createdAt).valueOf() - dayjs(b.createdAt).valueOf()).map((log: any) => (
+                          <div key={log.id} style={{ marginTop: 8, padding: 8, borderRadius: 6, background: 'rgba(255,255,255,.05)' }}>
+                            <Tag color={log.status === 'success' ? 'green' : 'gold'}>{log.status}</Tag>
+                            <Text style={{ color: 'rgba(255,255,255,.75)' }}>{log.message}</Text>
+                            <div style={{ marginTop: 2, fontSize: 11, color: 'rgba(255,255,255,.4)' }}>{dayjs(log.createdAt).format('DD/MM/YYYY HH:mm:ss')} · {log.source}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

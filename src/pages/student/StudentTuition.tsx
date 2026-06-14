@@ -33,6 +33,8 @@ export const StudentTuition: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [qrRequest, setQrRequest] = useState<any>(null);
   const [qrVisible, setQrVisible] = useState(false);
+  const [confirmingTransfer, setConfirmingTransfer] = useState(false);
+  const [simulatingTerminal, setSimulatingTerminal] = useState(false);
 
   useEffect(() => {
     fetchTuition();
@@ -65,6 +67,38 @@ export const StudentTuition: React.FC = () => {
     }
     setQrRequest(bill.paymentRequest);
     setQrVisible(true);
+  };
+
+  const confirmTransfer = async () => {
+    if (!qrRequest?.billId) return;
+    setConfirmingTransfer(true);
+    try {
+      await api.post(`/tuition-payment-requests/bills/${qrRequest.billId}/confirm-transfer`);
+      message.success('Đã ghi nhận. Hệ thống đang chờ callback đối soát từ VietQR.');
+      setQrVisible(false);
+      setQrRequest(null);
+      await fetchTuition();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Không thể xác nhận chuyển khoản.');
+    } finally {
+      setConfirmingTransfer(false);
+    }
+  };
+
+  const simulateTerminalSuccess = async () => {
+    if (!qrRequest?.billId) return;
+    setSimulatingTerminal(true);
+    try {
+      await api.post(`/bank/api/demo-terminal/bills/${qrRequest.billId}/success`);
+      message.success('Demo terminal đã báo giao dịch thành công và hệ thống đã đối soát.');
+      setQrVisible(false);
+      setQrRequest(null);
+      await fetchTuition();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Không thể kích hoạt demo terminal.');
+    } finally {
+      setSimulatingTerminal(false);
+    }
   };
 
   // Group bills by Period
@@ -268,7 +302,19 @@ export const StudentTuition: React.FC = () => {
           title="Chuyển khoản học phí"
           open={qrVisible}
           onCancel={() => setQrVisible(false)}
-          footer={<Button type="primary" onClick={() => setQrVisible(false)}>Đóng</Button>}
+          footer={[
+            <Button key="close" onClick={() => setQrVisible(false)}>Đóng</Button>,
+            qrRequest?.status === 'pending' && (
+              <Button key="confirm" type="primary" loading={confirmingTransfer} onClick={confirmTransfer}>
+                Tôi đã chuyển khoản
+              </Button>
+            ),
+            qrRequest?.status !== 'reconciled' && (
+              <Button key="demo-terminal" type="dashed" loading={simulatingTerminal} onClick={simulateTerminalSuccess}>
+                Demo terminal báo thành công
+              </Button>
+            ),
+          ]}
         >
           {qrRequest && (
             <div style={{ textAlign: 'center' }}>
@@ -279,7 +325,13 @@ export const StudentTuition: React.FC = () => {
                 <div>
                   Nội dung: <Text copyable={{ text: qrRequest.transferContent }} style={{ color: '#a78bfa' }}>{qrRequest.transferContent}</Text>
                 </div>
-                <div style={{ marginTop: 10, fontSize: 12 }}>Sau khi chuyển khoản, vui lòng chờ trung tâm xác nhận.</div>
+                <div style={{ marginTop: 10, fontSize: 12 }}>
+                  {qrRequest.status === 'reconciled'
+                    ? 'Giao dịch đã được tự động đối soát.'
+                    : qrRequest.status === 'processing'
+                      ? 'Đang chờ VietQR gửi callback biến động số dư để xác nhận.'
+                      : 'Sau khi chuyển khoản, bấm "Tôi đã chuyển khoản". Hóa đơn chỉ được xác nhận khi callback VietQR khớp.'}
+                </div>
               </div>
             </div>
           )}
