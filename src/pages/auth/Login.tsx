@@ -24,6 +24,24 @@ import {
 
 const { Title, Text } = Typography;
 
+const quickDevAccounts = {
+  [Role.ADMIN]: {
+    email: 'admin@dao.edu.vn',
+    password: '123456',
+    label: 'Quản trị viên (Admin)',
+  },
+  [Role.TEACHER]: {
+    email: 'linh.nguyen@dao.edu.vn',
+    password: '123456',
+    label: 'Giáo viên (Teacher)',
+  },
+  [Role.STUDENT]: {
+    email: 'an.nguyen@student.dao.edu.vn',
+    password: '123456',
+    label: 'Học viên (Student)',
+  },
+};
+
 const LoginInner: React.FC = () => {
   const [form] = Form.useForm();
   const { login } = useAuth();
@@ -55,26 +73,10 @@ const LoginInner: React.FC = () => {
 
   const handleQuickLogin = async (role: Role) => {
     setLoading(true);
-    let devEmail = '';
-    let devPassword = '';
-
-    switch (role) {
-      case Role.ADMIN:
-        devEmail = 'admin@class.com';
-        devPassword = 'admin123';
-        break;
-      case Role.TEACHER:
-        devEmail = 'teacher@class.com';
-        devPassword = 'teacher123';
-        break;
-      case Role.STUDENT:
-        devEmail = 'student@class.com';
-        devPassword = 'student123';
-        break;
-    }
+    const account = quickDevAccounts[role];
 
     try {
-      const user = await login(devEmail, devPassword);
+      const user = await login(account.email, account.password);
       message.success(`Đăng nhập nhanh thành công!`);
       redirectUser(user.role);
     } catch (err: any) {
@@ -183,7 +185,7 @@ const LoginInner: React.FC = () => {
                 >
                   <Input
                     id="login-email"
-                    placeholder="email@class.com"
+                    placeholder="admin@dao.edu.vn"
                     size="large"
                     style={{ background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', color: '#fff' }}
                     disabled={loading}
@@ -282,7 +284,7 @@ const LoginInner: React.FC = () => {
                     <UserOutlined style={{ color: 'var(--accent)', fontSize: '18px', marginRight: '12px' }} />
                     <div style={{ textAlign: 'left' }}>
                       <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>1. Quản trị viên (Admin)</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>admin@class.com</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{quickDevAccounts[Role.ADMIN].email} / 123456</div>
                     </div>
                   </Button>
 
@@ -308,7 +310,7 @@ const LoginInner: React.FC = () => {
                     <UserOutlined style={{ color: 'var(--secondary)', fontSize: '18px', marginRight: '12px' }} />
                     <div style={{ textAlign: 'left' }}>
                       <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>2. Giáo viên (Teacher)</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>teacher@class.com</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{quickDevAccounts[Role.TEACHER].email} / 123456</div>
                     </div>
                   </Button>
 
@@ -334,7 +336,7 @@ const LoginInner: React.FC = () => {
                     <UserOutlined style={{ color: 'var(--primary)', fontSize: '18px', marginRight: '12px' }} />
                     <div style={{ textAlign: 'left' }}>
                       <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>3. Học sinh (Student)</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>student@class.com</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{quickDevAccounts[Role.STUDENT].email} / 123456</div>
                     </div>
                   </Button>
                 </div>
