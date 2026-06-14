@@ -47,4 +47,13 @@ jobs:
             -p "$SSH_PORT" \
             -o BatchMode=yes \
             "$SSH_USER@$SSH_HOST" \
-            "cd '$DEPLOY_PATH' && bash scripts/deploy-pm2.sh main"
+            "set -e
+             cd '$DEPLOY_PATH'
+             test -d .git || {
+               echo 'Git repository not found at DEPLOY_PATH: $DEPLOY_PATH'
+               exit 1
+             }
+             git fetch --prune origin main
+             git checkout main
+             git merge --ff-only origin/main
+             bash scripts/deploy-pm2.sh main"
