@@ -15,7 +15,7 @@ module.exports = {
       env_production: {
         NODE_ENV: 'production',
         PM2_SERVE_PATH: path.join(__dirname, 'dist'),
-        PM2_SERVE_PORT: process.env.FRONTEND_PORT || 4173,
+        PM2_SERVE_PORT: process.env.FRONTEND_PORT || 5001,
         PM2_SERVE_SPA: 'true',
       },
     },

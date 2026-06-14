@@ -54,7 +54,7 @@ echo "Reloading frontend with PM2..."
 pm2 startOrReload ecosystem.config.cjs --env production --update-env
 pm2 save
 
-WEB_HEALTH_URL="${WEB_HEALTH_URL:-http://127.0.0.1:4173}"
+WEB_HEALTH_URL="${WEB_HEALTH_URL:-http://127.0.0.1:5001}"
 
 echo "Checking frontend health..."
 curl --fail --silent --show-error --retry 10 --retry-delay 2 "${WEB_HEALTH_URL}" >/dev/null
