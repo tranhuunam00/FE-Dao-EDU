@@ -135,8 +135,8 @@ const TeacherDetailInner: React.FC = () => {
         status: values.status,
       };
 
-      if (!teacher?.userId) {
-        payload.loginEmail = values.loginEmail?.trim() || undefined;
+      payload.loginEmail = values.loginEmail?.trim() || undefined;
+      if (values.loginPassword) {
         payload.loginPassword = values.loginPassword || undefined;
       }
 
@@ -146,6 +146,10 @@ const TeacherDetailInner: React.FC = () => {
 
       const res = await api.patch(`/teachers/${id}`, payload);
       setTeacher(res.data);
+      form.setFieldsValue({
+        loginEmail: res.data.loginEmail || values.loginEmail?.trim(),
+        loginPassword: undefined,
+      });
       message.success('Đã cập nhật thông tin nhân sự thành công!');
     } catch (err: any) {
       const msg = err.response?.data?.message;
@@ -298,34 +302,65 @@ const TeacherDetailInner: React.FC = () => {
 
   const renderLoginTab = () => (
     <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}>
-      {teacher?.userId ? (
-        <Alert
-          message="Nhân sự này đã có tài khoản đăng nhập"
-          description={`Email đăng nhập: ${teacher.loginEmail}`}
-          type="success"
-          showIcon
-        />
-      ) : (
-        <>
-          <div style={{ marginBottom: '24px' }}>
-            <Text style={{ color: 'var(--text-secondary)' }}>
-              Khai báo thông tin dưới đây nếu bạn muốn tạo tài khoản cho nhân sự này đăng nhập vào hệ thống ngay lúc này. 
-            </Text>
-          </div>
-          <Row gutter={24}>
-            <Col xs={24} md={12}>
-              <Form.Item label="Email đăng nhập" name="loginEmail" rules={[{ type: 'email' }, { required: true }]}>
-                <Input placeholder="VD: nv.a@dao.edu.vn" size="large" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item label="Mật khẩu khởi tạo" name="loginPassword" rules={[{ required: true }]}>
-                <Input.Password placeholder="Nhập mật khẩu" size="large" />
-              </Form.Item>
-            </Col>
-          </Row>
-        </>
-      )}
+      <Alert
+        message={teacher?.userId ? 'Cập nhật tài khoản đăng nhập' : 'Tạo tài khoản đăng nhập'}
+        description={
+          teacher?.userId
+            ? 'Bỏ trống mật khẩu nếu không muốn thay đổi.'
+            : 'Có thể bỏ trống cả hai trường nếu chưa muốn tạo tài khoản.'
+        }
+        type={teacher?.userId ? 'info' : 'warning'}
+        showIcon
+        style={{ marginBottom: 24 }}
+      />
+      <Row gutter={24}>
+        <Col xs={24} md={12}>
+          <Form.Item
+            label="Email đăng nhập"
+            name="loginEmail"
+            dependencies={['loginPassword']}
+            rules={[
+              { type: 'email' },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (teacher?.userId && !value) {
+                    return Promise.reject(new Error('Vui lòng nhập email đăng nhập'));
+                  }
+                  if (!teacher?.userId && getFieldValue('loginPassword') && !value) {
+                    return Promise.reject(new Error('Vui lòng nhập email để tạo tài khoản'));
+                  }
+                  return Promise.resolve();
+                },
+              }),
+            ]}
+          >
+            <Input placeholder="VD: nv.a@dao.edu.vn" size="large" />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
+          <Form.Item
+            label={teacher?.userId ? 'Mật khẩu mới' : 'Mật khẩu khởi tạo'}
+            name="loginPassword"
+            dependencies={['loginEmail']}
+            rules={[
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!teacher?.userId && getFieldValue('loginEmail') && !value) {
+                    return Promise.reject(new Error('Vui lòng nhập mật khẩu để tạo tài khoản'));
+                  }
+                  return Promise.resolve();
+                },
+              }),
+            ]}
+          >
+            <Input.Password
+              placeholder={teacher?.userId ? 'Bỏ trống để giữ mật khẩu hiện tại' : 'Nhập mật khẩu'}
+              size="large"
+              autoComplete="new-password"
+            />
+          </Form.Item>
+        </Col>
+      </Row>
     </Card>
   );
 

@@ -44,7 +44,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
         return [
           { name: 'Tổng quan', path: '/teacher', icon: <LayoutDashboard size={20} /> },
           { name: 'Lịch sử nhận lương', path: '/teacher/salary', icon: <DollarSign size={20} /> },
-          { name: 'Danh sách Học sinh', path: '/teacher/students', icon: <Users size={20} /> },
+          { name: 'Lớp & Học sinh', path: '/teacher/students', icon: <Users size={20} /> },
           { name: 'Bài tập & Chấm điểm', path: '/teacher/grades', icon: <ClipboardList size={20} /> },
           { name: 'Tài liệu học tập', path: '/teacher/materials', icon: <BookMarked size={20} /> },
         ];

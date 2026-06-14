@@ -30,6 +30,7 @@ import Accounting from './pages/admin/Accounting';
 // Pages — Teacher
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import TeacherSalaryHistory from './pages/teacher/TeacherSalaryHistory';
+import TeacherClasses from './pages/teacher/TeacherClasses';
 
 // Pages — Student
 import StudentDashboard from './pages/student/StudentDashboard';
@@ -100,13 +101,11 @@ function App() {
                   <Routes>
                     <Route path="/" element={<TeacherDashboard />} />
                     <Route path="salary" element={<TeacherSalaryHistory />} />
-                    <Route path="/students" element={
-                      <Placeholder title="Danh sách Học sinh" desc="Xem danh sách học sinh trong lớp đang phụ trách." />
-                    } />
-                    <Route path="/grades" element={
+                    <Route path="students" element={<TeacherClasses />} />
+                    <Route path="grades" element={
                       <Placeholder title="Bài tập & Chấm điểm" desc="Quản lý bài kiểm tra và chấm điểm học sinh." />
                     } />
-                    <Route path="/materials" element={
+                    <Route path="materials" element={
                       <Placeholder title="Tài liệu học tập" desc="Tải lên và quản lý tài liệu cho các lớp học." />
                     } />
                   </Routes>
