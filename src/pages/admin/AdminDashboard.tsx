@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect */
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import { Shield, Users, BookOpen, Layers, Activity, RefreshCw } from 'lucide-react';
@@ -7,6 +8,7 @@ import {
   ResponsiveContainer, Legend, BarChart, Bar, PieChart, Pie, Cell 
 } from 'recharts';
 import dayjs from 'dayjs';
+import { useNavigate } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 
@@ -34,6 +36,7 @@ interface ActivityData {
 }
 
 const AdminDashboardInner: React.FC = () => {
+  const navigate = useNavigate();
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [revenue, setRevenue] = useState<RevenueData[]>([]);
   const [activities, setActivities] = useState<ActivityData[]>([]);
@@ -110,6 +113,13 @@ const AdminDashboardInner: React.FC = () => {
     <div style={{ fontFamily: 'Inter, sans-serif', maxWidth: 1400, margin: '0 auto', paddingBottom: 16 }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+        <Button
+          icon={<BookOpen size={16} />}
+          onClick={() => navigate('/admin/assignments')}
+          style={{ marginRight: 10 }}
+        >
+          Theo dõi bài tập
+        </Button>
         <Button 
           type="primary" 
           icon={<RefreshCw size={16} />} 

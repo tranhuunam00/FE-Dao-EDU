@@ -1,4 +1,5 @@
-import React from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth, Role } from '../context/AuthContext';
 import { 
@@ -14,11 +15,34 @@ import {
   DollarSign
 } from 'lucide-react';
 import { TeamOutlined as AntdTeamOutlined, BankOutlined as AntdBankOutlined } from '@ant-design/icons';
+import { Badge, Button, Dropdown, Empty } from 'antd';
+import api from '../services/api';
 
 export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const loadNotifications = async () => {
+    try {
+      const { data } = await api.get('/notifications');
+      setNotifications(data.notifications || []);
+      setUnreadCount(data.unreadCount || 0);
+    } catch {
+      // Notifications must not block the rest of the application.
+    }
+  };
+
+  useEffect(() => {
+    const initial = window.setTimeout(loadNotifications, 0);
+    const timer = window.setInterval(loadNotifications, 60000);
+    return () => {
+      window.clearTimeout(initial);
+      window.clearInterval(timer);
+    };
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -37,6 +61,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
           { name: 'Trung tâm', path: '/admin/centers', icon: <AntdBankOutlined style={{ fontSize: '20px' }} /> },
           { name: 'Chương trình học', path: '/admin/courses', icon: <BookMarked size={20} /> },
           { name: 'Lớp học', path: '/admin/classes', icon: <AntdTeamOutlined style={{ fontSize: '20px' }} /> },
+          { name: 'Theo dõi bài tập', path: '/admin/assignments', icon: <ClipboardList size={20} /> },
           { name: 'Kế Toán', path: '/admin/accounting', icon: <DollarSign size={20} /> },
           { name: 'Nhật ký hệ thống', path: '/admin/logs', icon: <Shield size={20} /> },
         ];
@@ -51,6 +76,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
       case Role.STUDENT:
         return [
           { name: 'Dashboard', path: '/student', icon: <LayoutDashboard size={20} /> },
+          { name: 'Bài tập', path: '/student/assignments', icon: <ClipboardList size={20} /> },
           { name: 'Học phí', path: '/student/tuition', icon: <DollarSign size={20} /> },
           { name: 'Hồ sơ cá nhân', path: '/student/profile', icon: <UserIcon size={20} /> },
         ];
@@ -231,10 +257,26 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
               <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--secondary)', boxShadow: '0 0 10px var(--secondary-glow)' }}></span>
               Hệ thống kết nối
             </div>
-            <button style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', position: 'relative' }}>
-              <Bell size={20} />
-              <span style={{ position: 'absolute', top: '-2px', right: '-2px', width: '6px', height: '6px', backgroundColor: 'var(--danger)', borderRadius: '50%' }}></span>
-            </button>
+            <Dropdown
+              trigger={['click']}
+              dropdownRender={() => (
+                <div style={{ width: 360, maxHeight: 480, overflow: 'auto', padding: 12, background: '#111827', border: '1px solid var(--card-border)', borderRadius: 10 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <b>Thông báo</b>
+                    {unreadCount > 0 && <Button size="small" type="link" onClick={async () => { await api.patch('/notifications/read-all'); loadNotifications(); }}>Đánh dấu đã đọc</Button>}
+                  </div>
+                  {notifications.length === 0 ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Chưa có thông báo" /> : notifications.map(item => (
+                    <button key={item.id} onClick={async () => { await api.patch(`/notifications/${item.id}/read`); if (item.linkPath) navigate(item.linkPath); loadNotifications(); }} style={{ width: '100%', textAlign: 'left', border: 0, borderBottom: '1px solid rgba(255,255,255,.06)', padding: 12, cursor: 'pointer', color: '#fff', background: item.readAt ? 'transparent' : 'rgba(99,102,241,.12)' }}>
+                      <b>{item.title}</b><div style={{ color: 'var(--text-secondary)', marginTop: 4 }}>{item.message}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            >
+              <button onClick={loadNotifications} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                <Badge count={unreadCount} size="small"><Bell size={20} color="currentColor" /></Badge>
+              </button>
+            </Dropdown>
           </div>
         </header>
 

@@ -26,17 +26,20 @@ import ClassList from './pages/admin/ClassList';
 import CreateClass from './pages/admin/CreateClass';
 import ClassDetail from './pages/admin/ClassDetail';
 import Accounting from './pages/admin/Accounting';
+import AdminAssignments from './pages/admin/AdminAssignments';
 
 // Pages — Teacher
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import TeacherSalaryHistory from './pages/teacher/TeacherSalaryHistory';
 import TeacherClasses from './pages/teacher/TeacherClasses';
+import TeacherAssignments from './pages/teacher/TeacherAssignments';
 
 // Pages — Student
 import StudentDashboard from './pages/student/StudentDashboard';
 import StudentProfile from './pages/student/StudentProfile';
 import StudentCalendar from './pages/student/StudentCalendar';
 import StudentTuition from './pages/student/StudentTuition';
+import StudentAssignments from './pages/student/StudentAssignments';
 
 // Placeholder component
 const Placeholder = ({ title, desc }: { title: string; desc: string }) => (
@@ -83,6 +86,7 @@ function App() {
                     <Route path="classes/create" element={<CreateClass />} />
                     <Route path="classes/:id" element={<ClassDetail />} />
                     <Route path="accounting" element={<Accounting />} />
+                    <Route path="assignments" element={<AdminAssignments />} />
                     <Route path="/logs" element={
                       <Placeholder title="Nhật ký hệ thống" desc="Lịch sử hoạt động và nhật ký bảo mật." />
                     } />
@@ -102,9 +106,7 @@ function App() {
                     <Route path="/" element={<TeacherDashboard />} />
                     <Route path="salary" element={<TeacherSalaryHistory />} />
                     <Route path="students" element={<TeacherClasses />} />
-                    <Route path="grades" element={
-                      <Placeholder title="Bài tập & Chấm điểm" desc="Quản lý bài kiểm tra và chấm điểm học sinh." />
-                    } />
+                    <Route path="grades" element={<TeacherAssignments />} />
                     <Route path="materials" element={
                       <Placeholder title="Tài liệu học tập" desc="Tải lên và quản lý tài liệu cho các lớp học." />
                     } />
@@ -122,9 +124,10 @@ function App() {
                 <DashboardLayout>
                   <Routes>
                     <Route path="/" element={<StudentDashboard />} />
-                    <Route path="/profile" element={<StudentProfile />} />
-                    <Route path="/schedule" element={<StudentCalendar />} />
-                    <Route path="/tuition" element={<StudentTuition />} />
+                    <Route path="profile" element={<StudentProfile />} />
+                    <Route path="schedule" element={<StudentCalendar />} />
+                    <Route path="tuition" element={<StudentTuition />} />
+                    <Route path="assignments" element={<StudentAssignments />} />
                   </Routes>
                 </DashboardLayout>
               </RouteGuard>

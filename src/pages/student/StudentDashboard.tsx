@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect */
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
-import { GraduationCap, BarChart2, Calendar, RefreshCw, BookOpen } from 'lucide-react';
+import { GraduationCap, BarChart2, Calendar, RefreshCw, BookOpen, ClipboardList } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { StudentCalendar } from './StudentCalendar';
+import { useNavigate } from 'react-router-dom';
 
 interface SessionData {
   id: string;
@@ -29,6 +31,7 @@ interface StudentDashData {
 
 export const StudentDashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [data, setData] = useState<StudentDashData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -72,9 +75,14 @@ export const StudentDashboard: React.FC = () => {
           </h2>
           <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>Theo dõi thời khóa biểu, điểm danh và kết quả học tập của bạn</p>
         </div>
-        <button onClick={fetchData} className="btn btn-outline" style={{ display: 'flex', gap: '8px' }}>
-          <RefreshCw size={16} /> Làm mới
-        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={() => navigate('/student/assignments')} className="btn btn-primary">
+            <ClipboardList size={16} /> Bài tập cần làm
+          </button>
+          <button onClick={fetchData} className="btn btn-outline" style={{ display: 'flex', gap: '8px' }}>
+            <RefreshCw size={16} /> Làm mới
+          </button>
+        </div>
       </div>
 
       {/* Stat cards */}
