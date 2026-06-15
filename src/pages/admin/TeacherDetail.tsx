@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  Form, Input, Select, DatePicker, Button, Card, Typography, Row, Col, Upload, Tabs, App, Space, Spin, Alert, ConfigProvider, theme, Avatar, Table, Tag
+  Form, Input, Select, DatePicker, Button, Card, Typography, Row, Col, Upload, Tabs, App, Space, Spin, Alert, Avatar, Table, Tag
 } from 'antd';
 import { CameraOutlined, ArrowLeftOutlined, SaveOutlined, LockOutlined, UserOutlined, EnvironmentOutlined, DollarOutlined, SearchOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -509,7 +509,7 @@ const TeacherDetailInner: React.FC = () => {
                               title: 'Chương trình & Level', key: 'course',
                               render: (_: any, r: any) => (
                                 <div>
-                                  <Text strong style={{ color: '#fff' }}>{r.courseName || '-'}</Text>
+                                  <Text strong style={{ color: 'var(--text-primary)' }}>{r.courseName || '-'}</Text>
                                   <div style={{ fontSize: '11px', color: '#818cf8' }}>Level: {r.levelName || '-'}</div>
                                 </div>
                               ),
@@ -526,7 +526,7 @@ const TeacherDetailInner: React.FC = () => {
                                 <div>
                                   <Text style={{ color: '#a5b4fc' }}>{(r.rate || 0).toLocaleString('vi-VN')}&nbsp;₫</Text>
                                   {r.pricingEffectiveFrom && (
-                                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
+                                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 2 }}>
                                       {`Lương áp dụng: ${dayjs(r.pricingEffectiveFrom).format('DD/MM/YY')}${r.pricingEffectiveTo ? ` - ${dayjs(r.pricingEffectiveTo).format('DD/MM/YY')}` : ' +'}`}
                                     </div>
                                   )}
@@ -541,7 +541,7 @@ const TeacherDetailInner: React.FC = () => {
                           summary={() => (
                             <Table.Summary.Row>
                               <Table.Summary.Cell index={0} colSpan={5}>
-                                <Text strong style={{ color: '#fff' }}>Tổng cộng</Text>
+                                <Text strong style={{ color: 'var(--text-primary)' }}>Tổng cộng</Text>
                               </Table.Summary.Cell>
                               <Table.Summary.Cell index={1}>
                                 <Text strong style={{ color: '#f59e0b', fontSize: '16px' }}>
@@ -590,22 +590,9 @@ const TeacherDetailInner: React.FC = () => {
 };
 
 const TeacherDetail: React.FC = () => (
-  <ConfigProvider
-    theme={{
-      algorithm: theme.darkAlgorithm,
-      token: {
-        colorPrimary: '#6366f1',
-        colorBgContainer: '#111827',
-        colorBorder: 'rgba(255, 255, 255, 0.06)',
-        borderRadius: 8,
-        fontFamily: 'Inter, sans-serif',
-      },
-    }}
-  >
-    <App>
-      <TeacherDetailInner />
-    </App>
-  </ConfigProvider>
+  <App>
+    <TeacherDetailInner />
+  </App>
 );
 
 export default TeacherDetail;

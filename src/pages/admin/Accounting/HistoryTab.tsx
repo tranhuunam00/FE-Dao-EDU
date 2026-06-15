@@ -6,7 +6,7 @@ import api from '../../../services/api';
 
 const { Text } = Typography;
 
-const cardStyle = { border: 'none', background: 'rgba(17, 24, 39, 0.75)' };
+const cardStyle = { border: 'none', background: 'var(--card-bg)' };
 
 const exportCSV = (data: any[], filename: string, headers: string[], keys: string[]) => {
   const rows = [headers.join(','), ...data.map(r => keys.map(k => `"${r[k] ?? ''}"`).join(','))];
@@ -228,7 +228,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
               dataIndex: 'month',
               key: 'month',
               width: 110,
-              render: (v: string) => <Text style={{ color: '#fff', fontWeight: 500 }}>{v}</Text>
+              render: (v: string) => <Text style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{v}</Text>
             },
             {
               title: 'Ngày chốt',
@@ -236,7 +236,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
               width: 150,
               render: (_, r: any) => {
                 const end = dayjs(r.endDate).format('DD/MM/YYYY');
-                return <Text style={{ color: 'rgba(255,255,255,0.7)' }}>{end}</Text>;
+                return <Text type="secondary">{end}</Text>;
               }
             },
             {
@@ -373,7 +373,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
             <Row gutter={16} style={{ marginBottom: 20 }}>
               <Col xs={12} md={6}>
                 <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
-                  <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 4 }}>
                     {periodDetail.period.type === 'tuition' ? 'Tổng số học viên' : 'Tổng số giáo viên'}
                   </div>
                   <div style={{ color: '#6366f1', fontSize: 24, fontWeight: 700 }}>{periodDetail.orders.length}</div>
@@ -381,7 +381,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
               </Col>
               <Col xs={12} md={6}>
                 <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
-                  <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>Tổng tiền trong kỳ</div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 4 }}>Tổng tiền trong kỳ</div>
                   <div style={{ color: '#38bdf8', fontSize: 20, fontWeight: 700 }}>
                     {periodDetail.orders.reduce((sum: number, o: any) => sum + o.totalAmount, 0).toLocaleString('vi-VN')} ₫
                   </div>
@@ -389,7 +389,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
               </Col>
               <Col xs={12} md={6}>
                 <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
-                  <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 4 }}>
                     {periodDetail.period.type === 'tuition' ? 'Đã thu tiền' : 'Đã chi trả'}
                   </div>
                   <div style={{ color: '#10b981', fontSize: 20, fontWeight: 700 }}>
@@ -399,7 +399,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
               </Col>
               <Col xs={12} md={6}>
                 <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
-                  <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 4 }}>
                     {periodDetail.period.type === 'tuition' ? 'Còn nợ' : 'Chưa trả'}
                   </div>
                   <div style={{ color: '#f87171', fontSize: 20, fontWeight: 700 }}>
@@ -413,9 +413,9 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
               className="glass-panel"
               style={cardStyle}
               title={
-                <div style={{ color: '#fff' }}>
+                <div style={{ color: 'var(--text-primary)' }}>
                   <span style={{ fontFamily: 'Outfit' }}>{periodDetail.period.name}</span>
-                  <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', marginLeft: 12 }}>
+                  <span style={{ fontSize: 13, color: 'var(--text-muted)', marginLeft: 12 }}>
                     (Tháng {periodDetail.period.month} - Từ: {dayjs(periodDetail.period.startDate).format('DD/MM/YYYY')} đến {dayjs(periodDetail.period.endDate).format('DD/MM/YYYY')})
                   </span>
                 </div>
@@ -458,19 +458,19 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                     width: 220,
                     render: (v: string, r: any) => (
                       <div>
-                        <Text style={{ color: '#fff', fontWeight: 500 }}>{v}</Text>
-                        {r.nickName && <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginLeft: 6 }}>({r.nickName})</span>}
+                        <Text style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{v}</Text>
+                        {r.nickName && <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 6 }}>({r.nickName})</span>}
                       </div>
                     )
                   },
-                  { title: 'SĐT', dataIndex: 'mobile', key: 'mobile', width: 130, render: (v: string) => <Text style={{ color: 'rgba(255,255,255,0.6)' }}>{v}</Text> },
+                  { title: 'SĐT', dataIndex: 'mobile', key: 'mobile', width: 130, render: (v: string) => <Text type="secondary">{v}</Text> },
                   {
                     title: 'Tổng số tiền',
                     dataIndex: 'totalAmount',
                     key: 'totalAmount',
                     width: 150,
                     align: 'right' as const,
-                    render: (v: number) => <Text style={{ color: '#fff', fontWeight: 600 }}>{v.toLocaleString('vi-VN')} ₫</Text>
+                    render: (v: number) => <Text style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{v.toLocaleString('vi-VN')} ₫</Text>
                   },
                   {
                     title: periodDetail.period.type === 'tuition' ? 'Thực đóng' : 'Thực trả',
@@ -478,7 +478,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                     key: 'paidAmount',
                     width: 150,
                     align: 'right' as const,
-                    render: (v: number) => <Text style={{ color: v > 0 ? '#10b981' : 'rgba(255,255,255,0.4)' }}>{v.toLocaleString('vi-VN')} ₫</Text>
+                    render: (v: number) => <Text style={{ color: v > 0 ? '#10b981' : 'var(--text-muted)' }}>{v.toLocaleString('vi-VN')} ₫</Text>
                   },
                   {
                     title: 'Trạng thái',
@@ -497,7 +497,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                     dataIndex: 'paymentDate',
                     key: 'paymentDate',
                     width: 130,
-                    render: (v: string) => v ? dayjs(v).format('DD/MM/YYYY HH:mm') : <Text style={{ color: 'rgba(255,255,255,0.3)' }}>—</Text>
+                    render: (v: string) => v ? dayjs(v).format('DD/MM/YYYY HH:mm') : <Text type="secondary">—</Text>
                   },
                   {
                     title: 'Ghi chú',
@@ -505,7 +505,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                     key: 'note',
                     width: 180,
                     ellipsis: true,
-                    render: (v: string) => <Text style={{ color: 'rgba(255,255,255,0.5)' }}>{v || '—'}</Text>
+                    render: (v: string) => <Text type="secondary">{v || '—'}</Text>
                   },
                   {
                     title: 'Thao tác',
@@ -572,7 +572,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
             </Card>
 
             <Modal
-              title={<span style={{ color: '#fff', fontFamily: 'Outfit', fontSize: 17 }}>Cập nhật giao dịch</span>}
+              title={<span style={{ color: 'var(--text-primary)', fontFamily: 'Outfit', fontSize: 17 }}>Cập nhật giao dịch</span>}
               open={isPaymentModalVisible}
               onOk={saveEditPayment}
               onCancel={() => setIsPaymentModalVisible(false)}
@@ -627,9 +627,9 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
               {qrRequest && (
                 <div style={{ textAlign: 'center' }}>
                   <img src={qrRequest.qrUrl} alt="QR chuyển khoản học phí" style={{ width: '100%', maxWidth: 360, borderRadius: 8 }} />
-                  <div style={{ marginTop: 12, color: 'rgba(255,255,255,.75)' }}>
+                  <div style={{ marginTop: 12, color: 'var(--text-secondary)' }}>
                     <div>{qrRequest.accountName} - {qrRequest.accountNumber}</div>
-                    <div style={{ fontWeight: 700, color: '#fff', marginTop: 4 }}>{Number(qrRequest.amount).toLocaleString('vi-VN')} ₫</div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>{Number(qrRequest.amount).toLocaleString('vi-VN')} ₫</div>
                     <div>Nội dung: <Text copyable={{ text: qrRequest.transferContent }} style={{ color: '#a78bfa' }}>{qrRequest.transferContent}</Text></div>
                     <div style={{ marginTop: 8 }}>
                       <Tag color={qrRequest.status === 'reconciled' ? 'green' : qrRequest.status === 'processing' ? 'gold' : 'blue'}>
@@ -638,12 +638,12 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                     </div>
                     {(qrRequest.logs || []).length > 0 && (
                       <div style={{ marginTop: 14, textAlign: 'left' }}>
-                        <Text strong style={{ color: '#fff' }}>Nhật ký thanh toán</Text>
+                        <Text strong style={{ color: 'var(--text-primary)' }}>Nhật ký thanh toán</Text>
                         {[...qrRequest.logs].sort((a: any, b: any) => dayjs(a.createdAt).valueOf() - dayjs(b.createdAt).valueOf()).map((log: any) => (
                           <div key={log.id} style={{ marginTop: 8, padding: 8, borderRadius: 6, background: 'rgba(255,255,255,.05)' }}>
                             <Tag color={log.status === 'success' ? 'green' : 'gold'}>{log.status}</Tag>
-                            <Text style={{ color: 'rgba(255,255,255,.75)' }}>{log.message}</Text>
-                            <div style={{ marginTop: 2, fontSize: 11, color: 'rgba(255,255,255,.4)' }}>{dayjs(log.createdAt).format('DD/MM/YYYY HH:mm:ss')} · {log.source}</div>
+                            <Text style={{ color: 'var(--text-secondary)' }}>{log.message}</Text>
+                            <div style={{ marginTop: 2, fontSize: 11, color: 'var(--text-muted)' }}>{dayjs(log.createdAt).format('DD/MM/YYYY HH:mm:ss')} · {log.source}</div>
                           </div>
                         ))}
                       </div>
@@ -655,7 +655,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
 
             <Modal
               title={
-                <div style={{ color: '#fff', fontSize: 18, fontFamily: 'Outfit' }}>
+                <div style={{ color: 'var(--text-primary)', fontSize: 18, fontFamily: 'Outfit' }}>
                   {detailType === 'student' ? 'Chi Tiết Học Phí' : 'Chi Tiết Lương'} — {detailTitle}
                 </div>
               }
@@ -663,7 +663,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
               onCancel={() => setDetailVisible(false)}
               footer={[<Button key="close" type="primary" onClick={() => setDetailVisible(false)}>Đóng</Button>]}
               width={750}
-              styles={{ body: { background: '#111827', color: '#fff' } }}
+              styles={{ body: { background: 'var(--bg-secondary)', color: 'var(--text-primary)' } }}
             >
               <Table
                 dataSource={detailItems}

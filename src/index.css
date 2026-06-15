@@ -501,8 +501,33 @@ button[disabled],
 }
 
 :root[data-theme='light'] .ant-table-wrapper .ant-table-tbody > tr > td {
-  color: var(--text-primary);
-  border-bottom-color: var(--card-border);
+  color: var(--text-primary) !important;
+  border-bottom-color: var(--card-border) !important;
+}
+
+:root[data-theme='light'] .ant-table-wrapper .ant-table-tbody > tr > td .ant-typography {
+  color: var(--text-primary) !important;
+}
+
+:root[data-theme='light'] .ant-table-wrapper .ant-table-tbody > tr > td .ant-typography-secondary,
+:root[data-theme='light'] .ant-table-wrapper .ant-table-tbody > tr > td .table-secondary-text {
+  color: var(--text-secondary) !important;
+}
+
+:root[data-theme='light'] .ant-tabs .ant-tabs-tab {
+  color: var(--text-secondary) !important;
+}
+
+:root[data-theme='light'] .ant-tabs .ant-tabs-tab:hover,
+:root[data-theme='light'] .ant-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--primary) !important;
+}
+
+:root[data-theme='light'] .ant-card .ant-card-head,
+:root[data-theme='light'] .ant-card .ant-card-head-title,
+:root[data-theme='light'] .ant-collapse .ant-collapse-header,
+:root[data-theme='light'] .ant-form-item .ant-form-item-label > label {
+  color: var(--text-primary) !important;
 }
 
 :root[data-theme='light']
@@ -510,7 +535,7 @@ button[disabled],
   .ant-table-tbody
   > tr.ant-table-row:hover
   > td {
-  background: var(--bg-tertiary);
+  background: var(--bg-tertiary) !important;
 }
 
 /* React Resizable Table Header */

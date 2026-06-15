@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  App, ConfigProvider, theme, Tag, Button, Spin,
+  App, Tag, Button, Spin,
   Tabs, Modal, Form, Select, DatePicker, TimePicker, Switch, Input, Divider, Alert, Typography, Descriptions, Row, Col, Table
 } from 'antd';
 import {
@@ -618,22 +618,9 @@ const ClassDetailInner: React.FC = () => {
 };
 
 const ClassDetail: React.FC = () => (
-  <ConfigProvider
-    theme={{
-      algorithm: theme.darkAlgorithm,
-      token: {
-        colorPrimary: '#6366f1',
-        colorBgContainer: '#111827',
-        colorBorder: 'rgba(255, 255, 255, 0.06)',
-        borderRadius: 8,
-        fontFamily: 'Inter, sans-serif',
-      },
-    }}
-  >
-    <App>
-      <ClassDetailInner />
-    </App>
-  </ConfigProvider>
+  <App>
+    <ClassDetailInner />
+  </App>
 );
 
 export default ClassDetail;

@@ -34,7 +34,7 @@ const exportCSV = (data: any[], filename: string, headers: string[], keys: strin
   URL.revokeObjectURL(url);
 };
 
-const cardStyle = { border: 'none', background: 'rgba(17, 24, 39, 0.75)' };
+const cardStyle = { border: 'none', background: 'var(--card-bg)' };
 
 interface SalaryTabProps {
   onSuccess: () => void;
@@ -104,7 +104,7 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
       <Card className="glass-panel" style={{ ...cardStyle, marginBottom: 20 }}>
         <Space size="middle" wrap align="center">
           <div>
-            <Text style={{ color: 'rgba(255,255,255,0.55)', marginRight: 10, fontSize: 13 }}>Tháng áp dụng:</Text>
+            <Text style={{ color: 'var(--text-secondary)', marginRight: 10, fontSize: 13 }}>Tháng áp dụng:</Text>
             <DatePicker
               picker="month"
               value={salaryMonth}
@@ -114,7 +114,7 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
             />
           </div>
           <div>
-            <Text style={{ color: 'rgba(255,255,255,0.55)', marginRight: 10, fontSize: 13 }}>Ngày chốt sổ:</Text>
+            <Text style={{ color: 'var(--text-secondary)', marginRight: 10, fontSize: 13 }}>Ngày chốt sổ:</Text>
             <DatePicker
               value={salaryEndDate}
               onChange={(v) => setSalaryEndDate(v)}
@@ -154,13 +154,13 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
           <Row gutter={16} style={{ marginBottom: 20 }}>
             <Col xs={12} md={8}>
               <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
-                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>Tổng giáo viên</div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 4 }}>Tổng giáo viên</div>
                 <div style={{ color: '#6366f1', fontSize: 24, fontWeight: 700 }}>{salaryPreviewData.length}</div>
               </Card>
             </Col>
             <Col xs={12} md={8}>
               <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
-                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>Tổng lương dự kiến chi</div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 4 }}>Tổng lương dự kiến chi</div>
                 <div style={{ color: '#38bdf8', fontSize: 20, fontWeight: 700 }}>
                   {salaryPreviewData.reduce((sum, s) => sum + s.totalAmount, 0).toLocaleString('vi-VN')} ₫
                 </div>
@@ -168,7 +168,7 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
             </Col>
             <Col xs={12} md={8}>
               <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
-                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>Giáo viên đã chọn tạo đợt</div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 4 }}>Giáo viên đã chọn tạo đợt</div>
                 <div style={{ color: '#10b981', fontSize: 24, fontWeight: 700 }}>
                   {salarySelectedRowKeys.length} / {salaryPreviewData.length}
                 </div>
@@ -182,7 +182,7 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
             title={
               <Space>
                 <TeamOutlined style={{ color: '#6366f1' }} />
-                <span style={{ fontFamily: 'Outfit', color: '#fff' }}>Lương giáo viên tháng</span>
+                <span style={{ fontFamily: 'Outfit', color: 'var(--text-primary)' }}>Lương giáo viên tháng</span>
               </Space>
             }
             extra={
@@ -221,9 +221,9 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
                 { title: 'Mã GV', dataIndex: 'teacherCode', key: 'teacherCode', width: 110, render: (v: string) => <Text style={{ color: '#818cf8', fontWeight: 600 }}>{v}</Text> },
                 {
                   title: 'Họ tên', dataIndex: 'name', key: 'name', width: 220,
-                  render: (v: string) => <Text style={{ color: '#fff' }}>{v}</Text>,
+                  render: (v: string) => <Text style={{ color: 'var(--text-primary)' }}>{v}</Text>,
                 },
-                { title: 'SĐT', dataIndex: 'mobile', key: 'mobile', width: 130, render: (v: string) => <Text style={{ color: 'rgba(255,255,255,0.6)' }}>{v}</Text> },
+                { title: 'SĐT', dataIndex: 'mobile', key: 'mobile', width: 130, render: (v: string) => <Text type="secondary">{v}</Text> },
                 { title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 130, render: (v: string) => <Tag color={statusColor[v] || 'default'}>{statusLabel[v] || v}</Tag> },
                 { title: 'Số buổi', dataIndex: 'totalSessions', key: 'totalSessions', width: 100, align: 'center', render: (v: number) => <Text style={{ color: '#10b981', fontWeight: 600 }}>{v}</Text> },
                 { title: 'Lương cần trả', dataIndex: 'totalAmount', key: 'totalAmount', width: 160, align: 'right', render: (v: number) => <Text strong style={{ color: '#f59e0b', fontSize: 14 }}>{v.toLocaleString('vi-VN')} ₫</Text> },

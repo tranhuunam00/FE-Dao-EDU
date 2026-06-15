@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Form, Input, Select, Button, Card, Typography, Row, Col, App, Space, ConfigProvider, theme,
+  Form, Input, Select, Button, Card, Typography, Row, Col, App, Space,
 } from 'antd';
 import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
 import api from '../../services/api';
@@ -155,22 +155,9 @@ const CreateCenterInner: React.FC = () => {
 };
 
 const CreateCenter: React.FC = () => (
-  <ConfigProvider
-    theme={{
-      algorithm: theme.darkAlgorithm,
-      token: {
-        colorPrimary: '#6366f1',
-        colorBgContainer: '#111827',
-        colorBorder: 'rgba(255, 255, 255, 0.06)',
-        borderRadius: 8,
-        fontFamily: 'Inter, sans-serif',
-      },
-    }}
-  >
-    <App>
-      <CreateCenterInner />
-    </App>
-  </ConfigProvider>
+  <App>
+    <CreateCenterInner />
+  </App>
 );
 
 export default CreateCenter;

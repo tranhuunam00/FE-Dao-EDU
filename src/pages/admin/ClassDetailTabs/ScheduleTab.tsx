@@ -31,7 +31,7 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({ sessions, handleGenera
       dataIndex: 'date',
       key: 'date',
       width: '150px',
-      render: (text: string) => <Text strong style={{ color: '#fff' }}>{dayjs(text).format('DD/MM/YYYY')}</Text>,
+      render: (text: string) => <Text strong style={{ color: 'var(--text-primary)' }}>{dayjs(text).format('DD/MM/YYYY')}</Text>,
     },
     {
       title: 'Giờ học',

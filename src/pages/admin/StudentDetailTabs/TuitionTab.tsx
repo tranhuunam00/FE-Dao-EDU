@@ -114,7 +114,7 @@ export const TuitionTab: React.FC<TuitionTabProps> = ({ tuitionDateRange, setTui
                   title: 'Chương trình & Level', key: 'course',
                   render: (_: any, r: any) => (
                     <div>
-                      <Text strong style={{ color: '#fff' }}>{r.courseName || '-'}</Text>
+                      <Text strong style={{ color: 'var(--text-primary)' }}>{r.courseName || '-'}</Text>
                       <div style={{ fontSize: '11px', color: '#818cf8' }}>Level: {r.levelName || '-'}</div>
                     </div>
                   ),
@@ -129,7 +129,7 @@ export const TuitionTab: React.FC<TuitionTabProps> = ({ tuitionDateRange, setTui
                     <div>
                       <Text style={{ color: '#a5b4fc' }}>{(r.rate || 0).toLocaleString('vi-VN')}&nbsp;₫</Text>
                       {r.pricingEffectiveFrom && (
-                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
+                        <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 2 }}>
                           {`Giá áp dụng: ${dayjs(r.pricingEffectiveFrom).format('DD/MM/YY')}${r.pricingEffectiveTo ? ` - ${dayjs(r.pricingEffectiveTo).format('DD/MM/YY')}` : ' +'}`}
                         </div>
                       )}
@@ -144,7 +144,7 @@ export const TuitionTab: React.FC<TuitionTabProps> = ({ tuitionDateRange, setTui
               summary={() => (
                 <Table.Summary.Row>
                   <Table.Summary.Cell index={0} colSpan={5}>
-                    <Text strong style={{ color: '#fff' }}>Tổng cộng</Text>
+                    <Text strong style={{ color: 'var(--text-primary)' }}>Tổng cộng</Text>
                   </Table.Summary.Cell>
                   <Table.Summary.Cell index={1}>
                     <Text strong style={{ color: '#f59e0b', fontSize: '16px' }}>

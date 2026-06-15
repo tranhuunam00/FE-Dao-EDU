@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ConfigProvider,
   Form,
   Input,
   DatePicker,
@@ -12,7 +11,6 @@ import {
   Row,
   Col,
   Space,
-  theme,
   message,
   Divider,
   Avatar,
@@ -151,19 +149,7 @@ export const CreateStudent: React.FC = () => {
   };
 
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: theme.darkAlgorithm,
-        token: {
-          colorPrimary: '#6366f1',
-          colorBgContainer: '#111827',
-          colorBorder: 'rgba(255, 255, 255, 0.06)',
-          borderRadius: 8,
-          fontFamily: 'Inter, sans-serif',
-        },
-      }}
-    >
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '12px 0' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '12px 0' }}>
         <Form
           form={form}
           layout="vertical"
@@ -565,8 +551,7 @@ export const CreateStudent: React.FC = () => {
             </Button>
           </div>
         </Form>
-      </div>
-    </ConfigProvider>
+    </div>
   );
 };
 

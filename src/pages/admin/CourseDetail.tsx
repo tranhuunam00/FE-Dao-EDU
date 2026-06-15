@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  Card, Typography, Row, Col, App, ConfigProvider, theme, Tag, Table, Button, Spin, Descriptions,
+  Card, Typography, Row, Col, App, Tag, Table, Button, Spin, Descriptions,
   Modal, Form, InputNumber, DatePicker
 } from 'antd';
 import { ArrowLeftOutlined, BookOutlined, DollarOutlined, PlusOutlined } from '@ant-design/icons';
@@ -374,22 +374,9 @@ const CourseDetailInner: React.FC = () => {
 };
 
 const CourseDetail: React.FC = () => (
-  <ConfigProvider
-    theme={{
-      algorithm: theme.darkAlgorithm,
-      token: {
-        colorPrimary: '#6366f1',
-        colorBgContainer: '#111827',
-        colorBorder: 'rgba(255, 255, 255, 0.06)',
-        borderRadius: 8,
-        fontFamily: 'Inter, sans-serif',
-      },
-    }}
-  >
-    <App>
-      <CourseDetailInner />
-    </App>
-  </ConfigProvider>
+  <App>
+    <CourseDetailInner />
+  </App>
 );
 
 export default CourseDetail;

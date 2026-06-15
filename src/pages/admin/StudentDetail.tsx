@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  ConfigProvider, Form, Button, Tabs, Space, theme, App, Avatar, Upload, Spin, Tag, Modal, Select, Typography
+  Form, Button, Tabs, Space, App, Avatar, Upload, Spin, Tag, Modal, Select, Typography
 } from 'antd';
 import {
   SaveOutlined, ArrowLeftOutlined, UserOutlined, LockOutlined, TeamOutlined, CameraOutlined, DollarOutlined
@@ -447,22 +447,9 @@ const StudentDetailInner: React.FC = () => {
 
 export const StudentDetail: React.FC = () => {
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: theme.darkAlgorithm,
-        token: {
-          colorPrimary: '#6366f1',
-          colorBgContainer: '#111827',
-          colorBorder: 'rgba(255, 255, 255, 0.06)',
-          borderRadius: 8,
-          fontFamily: 'Inter, sans-serif',
-        },
-      }}
-    >
-      <App>
-        <StudentDetailInner />
-      </App>
-    </ConfigProvider>
+    <App>
+      <StudentDetailInner />
+    </App>
   );
 };
 

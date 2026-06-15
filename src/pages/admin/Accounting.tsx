@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  ConfigProvider, App, theme, Card, DatePicker,
+  App, Card, DatePicker,
   Button, Table, Tabs, Typography, Space
 } from 'antd';
 import {
@@ -16,7 +16,7 @@ import { HistoryTab } from './Accounting/HistoryTab';
 
 const { Text } = Typography;
 
-const cardStyle = { border: 'none', background: 'rgba(17, 24, 39, 0.75)' };
+const cardStyle = { border: 'none', background: 'var(--card-bg)' };
 
 const exportCSV = (data: any[], filename: string, headers: string[], keys: string[]) => {
   const rows = [headers.join(','), ...data.map(r => keys.map(k => `"${r[k] ?? ''}"`).join(','))];
@@ -116,7 +116,7 @@ const AccountingInner: React.FC = () => {
                 <Card className="glass-panel" style={{ ...cardStyle, marginBottom: 20 }}>
                   <Space size="middle" wrap align="center">
                     <div>
-                      <Text style={{ color: 'rgba(255,255,255,0.55)', marginRight: 10, fontSize: 13 }}>Kỳ tính tiền:</Text>
+                      <Text style={{ color: 'var(--text-secondary)', marginRight: 10, fontSize: 13 }}>Kỳ tính tiền:</Text>
                       <DatePicker.RangePicker
                         value={tuitionRange}
                         onChange={(v) => setTuitionRange(v as [any, any])}
@@ -179,7 +179,7 @@ const AccountingInner: React.FC = () => {
                 <Card className="glass-panel" style={{ ...cardStyle, marginBottom: 20 }}>
                   <Space size="middle" wrap align="center">
                     <div>
-                      <Text style={{ color: 'rgba(255,255,255,0.55)', marginRight: 10, fontSize: 13 }}>Kỳ tính lương:</Text>
+                      <Text style={{ color: 'var(--text-secondary)', marginRight: 10, fontSize: 13 }}>Kỳ tính lương:</Text>
                       <DatePicker.RangePicker
                         value={wagesRange}
                         onChange={(v) => setWagesRange(v as [any, any])}
@@ -241,23 +241,9 @@ const AccountingInner: React.FC = () => {
 };
 
 export const Accounting: React.FC = () => (
-  <ConfigProvider
-    theme={{
-      algorithm: theme.darkAlgorithm,
-      token: {
-        colorPrimary: '#6366f1',
-        colorBgContainer: '#111827',
-        colorBorder: 'rgba(255, 255, 255, 0.06)',
-        borderRadius: 8,
-        fontFamily: 'Inter, sans-serif',
-        fontSize: 13,
-      },
-    }}
-  >
-    <App>
-      <AccountingInner />
-    </App>
-  </ConfigProvider>
+  <App>
+    <AccountingInner />
+  </App>
 );
 
 export default Accounting;

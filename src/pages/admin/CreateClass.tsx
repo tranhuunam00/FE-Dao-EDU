@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Form, Input, Select, Button, Card, Typography, Row, Col, App, ConfigProvider, theme,
+  Form, Input, Select, Button, Card, Typography, Row, Col, App,
   DatePicker, InputNumber, Switch, Table, TimePicker, Modal
 } from 'antd';
 import { ArrowLeftOutlined, SaveOutlined, PlusOutlined, DeleteOutlined, TeamOutlined, EnvironmentOutlined } from '@ant-design/icons';
@@ -559,22 +559,9 @@ const CreateClassInner: React.FC = () => {
 };
 
 const CreateClass: React.FC = () => (
-  <ConfigProvider
-    theme={{
-      algorithm: theme.darkAlgorithm,
-      token: {
-        colorPrimary: '#6366f1',
-        colorBgContainer: '#111827',
-        colorBorder: 'rgba(255, 255, 255, 0.06)',
-        borderRadius: 8,
-        fontFamily: 'Inter, sans-serif',
-      },
-    }}
-  >
-    <App>
-      <CreateClassInner />
-    </App>
-  </ConfigProvider>
+  <App>
+    <CreateClassInner />
+  </App>
 );
 
 export default CreateClass;

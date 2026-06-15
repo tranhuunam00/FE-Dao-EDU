@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  Form, Input, Select, Button, Card, Typography, Row, Col, App, Space, Spin, ConfigProvider, theme,
+  Form, Input, Select, Button, Card, Typography, Row, Col, App, Space, Spin,
   Table, Modal, InputNumber
 } from 'antd';
 import { ArrowLeftOutlined, SaveOutlined, PlusOutlined } from '@ant-design/icons';
@@ -290,7 +290,7 @@ const CenterDetailInner: React.FC = () => {
               title: 'Tên phòng',
               dataIndex: 'name',
               key: 'name',
-              render: (text: string) => <Text style={{ color: '#fff', fontWeight: 500 }}>{text}</Text>
+              render: (text: string) => <Text style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{text}</Text>
             },
             {
               title: 'Sức chứa',
@@ -376,22 +376,9 @@ const CenterDetailInner: React.FC = () => {
 };
 
 const CenterDetail: React.FC = () => (
-  <ConfigProvider
-    theme={{
-      algorithm: theme.darkAlgorithm,
-      token: {
-        colorPrimary: '#6366f1',
-        colorBgContainer: '#111827',
-        colorBorder: 'rgba(255, 255, 255, 0.06)',
-        borderRadius: 8,
-        fontFamily: 'Inter, sans-serif',
-      },
-    }}
-  >
-    <App>
-      <CenterDetailInner />
-    </App>
-  </ConfigProvider>
+  <App>
+    <CenterDetailInner />
+  </App>
 );
 
 export default CenterDetail;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Form, Input, Select, Button, Card, Typography, Row, Col, App, ConfigProvider, theme,
+  Form, Input, Select, Button, Card, Typography, Row, Col, App,
   Table, InputNumber, DatePicker
 } from 'antd';
 import { ArrowLeftOutlined, SaveOutlined, PlusOutlined, DeleteOutlined, BookOutlined } from '@ant-design/icons';
@@ -257,22 +257,9 @@ const CreateCourseInner: React.FC = () => {
 };
 
 const CreateCourse: React.FC = () => (
-  <ConfigProvider
-    theme={{
-      algorithm: theme.darkAlgorithm,
-      token: {
-        colorPrimary: '#6366f1',
-        colorBgContainer: '#111827',
-        colorBorder: 'rgba(255, 255, 255, 0.06)',
-        borderRadius: 8,
-        fontFamily: 'Inter, sans-serif',
-      },
-    }}
-  >
-    <App>
-      <CreateCourseInner />
-    </App>
-  </ConfigProvider>
+  <App>
+    <CreateCourseInner />
+  </App>
 );
 
 export default CreateCourse;

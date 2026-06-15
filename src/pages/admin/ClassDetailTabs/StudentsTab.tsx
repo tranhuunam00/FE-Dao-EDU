@@ -21,8 +21,8 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({ classData, setIsAddStu
         const fullName = record.student ? `${record.student.lastName} ${record.student.firstName}` : '-';
         return (
           <div>
-            <Text strong style={{ color: '#fff' }}>{fullName}</Text>
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
+            <Text strong style={{ color: 'var(--text-primary)' }}>{fullName}</Text>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
               {record.student?.email || record.student?.user?.email || '-'}
             </div>
           </div>

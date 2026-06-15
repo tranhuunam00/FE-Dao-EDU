@@ -111,7 +111,7 @@ export const PatientDashboard: React.FC = () => {
                 {data?.medicalRecords.map((record, index) => (
                   <tr key={index}>
                     <td style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{record.date}</td>
-                    <td style={{ color: '#fff', fontWeight: 500 }}>{record.diagnosis}</td>
+                    <td style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{record.diagnosis}</td>
                     <td>{record.doctorName}</td>
                     <td style={{ color: 'var(--secondary)', fontStyle: 'italic' }}>{record.prescription}</td>
                   </tr>

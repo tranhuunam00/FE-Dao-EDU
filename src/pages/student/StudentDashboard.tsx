@@ -150,7 +150,7 @@ export const StudentDashboard: React.FC = () => {
                 <tbody>
                   {data?.grades.map((g, i) => (
                     <tr key={i}>
-                      <td style={{ fontWeight: 600, color: '#fff' }}>{g.subject}</td>
+                      <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{g.subject}</td>
                       <td>
                         <span style={{
                           fontSize: '1.1rem', fontWeight: 700,

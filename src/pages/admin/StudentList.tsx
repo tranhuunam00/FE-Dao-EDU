@@ -225,7 +225,7 @@ const StudentListInner: React.FC = () => {
       dataIndex: 'mobile',
       key: 'mobile',
       width: colWidths.mobile,
-      render: (text: string) => <Text style={{ color: '#d1d5db' }}>{text}</Text>,
+      render: (text: string) => <Text type="secondary">{text}</Text>,
     },
     {
       title: 'Tỉnh / Thành',
