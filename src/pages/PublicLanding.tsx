@@ -1,4 +1,5 @@
-import { Button, Collapse, ConfigProvider, Tabs, theme } from 'antd';
+import { App, Button, Collapse, ConfigProvider, Form, Input, Select, Tabs, theme } from 'antd';
+import axios from 'axios';
 import {
   ArrowRight,
   BarChart3,
@@ -22,7 +23,16 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import api from '../services/api';
 import './PublicLanding.css';
+
+const contactTypeOptions = [
+  { value: 'ENROLLMENT', label: 'Đăng ký học' },
+  { value: 'COURSE_CONSULTATION', label: 'Tư vấn khóa học' },
+  { value: 'TECHNICAL_SUPPORT', label: 'Hỗ trợ kỹ thuật' },
+  { value: 'PARTNERSHIP', label: 'Hợp tác' },
+  { value: 'OTHER', label: 'Khác' },
+];
 
 const adminModules = [
   ['Tổng quan & cảnh báo vận hành', 'Theo dõi số liệu toàn hệ thống, học sinh có nguy cơ nghỉ học, học sinh chưa xếp lớp, buổi học chưa chốt điểm danh và giao dịch cần kiểm tra.'],
@@ -81,7 +91,32 @@ const ModuleList = ({ items }: { items: string[][] }) => (
 );
 
 export default function PublicLanding() {
+  const { message } = App.useApp();
+  const [contactForm] = Form.useForm();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [submittingContact, setSubmittingContact] = useState(false);
+
+  const submitContact = async (values: {
+    fullName: string;
+    phone: string;
+    type: string;
+  }) => {
+    setSubmittingContact(true);
+    try {
+      await api.post('/contact-requests', values);
+      message.success('Đã gửi thông tin. Chúng tôi sẽ liên hệ lại sớm.');
+      contactForm.resetFields();
+      contactForm.setFieldValue('type', 'ENROLLMENT');
+    } catch (error: unknown) {
+      message.error(
+        axios.isAxiosError(error)
+          ? error.response?.data?.message || 'Không thể gửi thông tin liên hệ.'
+          : 'Không thể gửi thông tin liên hệ.',
+      );
+    } finally {
+      setSubmittingContact(false);
+    }
+  };
 
   return (
     <ConfigProvider
@@ -206,18 +241,57 @@ export default function PublicLanding() {
           </section>
 
           <section className="public-contact" id="contact">
-            <div>
+            <div className="public-contact-copy">
               <span className="public-eyebrow"><Building2 size={16} /> Đơn vị phát triển</span>
               <h2>Công ty TNHH Đầu tư & Công nghệ DAOGROUP</h2>
               <p><MapPin size={18} /> Số nhà 22, đường 3.7/10 KĐT Gamuda Gardens, Hoàng Mai, Hà Nội 100000</p>
               <p><Phone size={18} /> Liên hệ kỹ thuật: <strong>Tran Huu Nam</strong> · <a href="tel:0961766816">0961766816</a></p>
             </div>
-            <div className="public-contact-actions">
-              <a href="tel:0961766816"><Button type="primary" size="large"><Phone size={17} /> Gọi hỗ trợ kỹ thuật</Button></a>
-              <a href="https://www.google.com/maps/search/?api=1&query=Số nhà 22 đường 3.7%2F10 KĐT Gamuda Gardens Hoàng Mai Hà Nội" target="_blank" rel="noreferrer">
-                <Button size="large"><MapPin size={17} /> Xem bản đồ</Button>
-              </a>
-            </div>
+            <Form
+              className="public-contact-form"
+              form={contactForm}
+              layout="vertical"
+              initialValues={{ type: 'ENROLLMENT' }}
+              onFinish={submitContact}
+            >
+              <h3>Để lại thông tin liên hệ</h3>
+              <p>Admin sẽ tiếp nhận và liên hệ lại với bạn.</p>
+              <Form.Item
+                name="fullName"
+                label="Họ và tên"
+                rules={[
+                  { required: true, message: 'Nhập họ và tên' },
+                  { min: 2, max: 120, message: 'Họ tên từ 2 đến 120 ký tự' },
+                ]}
+              >
+                <Input size="large" placeholder="Nguyễn Văn A" />
+              </Form.Item>
+              <Form.Item
+                name="phone"
+                label="Số điện thoại"
+                rules={[
+                  { required: true, message: 'Nhập số điện thoại' },
+                  {
+                    pattern: /^(?:\+84|0)[\d\s.-]{9,14}$/,
+                    message: 'Số điện thoại không hợp lệ',
+                  },
+                ]}
+              >
+                <Input size="large" inputMode="tel" placeholder="09xxxxxxxx" />
+              </Form.Item>
+              <Form.Item name="type" label="Loại liên hệ">
+                <Select size="large" options={contactTypeOptions} />
+              </Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                size="large"
+                block
+                loading={submittingContact}
+              >
+                Gửi thông tin
+              </Button>
+            </Form>
           </section>
         </main>
 
