@@ -1,0 +1,4 @@
+interface:
+  display_name: "DAO EDU Ant Design"
+  short_description: "Build consistent DAO EDU Ant Design UI"
+  default_prompt: "Use $dao-edu-antd to build this DAO EDU interface."

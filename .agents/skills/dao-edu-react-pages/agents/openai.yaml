@@ -1,0 +1,4 @@
+interface:
+  display_name: "DAO EDU React Pages"
+  short_description: "Build typed React pages and routes"
+  default_prompt: "Use $dao-edu-react-pages to implement this DAO EDU page."

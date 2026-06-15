@@ -1,0 +1,4 @@
+interface:
+  display_name: "DAO EDU API Integration"
+  short_description: "Connect React screens to backend APIs"
+  default_prompt: "Use $dao-edu-api-integration to connect this screen to the API."
