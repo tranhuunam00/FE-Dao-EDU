@@ -13,7 +13,8 @@ import {
   ClipboardList,
   BookMarked,
   DollarSign,
-  CalendarOff
+  CalendarOff,
+  Settings
 } from 'lucide-react';
 import { TeamOutlined as AntdTeamOutlined, BankOutlined as AntdBankOutlined } from '@ant-design/icons';
 import { Badge, Button, Dropdown, Empty } from 'antd';
@@ -49,6 +50,10 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
     logout();
     navigate('/login');
   };
+
+  const settingsPath = user
+    ? `/${user.role.toLowerCase()}/settings`
+    : '/login';
 
   const getNavigation = () => {
     if (!user) return [];
@@ -219,6 +224,20 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
                 </div>
               </div>
             </div>
+
+            <button
+              onClick={() => navigate(settingsPath)}
+              className="btn btn-outline"
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                fontSize: '0.85rem',
+                justifyContent: 'center',
+              }}
+            >
+              <Settings size={16} />
+              Cài đặt
+            </button>
             
             <button 
               onClick={handleLogout}
@@ -226,14 +245,14 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
               style={{
                 width: '100%', padding: '8px 12px', fontSize: '0.85rem',
                 justifyContent: 'center', borderColor: 'rgba(239, 68, 68, 0.2)',
-                color: 'rgba(255, 255, 255, 0.7)'
+                color: 'var(--text-secondary)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.color = '#fff';
+                e.currentTarget.style.color = 'var(--text-primary)';
                 e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)';
+                e.currentTarget.style.color = 'var(--text-secondary)';
                 e.currentTarget.style.backgroundColor = 'transparent';
               }}
             >
@@ -264,13 +283,13 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
             <Dropdown
               trigger={['click']}
               dropdownRender={() => (
-                <div style={{ width: 360, maxHeight: 480, overflow: 'auto', padding: 12, background: '#111827', border: '1px solid var(--card-border)', borderRadius: 10 }}>
+                <div style={{ width: 360, maxHeight: 480, overflow: 'auto', padding: 12, background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', borderRadius: 10 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                     <b>Thông báo</b>
                     {unreadCount > 0 && <Button size="small" type="link" onClick={async () => { await api.patch('/notifications/read-all'); loadNotifications(); }}>Đánh dấu đã đọc</Button>}
                   </div>
                   {notifications.length === 0 ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Chưa có thông báo" /> : notifications.map(item => (
-                    <button key={item.id} onClick={async () => { await api.patch(`/notifications/${item.id}/read`); if (item.linkPath) navigate(item.linkPath); loadNotifications(); }} style={{ width: '100%', textAlign: 'left', border: 0, borderBottom: '1px solid rgba(255,255,255,.06)', padding: 12, cursor: 'pointer', color: '#fff', background: item.readAt ? 'transparent' : 'rgba(99,102,241,.12)' }}>
+                    <button key={item.id} onClick={async () => { await api.patch(`/notifications/${item.id}/read`); if (item.linkPath) navigate(item.linkPath); loadNotifications(); }} style={{ width: '100%', textAlign: 'left', border: 0, borderBottom: '1px solid var(--card-border)', padding: 12, cursor: 'pointer', color: 'var(--text-primary)', background: item.readAt ? 'transparent' : 'rgba(99,102,241,.12)' }}>
                       <b>{item.title}</b><div style={{ color: 'var(--text-secondary)', marginTop: 4 }}>{item.message}</div>
                     </button>
                   ))}

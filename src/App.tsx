@@ -42,6 +42,7 @@ import StudentCalendar from './pages/student/StudentCalendar';
 import StudentTuition from './pages/student/StudentTuition';
 import StudentAssignments from './pages/student/StudentAssignments';
 import StudentLeaveRequests from './pages/student/StudentLeaveRequests';
+import Settings from './pages/Settings';
 
 // Placeholder component
 const Placeholder = ({ title, desc }: { title: string; desc: string }) => (
@@ -90,6 +91,7 @@ function App() {
                     <Route path="accounting" element={<Accounting />} />
                     <Route path="assignments" element={<AdminAssignments />} />
                     <Route path="leave-requests" element={<ManagedLeaveRequests />} />
+                    <Route path="settings" element={<Settings />} />
                     <Route path="/logs" element={
                       <Placeholder title="Nhật ký hệ thống" desc="Lịch sử hoạt động và nhật ký bảo mật." />
                     } />
@@ -111,6 +113,7 @@ function App() {
                     <Route path="students" element={<TeacherClasses />} />
                     <Route path="grades" element={<TeacherAssignments />} />
                     <Route path="leave-requests" element={<ManagedLeaveRequests />} />
+                    <Route path="settings" element={<Settings />} />
                     <Route path="materials" element={
                       <Placeholder title="Tài liệu học tập" desc="Tải lên và quản lý tài liệu cho các lớp học." />
                     } />
@@ -133,6 +136,7 @@ function App() {
                     <Route path="tuition" element={<StudentTuition />} />
                     <Route path="assignments" element={<StudentAssignments />} />
                     <Route path="leave-requests" element={<StudentLeaveRequests />} />
+                    <Route path="settings" element={<Settings />} />
                   </Routes>
                 </DashboardLayout>
               </RouteGuard>
