@@ -166,7 +166,7 @@ export const StudentTuition: React.FC = () => {
               }}
             >
               <Statistic
-                title={<span style={{ color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '0.85rem' }}>Tổng nợ hiện tại</span>}
+                title={<span style={{ color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '0.85rem' }}>Học phí chưa thanh toán</span>}
                 value={totalUnpaid}
                 formatter={(val) => formatCurrency(Number(val))}
                 valueStyle={{ color: '#ef4444', fontWeight: 800, fontSize: '2.4rem', fontFamily: 'Outfit' }}

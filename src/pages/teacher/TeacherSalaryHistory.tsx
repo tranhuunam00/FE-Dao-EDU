@@ -17,7 +17,6 @@ interface Wage {
   month: string;
   totalAmount: number;
   paidAmount: number;
-  remainingAmount: number;
   status: string;
   paymentDate: string | null;
   billingStartDate: string | null;
@@ -200,7 +199,7 @@ const TeacherSalaryHistory: React.FC = () => {
                     <div style={{ color: 'var(--text-secondary)', margin: '14px 0', display: 'flex', gap: 18, flexWrap: 'wrap' }}>
                       <span><Calendar size={14} style={{ verticalAlign: 'middle', marginRight: 5 }} />Ngày nhận: {date(wage.paymentDate)}</span>
                       <span>Tổng lương: {currency(wage.totalAmount)}</span>
-                      <span>Còn lại: {currency(wage.remainingAmount)}</span>
+                      <span>Trạng thái: {paid ? 'Đã thanh toán đủ' : 'Chờ thanh toán'}</span>
                     </div>
                     <div className="table-container">
                       <table className="custom-table">

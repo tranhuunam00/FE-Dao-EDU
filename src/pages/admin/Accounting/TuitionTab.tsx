@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Row, Col, DatePicker, Button, Table, Typography, Space, Tag, Input, App } from 'antd';
+import { Card, Row, Col, DatePicker, Button, Table, Typography, Space, Tag, Input, InputNumber, App } from 'antd';
 import { SearchOutlined, UserOutlined, DownloadOutlined, CheckSquareOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../../services/api';
@@ -50,6 +50,10 @@ export const TuitionTab: React.FC<TuitionTabProps> = ({ onSuccess }) => {
   const [tuitionSelectedRowKeys, setTuitionSelectedRowKeys] = useState<React.Key[]>([]);
   const [tuitionPreviewSearch, setTuitionPreviewSearch] = useState('');
 
+  const updatePreviewRow = (studentId: string, changes: Record<string, unknown>) => {
+    setTuitionPreviewData((rows) => rows.map((row) => row.studentId === studentId ? { ...row, ...changes } : row));
+  };
+
   const handleFetchTuitionPreview = async () => {
     if (!tuitionEndDate) {
       message.warning('Vui lòng chọn ngày chốt sổ');
@@ -82,7 +86,10 @@ export const TuitionTab: React.FC<TuitionTabProps> = ({ onSuccess }) => {
         month: tuitionMonth.format('YYYY-MM'),
         startDate: '2000-01-01',
         endDate: tuitionEndDate.format('YYYY-MM-DD'),
-        studentIds: tuitionSelectedRowKeys
+        studentIds: tuitionSelectedRowKeys,
+        adjustments: tuitionPreviewData
+          .filter((item) => tuitionSelectedRowKeys.includes(item.studentId) && item.adjustedAmount !== undefined && item.adjustedAmount !== item.totalAmount)
+          .map((item) => ({ ownerId: item.studentId, adjustedAmount: item.adjustedAmount, reason: item.adjustmentReason }))
       });
       message.success('Đã tạo đợt thu học phí thành công!');
       setTuitionPreviewData([]);
@@ -162,7 +169,7 @@ export const TuitionTab: React.FC<TuitionTabProps> = ({ onSuccess }) => {
               <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
                 <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 4 }}>Tổng học phí dự kiến thu</div>
                 <div style={{ color: '#38bdf8', fontSize: 20, fontWeight: 700 }}>
-                  {tuitionPreviewData.reduce((sum, s) => sum + s.totalAmount, 0).toLocaleString('vi-VN')} ₫
+                  {tuitionPreviewData.reduce((sum, s) => sum + (s.adjustedAmount ?? s.totalAmount), 0).toLocaleString('vi-VN')} ₫
                 </div>
               </Card>
             </Col>
@@ -232,6 +239,27 @@ export const TuitionTab: React.FC<TuitionTabProps> = ({ onSuccess }) => {
                 { title: 'Trạng thái học', dataIndex: 'status', key: 'status', width: 130, render: (v: string) => <Tag color={statusColor[v] || 'default'}>{statusLabel[v] || v}</Tag> },
                 { title: 'Số buổi', dataIndex: 'totalSessions', key: 'totalSessions', width: 100, align: 'center', render: (v: number) => <Text style={{ color: '#10b981', fontWeight: 600 }}>{v}</Text> },
                 { title: 'Số tiền cần thu', dataIndex: 'totalAmount', key: 'totalAmount', width: 160, align: 'right', render: (v: number) => <Text strong style={{ color: '#f59e0b', fontSize: 14 }}>{v.toLocaleString('vi-VN')} ₫</Text> },
+                {
+                  title: 'Điều chỉnh trước chốt',
+                  key: 'adjustment',
+                  width: 320,
+                  render: (_, r: any) => (
+                    <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                      <InputNumber
+                        min={0}
+                        precision={0}
+                        value={r.adjustedAmount ?? r.totalAmount}
+                        onChange={(value) => updatePreviewRow(r.studentId, { adjustedAmount: value ?? r.totalAmount })}
+                        style={{ width: '100%' }}
+                      />
+                      <Input
+                        placeholder="Lý do nếu thay đổi số tiền"
+                        value={r.adjustmentReason}
+                        onChange={(event) => updatePreviewRow(r.studentId, { adjustmentReason: event.target.value })}
+                      />
+                    </Space>
+                  ),
+                },
               ]}
             />
           </Card>

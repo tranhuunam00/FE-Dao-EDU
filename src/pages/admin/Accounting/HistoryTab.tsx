@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Button, Table, Typography, Space, Tag, Spin, App, Modal, Popconfirm, Select, InputNumber, DatePicker, Form, Input } from 'antd';
-import { LockOutlined, UnlockOutlined, CheckCircleOutlined, DeleteOutlined, CloseCircleOutlined, ArrowLeftOutlined, DownloadOutlined, QrcodeOutlined, SendOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Button, Table, Typography, Space, Tag, Spin, App, Modal, Popconfirm, Select, DatePicker, Form, Input } from 'antd';
+import { LockOutlined, UnlockOutlined, CheckCircleOutlined, DeleteOutlined, CloseCircleOutlined, ArrowLeftOutlined, DownloadOutlined, QrcodeOutlined, SendOutlined, PrinterOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../../services/api';
 
@@ -35,11 +35,16 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
   const [detailVisible, setDetailVisible] = useState(false);
   const [detailTitle, setDetailTitle] = useState('');
   const [detailItems, setDetailItems] = useState<any[]>([]);
+  const [detailAuditLogs, setDetailAuditLogs] = useState<any[]>([]);
   const [detailType, setDetailType] = useState<'student' | 'teacher'>('student');
 
   // Payment Edit Modal
   const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
   const [paymentForm] = Form.useForm();
+  const [cancelForm] = Form.useForm();
+  const [cancelVisible, setCancelVisible] = useState(false);
+  const [receiptVisible, setReceiptVisible] = useState(false);
+  const [receiptOrder, setReceiptOrder] = useState<any>(null);
   const [currentOrder, setCurrentOrder] = useState<any>(null);
   const [qrRequest, setQrRequest] = useState<any>(null);
   const [qrVisible, setQrVisible] = useState(false);
@@ -108,7 +113,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
 
   const handleConfirmFullPayment = async (order: any, type: string) => {
     try {
-      await api.patch(`/payment-periods/orders/${type}/${order.id}`, { paidAmount: order.totalAmount, status: 'Paid', paymentDate: dayjs().toISOString(), note: 'Thanh toán đủ' });
+      await api.patch(`/payment-periods/orders/${type}/${order.id}`, { paidAmount: order.totalAmount, status: 'Paid', paymentMethod: 'cash', paymentDate: dayjs().toISOString(), note: 'Thanh toán đủ' });
       message.success('Xác nhận thanh toán thành công');
       loadPeriodDetail(selectedPeriodId!);
     } catch (err: any) {
@@ -116,10 +121,18 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
     }
   };
 
-  const handleRevertPayment = async (order: any, type: string) => {
+  const openCancelPayment = (order: any) => {
+    setCurrentOrder(order);
+    cancelForm.resetFields();
+    setCancelVisible(true);
+  };
+
+  const handleRevertPayment = async () => {
     try {
-      await api.patch(`/payment-periods/orders/${type}/${order.id}`, { paidAmount: 0, status: 'Unpaid', paymentDate: null, note: '' });
+      const values = await cancelForm.validateFields();
+      await api.patch(`/payment-periods/orders/${periodDetail.period.type}/${currentOrder.id}`, { paidAmount: 0, status: 'Unpaid', paymentDate: null, note: values.reason });
       message.success('Đã hủy thanh toán');
+      setCancelVisible(false);
       loadPeriodDetail(selectedPeriodId!);
     } catch (err: any) {
       message.error(err.response?.data?.message || 'Lỗi khi hủy thanh toán');
@@ -140,7 +153,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
     setCurrentOrder(order);
     paymentForm.setFieldsValue({
       status: order.status,
-      paidAmount: order.paidAmount,
+      paymentMethod: order.paymentMethod || 'cash',
       paymentDate: order.paymentDate ? dayjs(order.paymentDate) : dayjs(),
       note: order.note
     });
@@ -152,7 +165,8 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
       const values = await paymentForm.validateFields();
       await api.patch(`/payment-periods/orders/${periodDetail.period.type}/${currentOrder.id}`, {
         status: values.status,
-        paidAmount: values.status === 'Paid' ? (values.paidAmount || currentOrder.totalAmount) : 0,
+        paidAmount: values.status === 'Paid' ? currentOrder.totalAmount : 0,
+        paymentMethod: values.status === 'Paid' ? values.paymentMethod : undefined,
         paymentDate: values.status === 'Paid' ? (values.paymentDate ? values.paymentDate.toISOString() : dayjs().toISOString()) : null,
         note: values.note
       });
@@ -190,7 +204,39 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
     setDetailType(type as 'student' | 'teacher');
     setDetailTitle(`${record.code} - ${record.name}`);
     setDetailItems(record.sessionBreakdown || []);
+    setDetailAuditLogs(record.auditLogs || []);
     setDetailVisible(true);
+  };
+
+  const showReceipt = (order: any) => {
+    setReceiptOrder(order);
+    setReceiptVisible(true);
+  };
+
+  const printReceipt = () => {
+    if (!receiptOrder) return;
+    const popup = window.open('', '_blank', 'width=800,height=900');
+    if (!popup) {
+      message.error('Trình duyệt đang chặn cửa sổ in phiếu thu');
+      return;
+    }
+    popup.document.write(`
+      <html><head><title>${receiptOrder.receiptCode}</title>
+      <style>body{font-family:Arial;padding:40px;color:#111}h1{text-align:center}.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #ddd}.amount{font-size:22px;font-weight:700}.footer{margin-top:60px;display:flex;justify-content:space-between;text-align:center}</style>
+      </head><body>
+      <h1>PHIẾU THU HỌC PHÍ</h1>
+      <div class="row"><b>Mã phiếu thu</b><span>${receiptOrder.receiptCode}</span></div>
+      <div class="row"><b>Học sinh</b><span>${receiptOrder.code} - ${receiptOrder.name}</span></div>
+      <div class="row"><b>Đợt thu</b><span>${periodDetail.period.name}</span></div>
+      <div class="row"><b>Ngày thu</b><span>${dayjs(receiptOrder.paymentDate).format('DD/MM/YYYY HH:mm')}</span></div>
+      <div class="row"><b>Phương thức</b><span>${receiptOrder.paymentMethod === 'bank_transfer' ? 'Chuyển khoản' : receiptOrder.paymentMethod === 'cash' ? 'Tiền mặt' : receiptOrder.paymentMethod || '-'}</span></div>
+      <div class="row amount"><b>Số tiền</b><span>${Number(receiptOrder.totalAmount).toLocaleString('vi-VN')} ₫</span></div>
+      <div class="row"><b>Người thu</b><span>${receiptOrder.processedBy?.name || 'Hệ thống'}</span></div>
+      <div class="footer"><div>Người nộp tiền<br/><br/><br/>(Ký, ghi rõ họ tên)</div><div>Người thu tiền<br/><br/><br/>(Ký, ghi rõ họ tên)</div></div>
+      <script>window.onload=()=>window.print()</script>
+      </body></html>
+    `);
+    popup.document.close();
   };
 
   if (!selectedPeriodId) {
@@ -400,7 +446,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
               <Col xs={12} md={6}>
                 <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
                   <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 4 }}>
-                    {periodDetail.period.type === 'tuition' ? 'Còn nợ' : 'Chưa trả'}
+                    {periodDetail.period.type === 'tuition' ? 'Chưa thu' : 'Chưa chi'}
                   </div>
                   <div style={{ color: '#f87171', fontSize: 20, fontWeight: 700 }}>
                     {periodDetail.orders.reduce((sum: number, o: any) => sum + Math.max(0, o.totalAmount - o.paidAmount), 0).toLocaleString('vi-VN')} ₫
@@ -408,6 +454,21 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                 </Card>
               </Col>
             </Row>
+
+            {(periodDetail.period.auditLogs || []).length > 0 && (
+              <Card className="glass-panel" style={{ ...cardStyle, marginBottom: 20 }} title="Nhật ký chốt đợt">
+                {(periodDetail.period.auditLogs || []).map((log: any) => (
+                  <div key={log.id} style={{ padding: '6px 0', borderBottom: '1px solid var(--card-border)' }}>
+                    <Tag color={log.event === 'PERIOD_CLOSED' ? 'default' : log.event === 'PERIOD_REOPENED' ? 'blue' : 'green'}>
+                      {log.event === 'PERIOD_CLOSED' ? 'Khóa đợt' : log.event === 'PERIOD_REOPENED' ? 'Mở lại đợt' : 'Tạo đợt'}
+                    </Tag>
+                    <Text style={{ color: 'var(--text-secondary)' }}>
+                      {log.actor?.name || 'Hệ thống'} · {dayjs(log.createdAt).format('DD/MM/YYYY HH:mm:ss')}
+                    </Text>
+                  </div>
+                ))}
+              </Card>
+            )}
 
             <Card
               className="glass-panel"
@@ -473,7 +534,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                     render: (v: number) => <Text style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{v.toLocaleString('vi-VN')} ₫</Text>
                   },
                   {
-                    title: periodDetail.period.type === 'tuition' ? 'Thực đóng' : 'Thực trả',
+                    title: periodDetail.period.type === 'tuition' ? 'Đã thu' : 'Đã chi',
                     dataIndex: 'paidAmount',
                     key: 'paidAmount',
                     width: 150,
@@ -500,6 +561,26 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                     render: (v: string) => v ? dayjs(v).format('DD/MM/YYYY HH:mm') : <Text type="secondary">—</Text>
                   },
                   {
+                    title: 'Phiếu thu',
+                    dataIndex: 'receiptCode',
+                    key: 'receiptCode',
+                    width: 150,
+                    render: (v: string) => v ? <Text copyable>{v}</Text> : <Text type="secondary">—</Text>
+                  },
+                  {
+                    title: 'Xử lý thanh toán',
+                    key: 'paymentMeta',
+                    width: 180,
+                    render: (_, r: any) => r.status === 'Paid' ? (
+                      <div>
+                        <Text style={{ color: 'var(--text-primary)' }}>{r.processedBy?.name || 'Hệ thống'}</Text>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                          {r.paymentMethod === 'bank_transfer' ? 'Chuyển khoản' : r.paymentMethod === 'cash' ? 'Tiền mặt' : r.paymentMethod || '—'}
+                        </div>
+                      </div>
+                    ) : <Text type="secondary">—</Text>
+                  },
+                  {
                     title: 'Ghi chú',
                     dataIndex: 'note',
                     key: 'note',
@@ -522,18 +603,15 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                               Đối soát
                             </Button>
                           )}
+                          {periodDetail.period.type === 'tuition' && r.status === 'Paid' && r.receiptCode && (
+                            <Button type="link" size="small" icon={<PrinterOutlined />} onClick={() => showReceipt(r)} style={{ color: '#10b981', padding: 0 }}>
+                              Phiếu thu
+                            </Button>
+                          )}
                           {!isClosed && (
                             <>
                               {r.status === 'Paid' ? (
-                                <Popconfirm
-                                  title="Hủy thanh toán?"
-                                  onConfirm={() => handleRevertPayment(r, periodDetail.period.type)}
-                                  okText="Có, hủy"
-                                  cancelText="Không"
-                                  okButtonProps={{ danger: true }}
-                                >
-                                  <Button type="link" danger size="small" style={{ padding: 0 }}>Hủy xác nhận</Button>
-                                </Popconfirm>
+                                <Button type="link" danger size="small" onClick={() => openCancelPayment(r)} style={{ padding: 0 }}>Hủy xác nhận</Button>
                               ) : (
                                 <>
                                   {periodDetail.period.type === 'tuition' && !r.paymentRequest && (
@@ -593,12 +671,14 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                     if (!isPaid) return null;
                     return (
                       <Row gutter={12}>
-                        <Col span={12}>
-                          <Form.Item name="paidAmount" label="Số tiền thực tế">
-                            <InputNumber style={{ width: '100%' }} />
+                        <Col span={24}>
+                          <Form.Item name="paymentMethod" label="Phương thức thanh toán" rules={[{ required: true, message: 'Chọn phương thức thanh toán' }]}>
+                            <Select options={[
+                              { value: 'cash', label: 'Tiền mặt' },
+                              { value: 'bank_transfer', label: 'Chuyển khoản' },
+                              { value: 'other', label: 'Khác' },
+                            ]} />
                           </Form.Item>
-                        </Col>
-                        <Col span={12}>
                           <Form.Item name="paymentDate" label="Ngày giao dịch">
                             <DatePicker showTime format="DD/MM/YYYY HH:mm" style={{ width: '100%' }} />
                           </Form.Item>
@@ -611,6 +691,45 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                   <Input.TextArea rows={3} />
                 </Form.Item>
               </Form>
+            </Modal>
+
+            <Modal
+              title="Hủy xác nhận thanh toán"
+              open={cancelVisible}
+              onOk={handleRevertPayment}
+              onCancel={() => setCancelVisible(false)}
+              okText="Xác nhận hủy"
+              cancelText="Không"
+              okButtonProps={{ danger: true }}
+            >
+              <Form form={cancelForm} layout="vertical">
+                <Form.Item name="reason" label="Lý do hủy" rules={[{ required: true, message: 'Nhập lý do hủy xác nhận thanh toán' }]}>
+                  <Input.TextArea rows={3} />
+                </Form.Item>
+              </Form>
+            </Modal>
+
+            <Modal
+              title="Phiếu thu học phí"
+              open={receiptVisible}
+              onCancel={() => setReceiptVisible(false)}
+              footer={[
+                <Button key="close" onClick={() => setReceiptVisible(false)}>Đóng</Button>,
+                <Button key="print" type="primary" icon={<PrinterOutlined />} onClick={printReceipt}>In / Lưu PDF</Button>,
+              ]}
+            >
+              {receiptOrder && (
+                <div style={{ display: 'grid', gap: 10 }}>
+                  <Text strong style={{ fontSize: 18, textAlign: 'center', color: 'var(--text-primary)' }}>PHIẾU THU HỌC PHÍ</Text>
+                  <div><Text type="secondary">Mã phiếu:</Text> <Text copyable>{receiptOrder.receiptCode}</Text></div>
+                  <div><Text type="secondary">Học sinh:</Text> <Text>{receiptOrder.code} - {receiptOrder.name}</Text></div>
+                  <div><Text type="secondary">Đợt thu:</Text> <Text>{periodDetail?.period?.name}</Text></div>
+                  <div><Text type="secondary">Ngày thu:</Text> <Text>{dayjs(receiptOrder.paymentDate).format('DD/MM/YYYY HH:mm')}</Text></div>
+                  <div><Text type="secondary">Phương thức:</Text> <Text>{receiptOrder.paymentMethod === 'bank_transfer' ? 'Chuyển khoản' : receiptOrder.paymentMethod === 'cash' ? 'Tiền mặt' : receiptOrder.paymentMethod || '—'}</Text></div>
+                  <div><Text type="secondary">Người thu:</Text> <Text>{receiptOrder.processedBy?.name || 'Hệ thống'}</Text></div>
+                  <div><Text type="secondary">Số tiền:</Text> <Text strong style={{ color: '#10b981', fontSize: 18 }}>{Number(receiptOrder.totalAmount).toLocaleString('vi-VN')} ₫</Text></div>
+                </div>
+              )}
             </Modal>
 
             <Modal
@@ -692,6 +811,24 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                   { title: 'Thành tiền', dataIndex: 'totalAmount', key: 'totalAmount', align: 'right', render: (v) => `${Number(v).toLocaleString('vi-VN')} ₫` }
                 ]}
               />
+              {detailAuditLogs.length > 0 && (
+                <div style={{ marginTop: 18 }}>
+                  <Text strong style={{ color: 'var(--text-primary)' }}>Nhật ký kế toán</Text>
+                  {detailAuditLogs.map((log: any) => (
+                    <div key={log.id} style={{ marginTop: 8, padding: 10, borderRadius: 8, background: 'var(--bg-tertiary)' }}>
+                      <Tag color={log.event === 'PAYMENT_CONFIRMED' ? 'green' : 'red'}>
+                        {log.event === 'PAYMENT_CONFIRMED' ? 'Xác nhận thanh toán' : 'Hủy xác nhận'}
+                      </Tag>
+                      <Text style={{ color: 'var(--text-secondary)' }}>
+                        {log.actor?.name || 'Hệ thống'} · {dayjs(log.createdAt).format('DD/MM/YYYY HH:mm:ss')}
+                      </Text>
+                      {log.metadata?.reason && (
+                        <div style={{ marginTop: 4, color: 'var(--text-secondary)' }}>Lý do: {log.metadata.reason}</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </Modal>
 
           </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Row, Col, DatePicker, Button, Table, Typography, Space, Tag, Input, App } from 'antd';
+import { Card, Row, Col, DatePicker, Button, Table, Typography, Space, Tag, Input, InputNumber, App } from 'antd';
 import { SearchOutlined, TeamOutlined, DownloadOutlined, CheckSquareOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../../services/api';
@@ -50,6 +50,10 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
   const [salarySelectedRowKeys, setSalarySelectedRowKeys] = useState<React.Key[]>([]);
   const [salaryPreviewSearch, setSalaryPreviewSearch] = useState('');
 
+  const updatePreviewRow = (teacherId: string, changes: Record<string, unknown>) => {
+    setSalaryPreviewData((rows) => rows.map((row) => row.teacherId === teacherId ? { ...row, ...changes } : row));
+  };
+
   const handleFetchSalaryPreview = async () => {
     if (!salaryEndDate) {
       message.warning('Vui lòng chọn ngày chốt sổ');
@@ -82,7 +86,10 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
         month: salaryMonth.format('YYYY-MM'),
         startDate: '2000-01-01',
         endDate: salaryEndDate.format('YYYY-MM-DD'),
-        teacherIds: salarySelectedRowKeys
+        teacherIds: salarySelectedRowKeys,
+        adjustments: salaryPreviewData
+          .filter((item) => salarySelectedRowKeys.includes(item.teacherId) && item.adjustedAmount !== undefined && item.adjustedAmount !== item.totalAmount)
+          .map((item) => ({ ownerId: item.teacherId, adjustedAmount: item.adjustedAmount, reason: item.adjustmentReason }))
       });
       message.success('Đã tạo đợt chi trả lương thành công!');
       setSalaryPreviewData([]);
@@ -162,7 +169,7 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
               <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
                 <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 4 }}>Tổng lương dự kiến chi</div>
                 <div style={{ color: '#38bdf8', fontSize: 20, fontWeight: 700 }}>
-                  {salaryPreviewData.reduce((sum, s) => sum + s.totalAmount, 0).toLocaleString('vi-VN')} ₫
+                  {salaryPreviewData.reduce((sum, s) => sum + (s.adjustedAmount ?? s.totalAmount), 0).toLocaleString('vi-VN')} ₫
                 </div>
               </Card>
             </Col>
@@ -227,6 +234,27 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
                 { title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 130, render: (v: string) => <Tag color={statusColor[v] || 'default'}>{statusLabel[v] || v}</Tag> },
                 { title: 'Số buổi', dataIndex: 'totalSessions', key: 'totalSessions', width: 100, align: 'center', render: (v: number) => <Text style={{ color: '#10b981', fontWeight: 600 }}>{v}</Text> },
                 { title: 'Lương cần trả', dataIndex: 'totalAmount', key: 'totalAmount', width: 160, align: 'right', render: (v: number) => <Text strong style={{ color: '#f59e0b', fontSize: 14 }}>{v.toLocaleString('vi-VN')} ₫</Text> },
+                {
+                  title: 'Điều chỉnh trước chốt',
+                  key: 'adjustment',
+                  width: 320,
+                  render: (_, r: any) => (
+                    <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                      <InputNumber
+                        min={0}
+                        precision={0}
+                        value={r.adjustedAmount ?? r.totalAmount}
+                        onChange={(value) => updatePreviewRow(r.teacherId, { adjustedAmount: value ?? r.totalAmount })}
+                        style={{ width: '100%' }}
+                      />
+                      <Input
+                        placeholder="Lý do nếu thay đổi số tiền"
+                        value={r.adjustmentReason}
+                        onChange={(event) => updatePreviewRow(r.teacherId, { adjustmentReason: event.target.value })}
+                      />
+                    </Space>
+                  ),
+                },
               ]}
             />
           </Card>
