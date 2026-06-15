@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect */
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
-import { Shield, Users, BookOpen, Layers, Activity, RefreshCw } from 'lucide-react';
-import { Card, Row, Col, Typography, Table, Spin, Button, message, App } from 'antd';
+import { Shield, Users, BookOpen, Layers, Activity, RefreshCw, AlertTriangle, ClipboardCheck, UserRoundSearch } from 'lucide-react';
+import { Card, Row, Col, Typography, Table, Spin, Button, message, App, Tag, Space } from 'antd';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
   ResponsiveContainer, Legend, BarChart, Bar, PieChart, Pie, Cell 
@@ -36,25 +36,63 @@ interface ActivityData {
   type: string;
 }
 
+interface OperationsData {
+  tasks: {
+    unassignedStudents: number;
+    unlockedPastSessions: number;
+    openPaymentPeriods: number;
+    cancelledReceipts: number;
+    paymentAnomalies: number;
+  };
+  atRiskStudents: Array<{
+    studentId: string;
+    studentCode: string;
+    studentName: string;
+    mobile: string | null;
+    level: 'high' | 'medium' | 'low';
+    score: number;
+    reasons: string[];
+    suggestion: string;
+  }>;
+  classSuggestions: Array<{
+    studentId: string;
+    studentCode: string;
+    studentName: string;
+    suggestions: Array<{
+      classId: string;
+      classCode: string;
+      className: string;
+      courseName: string;
+      levelName: string;
+      availableSeats: number | null;
+      score: number;
+      reasons: string[];
+    }>;
+  }>;
+}
+
 const AdminDashboardInner: React.FC = () => {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [revenue, setRevenue] = useState<RevenueData[]>([]);
   const [activities, setActivities] = useState<ActivityData[]>([]);
+  const [operations, setOperations] = useState<OperationsData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [summaryRes, revenueRes, actRes] = await Promise.all([
+      const [summaryRes, revenueRes, actRes, operationsRes] = await Promise.all([
         api.get('/dashboard/admin/summary'),
         api.get('/dashboard/admin/revenue'),
-        api.get('/dashboard/admin/activities')
+        api.get('/dashboard/admin/activities'),
+        api.get('/dashboard/admin/operations'),
       ]);
       setSummary(summaryRes.data.statistics);
       setRevenue(revenueRes.data.revenue);
       setActivities(actRes.data.activities);
+      setOperations(operationsRes.data);
     } catch (err: any) {
       console.error(err);
       message.error(err.response?.data?.message || 'Lỗi khi tải dữ liệu Dashboard');
@@ -254,6 +292,95 @@ const AdminDashboardInner: React.FC = () => {
                 </Title>
               </div>
             </div>
+          </Card>
+        </Col>
+      </Row>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '28px 0 14px' }}>
+        <ClipboardCheck size={22} color="#818cf8" />
+        <Title level={4} style={{ margin: 0, color: 'var(--text-primary)' }}>Vận hành cần chú ý</Title>
+      </div>
+      <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
+        {[
+          ['Học sinh chưa xếp lớp', operations?.tasks.unassignedStudents || 0, '/admin/students', '#f59e0b'],
+          ['Buổi học chưa chốt điểm danh', operations?.tasks.unlockedPastSessions || 0, '/admin/classes', '#ef4444'],
+          ['Kỳ học phí/lương chưa chốt', operations?.tasks.openPaymentPeriods || 0, '/admin/accounting', '#6366f1'],
+          ['Phiếu hủy / giao dịch bất thường', (operations?.tasks.cancelledReceipts || 0) + (operations?.tasks.paymentAnomalies || 0), '/admin/accounting', '#ec4899'],
+        ].map(([label, value, path, color]) => (
+          <Col xs={24} sm={12} lg={6} key={String(label)}>
+            <Card className="glass-panel" hoverable onClick={() => navigate(String(path))} bodyStyle={{ padding: 16 }}>
+              <Text style={{ color: 'var(--text-secondary)' }}>{label}</Text>
+              <div style={{ color: String(color), fontSize: 30, fontWeight: 750, marginTop: 4 }}>{Number(value)}</div>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+
+      <Row gutter={[20, 20]} style={{ marginBottom: 28 }}>
+        <Col xs={24} xl={13}>
+          <Card
+            className="glass-panel"
+            title={<Space><AlertTriangle size={19} color="#f59e0b" /><span>Cảnh báo nguy cơ nghỉ học</span></Space>}
+          >
+            <Table
+              rowKey="studentId"
+              size="small"
+              pagination={{ pageSize: 5 }}
+              dataSource={operations?.atRiskStudents || []}
+              columns={[
+                {
+                  title: 'Học sinh',
+                  render: (_, row) => (
+                    <Button type="link" style={{ padding: 0 }} onClick={() => navigate(`/admin/students/${row.studentId}`)}>
+                      {row.studentCode} - {row.studentName}
+                    </Button>
+                  ),
+                },
+                {
+                  title: 'Mức độ',
+                  width: 110,
+                  render: (_, row) => <Tag color={row.level === 'high' ? 'red' : 'orange'}>{row.score} điểm</Tag>,
+                },
+                {
+                  title: 'Nguyên nhân',
+                  render: (_, row) => <div>{row.reasons.map((reason) => <div key={reason}>{reason}</div>)}</div>,
+                },
+              ]}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} xl={11}>
+          <Card
+            className="glass-panel"
+            title={<Space><UserRoundSearch size={19} color="#818cf8" /><span>Đề xuất xếp lớp</span></Space>}
+          >
+            <Table
+              rowKey="studentId"
+              size="small"
+              pagination={{ pageSize: 5 }}
+              dataSource={operations?.classSuggestions || []}
+              columns={[
+                {
+                  title: 'Học sinh',
+                  render: (_, row) => (
+                    <Button type="link" style={{ padding: 0 }} onClick={() => navigate(`/admin/students/${row.studentId}`)}>
+                      {row.studentName}
+                    </Button>
+                  ),
+                },
+                {
+                  title: 'Lớp phù hợp',
+                  render: (_, row) => row.suggestions.length ? (
+                    <div>
+                      <strong>{row.suggestions[0].classCode} - {row.suggestions[0].className}</strong>
+                      <div style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
+                        {row.suggestions[0].courseName} · {row.suggestions[0].levelName} · {row.suggestions[0].score} điểm
+                      </div>
+                    </div>
+                  ) : <Text type="secondary">Chưa có lớp phù hợp</Text>,
+                },
+              ]}
+            />
           </Card>
         </Col>
       </Row>

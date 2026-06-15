@@ -74,6 +74,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
           { name: 'Đơn xin nghỉ', path: '/admin/leave-requests', icon: <CalendarOff size={20} /> },
           { name: 'Kế Toán', path: '/admin/accounting', icon: <DollarSign size={20} /> },
           { name: 'Nhật ký hệ thống', path: '/admin/logs', icon: <Shield size={20} /> },
+          { name: 'Ngày nghỉ lễ', path: '/admin/holidays', icon: <CalendarOff size={20} /> },
         ];
       case Role.TEACHER:
         return [

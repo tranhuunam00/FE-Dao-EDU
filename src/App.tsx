@@ -44,6 +44,7 @@ import StudentLeaveRequests from './pages/student/StudentLeaveRequests';
 import Settings from './pages/Settings';
 import Notifications from './pages/Notifications';
 import NotificationLogs from './pages/admin/NotificationLogs';
+import HolidaySettings from './pages/admin/HolidaySettings';
 
 // Placeholder component
 const Placeholder = ({ title, desc }: { title: string; desc: string }) => (
@@ -95,6 +96,7 @@ function App() {
                     <Route path="settings" element={<Settings />} />
                     <Route path="notifications" element={<Notifications />} />
                     <Route path="logs" element={<NotificationLogs />} />
+                    <Route path="holidays" element={<HolidaySettings />} />
                   </Routes>
                 </DashboardLayout>
               </RouteGuard>
