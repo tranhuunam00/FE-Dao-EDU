@@ -77,3 +77,110 @@
     padding: 20px;
   }
 }
+
+/* DAO EDU public brand palette: green and white. */
+.public-page {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(34, 197, 94, .08), transparent 28%),
+    #fff;
+}
+
+.public-brand > span {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+}
+
+.public-header nav > a:hover,
+.public-eyebrow,
+.public-hero h1 span,
+.public-section-heading > span,
+.public-feature-grid svg {
+  color: #15803d;
+}
+
+.public-hero-panel {
+  background: linear-gradient(145deg, #166534, #14532d);
+  box-shadow: 0 28px 70px rgba(21, 128, 61, .22);
+}
+
+.public-metrics strong,
+.public-preview-list svg {
+  color: #bbf7d0;
+}
+
+.public-metrics div {
+  border-color: rgba(255, 255, 255, .16);
+  background: rgba(255, 255, 255, .09);
+}
+
+.public-preview-list span {
+  background: rgba(255, 255, 255, .1);
+  color: #f0fdf4;
+}
+
+.public-guide {
+  background: #f0fdf4;
+}
+
+.public-feature-grid article,
+.public-module-card {
+  border-color: #dcfce7;
+  box-shadow: 0 12px 30px rgba(21, 128, 61, .07);
+}
+
+.public-module-card svg {
+  color: #16a34a;
+}
+
+.public-workflow strong {
+  color: #22c55e;
+}
+
+.public-faq .ant-collapse {
+  border-color: #dcfce7;
+}
+
+.public-contact {
+  background:
+    radial-gradient(circle at 8% 10%, rgba(255, 255, 255, .14), transparent 28%),
+    linear-gradient(135deg, #15803d, #166534);
+  box-shadow: 0 24px 60px rgba(21, 128, 61, .2);
+}
+
+.public-contact .public-eyebrow {
+  color: #dcfce7 !important;
+}
+
+.public-contact-copy > p {
+  color: #f0fdf4 !important;
+}
+
+.public-contact a {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.public-contact-form {
+  border-color: #dcfce7;
+  box-shadow: 0 20px 45px rgba(20, 83, 45, .22);
+}
+
+.public-contact-form h3 {
+  color: #14532d;
+}
+
+.public-contact-form .ant-input:hover,
+.public-contact-form .ant-select-selector:hover {
+  border-color: #22c55e !important;
+}
+
+.public-contact-form .ant-input:focus,
+.public-contact-form .ant-input-focused,
+.public-contact-form .ant-select-focused .ant-select-selector {
+  border-color: #15803d !important;
+  box-shadow: 0 0 0 2px rgba(21, 128, 61, .12) !important;
+}
+
+.public-footer {
+  border-top-color: #dcfce7;
+}

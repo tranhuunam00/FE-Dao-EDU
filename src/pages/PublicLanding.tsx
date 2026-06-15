@@ -122,7 +122,13 @@ export default function PublicLanding() {
     <ConfigProvider
       theme={{
         algorithm: theme.defaultAlgorithm,
-        token: { colorPrimary: '#4f46e5', borderRadius: 12, fontFamily: 'Inter, sans-serif' },
+        token: {
+          colorPrimary: '#15803d',
+          colorLink: '#15803d',
+          colorInfo: '#15803d',
+          borderRadius: 12,
+          fontFamily: 'Inter, sans-serif',
+        },
       }}
     >
       <div className="public-page">
