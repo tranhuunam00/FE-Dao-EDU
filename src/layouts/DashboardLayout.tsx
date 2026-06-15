@@ -12,7 +12,8 @@ import {
   Bell,
   ClipboardList,
   BookMarked,
-  DollarSign
+  DollarSign,
+  CalendarOff
 } from 'lucide-react';
 import { TeamOutlined as AntdTeamOutlined, BankOutlined as AntdBankOutlined } from '@ant-design/icons';
 import { Badge, Button, Dropdown, Empty } from 'antd';
@@ -62,6 +63,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
           { name: 'Chương trình học', path: '/admin/courses', icon: <BookMarked size={20} /> },
           { name: 'Lớp học', path: '/admin/classes', icon: <AntdTeamOutlined style={{ fontSize: '20px' }} /> },
           { name: 'Theo dõi bài tập', path: '/admin/assignments', icon: <ClipboardList size={20} /> },
+          { name: 'Đơn xin nghỉ', path: '/admin/leave-requests', icon: <CalendarOff size={20} /> },
           { name: 'Kế Toán', path: '/admin/accounting', icon: <DollarSign size={20} /> },
           { name: 'Nhật ký hệ thống', path: '/admin/logs', icon: <Shield size={20} /> },
         ];
@@ -71,12 +73,14 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
           { name: 'Lịch sử nhận lương', path: '/teacher/salary', icon: <DollarSign size={20} /> },
           { name: 'Lớp & Học sinh', path: '/teacher/students', icon: <Users size={20} /> },
           { name: 'Bài tập & Chấm điểm', path: '/teacher/grades', icon: <ClipboardList size={20} /> },
+          { name: 'Đơn xin nghỉ', path: '/teacher/leave-requests', icon: <CalendarOff size={20} /> },
           { name: 'Tài liệu học tập', path: '/teacher/materials', icon: <BookMarked size={20} /> },
         ];
       case Role.STUDENT:
         return [
           { name: 'Dashboard', path: '/student', icon: <LayoutDashboard size={20} /> },
           { name: 'Bài tập', path: '/student/assignments', icon: <ClipboardList size={20} /> },
+          { name: 'Đơn xin nghỉ', path: '/student/leave-requests', icon: <CalendarOff size={20} /> },
           { name: 'Học phí', path: '/student/tuition', icon: <DollarSign size={20} /> },
           { name: 'Hồ sơ cá nhân', path: '/student/profile', icon: <UserIcon size={20} /> },
         ];

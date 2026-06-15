@@ -27,6 +27,7 @@ import CreateClass from './pages/admin/CreateClass';
 import ClassDetail from './pages/admin/ClassDetail';
 import Accounting from './pages/admin/Accounting';
 import AdminAssignments from './pages/admin/AdminAssignments';
+import ManagedLeaveRequests from './pages/teacher/ManagedLeaveRequests';
 
 // Pages — Teacher
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
@@ -40,6 +41,7 @@ import StudentProfile from './pages/student/StudentProfile';
 import StudentCalendar from './pages/student/StudentCalendar';
 import StudentTuition from './pages/student/StudentTuition';
 import StudentAssignments from './pages/student/StudentAssignments';
+import StudentLeaveRequests from './pages/student/StudentLeaveRequests';
 
 // Placeholder component
 const Placeholder = ({ title, desc }: { title: string; desc: string }) => (
@@ -87,6 +89,7 @@ function App() {
                     <Route path="classes/:id" element={<ClassDetail />} />
                     <Route path="accounting" element={<Accounting />} />
                     <Route path="assignments" element={<AdminAssignments />} />
+                    <Route path="leave-requests" element={<ManagedLeaveRequests />} />
                     <Route path="/logs" element={
                       <Placeholder title="Nhật ký hệ thống" desc="Lịch sử hoạt động và nhật ký bảo mật." />
                     } />
@@ -107,6 +110,7 @@ function App() {
                     <Route path="salary" element={<TeacherSalaryHistory />} />
                     <Route path="students" element={<TeacherClasses />} />
                     <Route path="grades" element={<TeacherAssignments />} />
+                    <Route path="leave-requests" element={<ManagedLeaveRequests />} />
                     <Route path="materials" element={
                       <Placeholder title="Tài liệu học tập" desc="Tải lên và quản lý tài liệu cho các lớp học." />
                     } />
@@ -128,6 +132,7 @@ function App() {
                     <Route path="schedule" element={<StudentCalendar />} />
                     <Route path="tuition" element={<StudentTuition />} />
                     <Route path="assignments" element={<StudentAssignments />} />
+                    <Route path="leave-requests" element={<StudentLeaveRequests />} />
                   </Routes>
                 </DashboardLayout>
               </RouteGuard>
