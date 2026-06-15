@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ConfigProvider,
   Table,
   Input,
   Select,
@@ -11,7 +10,6 @@ import {
   Typography,
   Row,
   Col,
-  theme,
   App,
   Tooltip,
 } from 'antd';
@@ -195,7 +193,7 @@ const StudentListInner: React.FC = () => {
       width: colWidths.fullName,
       render: (_: any, record: StudentData) => (
         <div>
-          <Text style={{ color: '#fff', fontWeight: 600 }}>{`${record.lastName} ${record.firstName}`}</Text>
+          <Text style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{`${record.lastName} ${record.firstName}`}</Text>
           {record.nickName && (
             <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
               ({record.nickName})
@@ -284,7 +282,7 @@ const StudentListInner: React.FC = () => {
       {/* Filters Card */}
       <Card
         className="glass-panel"
-        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: '16px' }}
+        style={{ border: 'none', background: 'var(--card-bg)', marginBottom: '16px' }}
         bodyStyle={{ padding: '8px 12px' }}
       >
         <Row gutter={[12, 12]} align="middle">
@@ -367,7 +365,7 @@ const StudentListInner: React.FC = () => {
       {/* Students Table */}
       <Card
         className="glass-panel"
-        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', padding: 0 }}
+        style={{ border: 'none', background: 'var(--card-bg)', padding: 0 }}
         bodyStyle={{ padding: 0 }}
       >
         <Table
@@ -391,7 +389,7 @@ const StudentListInner: React.FC = () => {
               setPage(p);
               setLimit(s);
             },
-            style: { padding: '16px', margin: 0, borderTop: '1px solid rgba(255, 255, 255, 0.06)' },
+            style: { padding: '16px', margin: 0, borderTop: '1px solid var(--card-border)' },
           }}
           scroll={{ x: Object.values(colWidths).reduce((a, b) => a + b, 0) || 1500 }}
           style={{ background: 'transparent' }}
@@ -404,22 +402,9 @@ const StudentListInner: React.FC = () => {
 
 export const StudentList: React.FC = () => {
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: theme.darkAlgorithm,
-        token: {
-          colorPrimary: '#6366f1',
-          colorBgContainer: '#111827',
-          colorBorder: 'rgba(255, 255, 255, 0.06)',
-          borderRadius: 8,
-          fontFamily: 'Inter, sans-serif',
-        },
-      }}
-    >
-      <App>
-        <StudentListInner />
-      </App>
-    </ConfigProvider>
+    <App>
+      <StudentListInner />
+    </App>
   );
 };
 

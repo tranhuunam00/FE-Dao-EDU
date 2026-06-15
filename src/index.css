@@ -424,14 +424,70 @@ button[disabled],
 
 .custom-table td {
   padding: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--card-border);
   color: var(--text-primary);
   font-size: 0.95rem;
   vertical-align: middle;
 }
 
 .custom-table tr:hover td {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--bg-tertiary);
+}
+
+:root[data-theme='light'] .custom-antd-table .ant-table,
+:root[data-theme='light'] .custom-antd-table .ant-table-container,
+:root[data-theme='light'] .custom-antd-table .ant-table-content,
+:root[data-theme='light'] .custom-antd-table .ant-table-thead > tr > th,
+:root[data-theme='light'] .custom-antd-table .ant-table-tbody > tr > td {
+  background: transparent !important;
+}
+
+:root[data-theme='light'] .custom-antd-table .ant-table-thead > tr > th {
+  color: var(--text-secondary) !important;
+  border-bottom-color: var(--card-border) !important;
+}
+
+:root[data-theme='light'] .custom-antd-table .ant-table-tbody > tr > td {
+  color: var(--text-primary) !important;
+  border-bottom-color: var(--card-border) !important;
+}
+
+:root[data-theme='light']
+  .custom-antd-table
+  .ant-table-tbody
+  > tr.ant-table-row:hover
+  > td {
+  background: var(--bg-tertiary) !important;
+}
+
+:root[data-theme='light'] .ant-pagination {
+  color: var(--text-primary);
+}
+
+:root[data-theme='light'] .ant-table-wrapper .ant-table,
+:root[data-theme='light'] .ant-table-wrapper .ant-table-container,
+:root[data-theme='light'] .ant-table-wrapper .ant-table-content,
+:root[data-theme='light'] .ant-table-wrapper .ant-table-thead > tr > th,
+:root[data-theme='light'] .ant-table-wrapper .ant-table-tbody > tr > td {
+  background: transparent;
+}
+
+:root[data-theme='light'] .ant-table-wrapper .ant-table-thead > tr > th {
+  color: var(--text-secondary);
+  border-bottom-color: var(--card-border);
+}
+
+:root[data-theme='light'] .ant-table-wrapper .ant-table-tbody > tr > td {
+  color: var(--text-primary);
+  border-bottom-color: var(--card-border);
+}
+
+:root[data-theme='light']
+  .ant-table-wrapper
+  .ant-table-tbody
+  > tr.ant-table-row:hover
+  > td {
+  background: var(--bg-tertiary);
 }
 
 /* React Resizable Table Header */

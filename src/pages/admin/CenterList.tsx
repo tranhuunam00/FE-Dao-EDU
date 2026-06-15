@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Table, Input, Select, Button, Card, Tag, Typography, Row, Col, App, ConfigProvider, theme
+  Table, Input, Select, Button, Card, Tag, Typography, Row, Col, App
 } from 'antd';
 import { SearchOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -136,11 +136,11 @@ const CenterListInner: React.FC = () => {
           alignItems: 'center',
           marginBottom: '24px',
           paddingBottom: '16px',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+          borderBottom: '1px solid var(--card-border)',
         }}
       >
         <div>
-          <Title level={2} style={{ color: '#fff', margin: 0, fontFamily: 'Outfit' }}>
+          <Title level={2} style={{ color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit' }}>
             Danh sách Trung tâm
           </Title>
           <Text style={{ color: 'var(--text-secondary)' }}>
@@ -160,7 +160,7 @@ const CenterListInner: React.FC = () => {
 
       <Card
         className="glass-panel"
-        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: '24px' }}
+        style={{ border: 'none', background: 'var(--card-bg)', marginBottom: '24px' }}
       >
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} md={8}>
@@ -220,7 +220,7 @@ const CenterListInner: React.FC = () => {
         </Row>
       </Card>
 
-      <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}>
+      <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)' }}>
         <Table
           columns={columns}
           dataSource={centers}
@@ -249,22 +249,9 @@ const CenterListInner: React.FC = () => {
 };
 
 const CenterList: React.FC = () => (
-  <ConfigProvider
-    theme={{
-      algorithm: theme.darkAlgorithm,
-      token: {
-        colorPrimary: '#6366f1',
-        colorBgContainer: '#111827',
-        colorBorder: 'rgba(255, 255, 255, 0.06)',
-        borderRadius: 8,
-        fontFamily: 'Inter, sans-serif',
-      },
-    }}
-  >
-    <App>
-      <CenterListInner />
-    </App>
-  </ConfigProvider>
+  <App>
+    <CenterListInner />
+  </App>
 );
 
 export default CenterList;

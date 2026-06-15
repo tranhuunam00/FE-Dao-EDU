@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Table, Input, Select, Button, Card, Tag, Typography, Row, Col, App, ConfigProvider, theme,
+  Table, Input, Select, Button, Card, Tag, Typography, Row, Col, App,
 } from 'antd';
 import { SearchOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import { Resizable } from 'react-resizable';
@@ -133,8 +133,8 @@ const ClassListInner: React.FC = () => {
       width: colWidths.className,
       render: (text: string, record: ClassData) => (
         <div>
-          <Text strong style={{ color: '#fff' }}>{text}</Text>
-          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
+          <Text strong style={{ color: 'var(--text-primary)' }}>{text}</Text>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
             {record.course?.name} ({record.courseLevel?.levelName})
           </div>
         </div>
@@ -265,7 +265,7 @@ const ClassListInner: React.FC = () => {
 
       <Card
         className="glass-panel"
-        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: '16px' }}
+        style={{ border: 'none', background: 'var(--card-bg)', marginBottom: '16px' }}
         bodyStyle={{ padding: '8px 12px' }}
       >
         <Row gutter={[12, 12]} align="middle">
@@ -346,7 +346,7 @@ const ClassListInner: React.FC = () => {
         </Row>
       </Card>
 
-      <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}>
+      <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)' }}>
         <Table
           components={components}
           columns={columns as any}
@@ -373,22 +373,9 @@ const ClassListInner: React.FC = () => {
 };
 
 const ClassList: React.FC = () => (
-  <ConfigProvider
-    theme={{
-      algorithm: theme.darkAlgorithm,
-      token: {
-        colorPrimary: '#6366f1',
-        colorBgContainer: '#111827',
-        colorBorder: 'rgba(255, 255, 255, 0.06)',
-        borderRadius: 8,
-        fontFamily: 'Inter, sans-serif',
-      },
-    }}
-  >
-    <App>
-      <ClassListInner />
-    </App>
-  </ConfigProvider>
+  <App>
+    <ClassListInner />
+  </App>
 );
 
 export default ClassList;
