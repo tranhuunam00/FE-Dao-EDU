@@ -7,6 +7,7 @@ import { Role } from './context/AuthContext';
 // Pages — Auth
 import Login from './pages/auth/Login';
 import Unauthorized from './pages/Unauthorized';
+import PublicLanding from './pages/PublicLanding';
 
 // Pages — Admin
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -60,6 +61,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* Public Routes */}
+          <Route path="/" element={<PublicLanding />} />
           <Route path="/login" element={<Login />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
 

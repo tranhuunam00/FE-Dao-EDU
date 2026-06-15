@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth, Role } from '../../context/AuthContext';
 import {
   ConfigProvider,
@@ -126,6 +126,19 @@ const LoginInner: React.FC = () => {
         background: 'radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, rgba(168, 85, 247, 0) 70%)',
         zIndex: 0
       }} />
+      <Link
+        to="/"
+        style={{
+          position: 'absolute',
+          top: 24,
+          right: 24,
+          zIndex: 2,
+          color: '#c7d2fe',
+          fontWeight: 600,
+        }}
+      >
+        Giới thiệu & hướng dẫn sử dụng
+      </Link>
 
       <div style={{
         maxWidth: '980px', width: '100%', zIndex: 1
