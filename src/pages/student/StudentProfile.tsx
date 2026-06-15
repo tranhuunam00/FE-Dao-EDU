@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
-import { useAuth } from '../../context/AuthContext';
 import {
-  ConfigProvider,
   Form,
   Input,
   Select,
@@ -11,7 +9,6 @@ import {
   Card,
   Row,
   Col,
-  theme,
   message,
   Divider,
   Avatar,
@@ -33,8 +30,9 @@ import { PROVINCE_OPTIONS, DISTRICT_WARD_MAP } from '../../assets/vietnam_divisi
 const { Option } = Select;
 const { TextArea } = Input;
 
-export const StudentProfile: React.FC = () => {
-  const { } = useAuth();
+export const StudentProfile: React.FC<{ embedded?: boolean }> = ({
+  embedded = false,
+}) => {
   const [form] = Form.useForm();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -141,19 +139,7 @@ export const StudentProfile: React.FC = () => {
   if (loading) return <div style={{ padding: '40px', color: 'var(--text-secondary)' }}>Đang tải dữ liệu...</div>;
 
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: theme.darkAlgorithm,
-        token: {
-          colorPrimary: '#6366f1',
-          colorBgContainer: '#111827',
-          colorBorder: 'rgba(255, 255, 255, 0.06)',
-          borderRadius: 8,
-          fontFamily: 'Inter, sans-serif',
-        },
-      }}
-    >
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '12px 0' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: embedded ? 0 : '12px 0' }}>
         <Form
           form={form}
           layout="vertical"
@@ -167,7 +153,7 @@ export const StudentProfile: React.FC = () => {
               alignItems: 'center',
               marginBottom: '24px',
               paddingBottom: '16px',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+              borderBottom: '1px solid var(--card-border)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -209,13 +195,13 @@ export const StudentProfile: React.FC = () => {
                 </Upload>
               </div>
               <div>
-                <h2 style={{ fontSize: '1.6rem', color: '#fff', margin: 0, fontFamily: 'Outfit' }}>
+                <h2 style={{ fontSize: '1.6rem', color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit' }}>
                   {profile?.lastName} {profile?.firstName} {profile?.nickName ? `(${profile.nickName})` : ''}
                 </h2>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
                   <span style={{ color: '#9ca3af', fontSize: '0.88rem' }}>Mã học sinh:</span>
                   <span style={{ color: '#6366f1', fontWeight: 600, fontSize: '0.88rem' }}>{profile?.studentId}</span>
-                  <Divider type="vertical" style={{ borderColor: 'rgba(255, 255, 255, 0.08)' }} />
+                  <Divider type="vertical" style={{ borderColor: 'var(--card-border)' }} />
                   <span style={{ color: '#9ca3af', fontSize: '0.88rem' }}>Trạng thái:</span>
                   <span style={{ color: getStatusColor(profile?.status), fontWeight: 600, fontSize: '0.88rem' }}>
                     {profile?.status === 'Waiting for class' ? 'Chờ xếp lớp' 
@@ -250,36 +236,36 @@ export const StudentProfile: React.FC = () => {
                       <Card
                         title={<span style={{ fontFamily: 'Outfit' }}><UserOutlined /> Thông tin cá nhân (Đã khóa)</span>}
                         className="glass-panel"
-                        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
+                        style={{ border: 'none', background: 'var(--card-bg)' }}
                       >
                         <Row gutter={16}>
                           <Col xs={12}>
                             <Form.Item label="Họ đệm">
-                              <Input value={profile?.lastName} disabled style={{ background: 'rgba(0,0,0,0.2)', color: '#9ca3af' }} />
+                              <Input value={profile?.lastName} disabled />
                             </Form.Item>
                           </Col>
                           <Col xs={12}>
                             <Form.Item label="Tên">
-                              <Input value={profile?.firstName} disabled style={{ background: 'rgba(0,0,0,0.2)', color: '#9ca3af' }} />
+                              <Input value={profile?.firstName} disabled />
                             </Form.Item>
                           </Col>
                         </Row>
                         <Row gutter={16}>
                           <Col xs={12}>
                             <Form.Item label="Giới tính">
-                              <Input value={profile?.gender} disabled style={{ background: 'rgba(0,0,0,0.2)', color: '#9ca3af' }} />
+                              <Input value={profile?.gender} disabled />
                             </Form.Item>
                           </Col>
                           <Col xs={12}>
                             <Form.Item label="Ngày sinh">
-                              <Input value={profile?.birthdate} disabled style={{ background: 'rgba(0,0,0,0.2)', color: '#9ca3af' }} />
+                              <Input value={profile?.birthdate} disabled />
                             </Form.Item>
                           </Col>
                         </Row>
                         <Row gutter={16}>
                           <Col xs={24}>
                             <Form.Item label="Số CCCD / Mã định danh">
-                              <Input value={profile?.studentCitizenId || 'Chưa cập nhật'} disabled style={{ background: 'rgba(0,0,0,0.2)', color: '#9ca3af' }} prefix={<IdcardOutlined style={{ color: '#6b7280' }} />} />
+                              <Input value={profile?.studentCitizenId || 'Chưa cập nhật'} disabled prefix={<IdcardOutlined style={{ color: '#6b7280' }} />} />
                             </Form.Item>
                           </Col>
                         </Row>
@@ -288,29 +274,29 @@ export const StudentProfile: React.FC = () => {
                       <Card
                         title={<span style={{ fontFamily: 'Outfit' }}><TeamOutlined /> Thông tin Người giám hộ (Đã khóa)</span>}
                         className="glass-panel"
-                        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginTop: '24px' }}
+                        style={{ border: 'none', background: 'var(--card-bg)', marginTop: '24px' }}
                       >
                          <Row gutter={16}>
                           <Col xs={12}>
                             <Form.Item label={`Người giám hộ 1 (${profile?.relationship1 || 'Không rõ'})`}>
-                              <Input value={profile?.parentGuardian1 || 'Chưa cập nhật'} disabled style={{ background: 'rgba(0,0,0,0.2)', color: '#9ca3af' }} prefix={<UserOutlined style={{ color: '#6b7280' }} />} />
+                              <Input value={profile?.parentGuardian1 || 'Chưa cập nhật'} disabled prefix={<UserOutlined style={{ color: '#6b7280' }} />} />
                             </Form.Item>
                           </Col>
                           <Col xs={12}>
                             <Form.Item label="CCCD Người giám hộ 1">
-                              <Input value={profile?.parent1CitizenId || 'Chưa cập nhật'} disabled style={{ background: 'rgba(0,0,0,0.2)', color: '#9ca3af' }} prefix={<IdcardOutlined style={{ color: '#6b7280' }} />} />
+                              <Input value={profile?.parent1CitizenId || 'Chưa cập nhật'} disabled prefix={<IdcardOutlined style={{ color: '#6b7280' }} />} />
                             </Form.Item>
                           </Col>
                         </Row>
                         <Row gutter={16}>
                           <Col xs={12}>
                             <Form.Item label={`Người giám hộ 2 (${profile?.relationship2 || 'Không rõ'})`}>
-                              <Input value={profile?.parentGuardian2 || 'Chưa cập nhật'} disabled style={{ background: 'rgba(0,0,0,0.2)', color: '#9ca3af' }} prefix={<UserOutlined style={{ color: '#6b7280' }} />} />
+                              <Input value={profile?.parentGuardian2 || 'Chưa cập nhật'} disabled prefix={<UserOutlined style={{ color: '#6b7280' }} />} />
                             </Form.Item>
                           </Col>
                           <Col xs={12}>
                             <Form.Item label="CCCD Người giám hộ 2">
-                              <Input value={profile?.parent2CitizenId || 'Chưa cập nhật'} disabled style={{ background: 'rgba(0,0,0,0.2)', color: '#9ca3af' }} prefix={<IdcardOutlined style={{ color: '#6b7280' }} />} />
+                              <Input value={profile?.parent2CitizenId || 'Chưa cập nhật'} disabled prefix={<IdcardOutlined style={{ color: '#6b7280' }} />} />
                             </Form.Item>
                           </Col>
                         </Row>
@@ -321,7 +307,7 @@ export const StudentProfile: React.FC = () => {
                       <Card
                         title={<span style={{ fontFamily: 'Outfit' }}><EnvironmentOutlined /> Liên lạc & Địa chỉ (Có thể sửa)</span>}
                         className="glass-panel"
-                        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
+                        style={{ border: 'none', background: 'var(--card-bg)' }}
                       >
                         <Row gutter={16}>
                           <Col xs={12}>
@@ -391,7 +377,7 @@ export const StudentProfile: React.FC = () => {
                       <Card
                         title={<span style={{ fontFamily: 'Outfit' }}><LockOutlined /> Bảo mật tài khoản</span>}
                         className="glass-panel"
-                        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginTop: '24px' }}
+                        style={{ border: 'none', background: 'var(--card-bg)', marginTop: '24px' }}
                       >
                         <Form.Item
                           name="loginPassword"
@@ -408,7 +394,6 @@ export const StudentProfile: React.FC = () => {
           />
         </Form>
       </div>
-    </ConfigProvider>
   );
 };
 

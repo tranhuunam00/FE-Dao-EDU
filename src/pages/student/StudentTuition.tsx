@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import {
-  ConfigProvider,
   Card,
   Table,
   Tag,
   Typography,
-  theme,
   message,
   Collapse,
   Button,
@@ -118,7 +116,7 @@ export const StudentTuition: React.FC = () => {
       key: 'className',
       render: (text: string, record: any) => (
         <div>
-          <div style={{ fontWeight: 600, color: '#fff' }}>{text}</div>
+          <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{text}</div>
           <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{record.courseName} - {record.levelName}</div>
         </div>
       ),
@@ -147,22 +145,10 @@ export const StudentTuition: React.FC = () => {
   ];
 
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: theme.darkAlgorithm,
-        token: {
-          colorPrimary: '#6366f1',
-          colorBgContainer: '#111827',
-          colorBorder: 'rgba(255, 255, 255, 0.06)',
-          borderRadius: 8,
-          fontFamily: 'Inter, sans-serif',
-        },
-      }}
-    >
       <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '12px 0' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
           <div>
-            <h2 style={{ fontSize: '2rem', color: '#fff', fontFamily: 'Outfit', margin: 0 }}>
+            <h2 style={{ fontSize: '2rem', color: 'var(--text-primary)', fontFamily: 'Outfit', margin: 0 }}>
               Học phí & Thanh toán
             </h2>
             <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>Theo dõi các đợt đóng học phí và lịch sử giao dịch</p>
@@ -175,7 +161,7 @@ export const StudentTuition: React.FC = () => {
               className="glass-panel"
               style={{
                 border: 'none',
-                background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(17, 24, 39, 0.4) 100%)',
+                background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, var(--card-bg) 100%)',
                 borderColor: 'rgba(239, 68, 68, 0.2)',
               }}
             >
@@ -193,7 +179,7 @@ export const StudentTuition: React.FC = () => {
               className="glass-panel"
               style={{
                 border: 'none',
-                background: 'rgba(17, 24, 39, 0.75)',
+                background: 'var(--card-bg)',
               }}
             >
               <Statistic
@@ -206,7 +192,7 @@ export const StudentTuition: React.FC = () => {
           </Col>
         </Row>
 
-        <Title level={4} style={{ color: '#fff', marginBottom: '24px', fontFamily: 'Outfit' }}>
+        <Title level={4} style={{ color: 'var(--text-primary)', marginBottom: '24px', fontFamily: 'Outfit' }}>
           <DollarOutlined /> Lịch sử Hóa đơn theo Đợt
         </Title>
 
@@ -218,6 +204,7 @@ export const StudentTuition: React.FC = () => {
           </Card>
         ) : (
           <Collapse 
+            className="student-tuition-collapse"
             defaultActiveKey={Object.keys(groupedBills)} 
             expandIconPosition="end"
             style={{ background: 'transparent', border: 'none' }}
@@ -233,7 +220,7 @@ export const StudentTuition: React.FC = () => {
                   header={
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff' }}>{periodName}</span>
+                        <span style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{periodName}</span>
                         {isAllPaid ? (
                           <Tag color="success" icon={<CheckCircleOutlined />}>Đã hoàn tất</Tag>
                         ) : (
@@ -247,14 +234,14 @@ export const StudentTuition: React.FC = () => {
                   }
                   style={{
                     marginBottom: '16px',
-                    background: 'rgba(17, 24, 39, 0.75)',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    background: 'var(--card-bg)',
+                    border: '1px solid var(--card-border)',
                     borderRadius: '8px',
                     overflow: 'hidden'
                   }}
                 >
                   {periodBills.map((bill: any) => (
-                    <div key={bill.id} style={{ marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px dashed rgba(255,255,255,0.1)' }}>
+                    <div key={bill.id} style={{ marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px dashed var(--card-border)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
                         <div>
                           <Text style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -267,7 +254,7 @@ export const StudentTuition: React.FC = () => {
                           )}
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#fff', marginBottom: '8px' }}>
+                          <div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
                             {formatCurrency(Number(bill.totalAmount))}
                           </div>
                           {bill.status === 'Unpaid' && (
@@ -285,7 +272,7 @@ export const StudentTuition: React.FC = () => {
                         pagination={false}
                         size="small"
                         style={{
-                          background: 'rgba(0,0,0,0.2)',
+                          background: 'var(--bg-secondary)',
                           borderRadius: '8px',
                           overflow: 'hidden'
                         }}
@@ -321,7 +308,7 @@ export const StudentTuition: React.FC = () => {
               <img src={qrRequest.qrUrl} alt="QR chuyển khoản học phí" style={{ width: '100%', maxWidth: 360, borderRadius: 8 }} />
               <div style={{ marginTop: 12, color: 'var(--text-secondary)' }}>
                 <div>{qrRequest.accountName} - {qrRequest.accountNumber}</div>
-                <div style={{ fontWeight: 700, color: '#fff', fontSize: 18, marginTop: 4 }}>{formatCurrency(Number(qrRequest.amount))}</div>
+                <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: 18, marginTop: 4 }}>{formatCurrency(Number(qrRequest.amount))}</div>
                 <div>
                   Nội dung: <Text copyable={{ text: qrRequest.transferContent }} style={{ color: '#a78bfa' }}>{qrRequest.transferContent}</Text>
                 </div>
@@ -337,7 +324,6 @@ export const StudentTuition: React.FC = () => {
           )}
         </Modal>
       </div>
-    </ConfigProvider>
   );
 };
 

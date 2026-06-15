@@ -37,7 +37,6 @@ import TeacherAssignments from './pages/teacher/TeacherAssignments';
 
 // Pages — Student
 import StudentDashboard from './pages/student/StudentDashboard';
-import StudentProfile from './pages/student/StudentProfile';
 import StudentCalendar from './pages/student/StudentCalendar';
 import StudentTuition from './pages/student/StudentTuition';
 import StudentAssignments from './pages/student/StudentAssignments';
@@ -131,7 +130,7 @@ function App() {
                 <DashboardLayout>
                   <Routes>
                     <Route path="/" element={<StudentDashboard />} />
-                    <Route path="profile" element={<StudentProfile />} />
+                    <Route path="profile" element={<Navigate to="/student/settings?tab=profile" replace />} />
                     <Route path="schedule" element={<StudentCalendar />} />
                     <Route path="tuition" element={<StudentTuition />} />
                     <Route path="assignments" element={<StudentAssignments />} />

@@ -226,6 +226,29 @@ a:hover {
   border-color: var(--primary);
 }
 
+.student-tuition-collapse .ant-collapse-item,
+.student-tuition-collapse .ant-collapse-header,
+.student-tuition-collapse .ant-collapse-content,
+.student-tuition-collapse .ant-collapse-content-box {
+  color: var(--text-primary) !important;
+}
+
+:root[data-theme='light'] .student-tuition-collapse .ant-collapse-content {
+  background: transparent !important;
+  border-top-color: var(--card-border) !important;
+}
+
+:root[data-theme='light'] .student-tuition-collapse .ant-collapse-header {
+  background: transparent !important;
+}
+
+:root[data-theme='light'] .ant-input-disabled,
+:root[data-theme='light'] .ant-input[disabled] {
+  color: var(--text-secondary) !important;
+  background: var(--bg-tertiary) !important;
+  border-color: var(--card-border) !important;
+}
+
 @media (max-width: 640px) {
   .theme-preview-grid {
     grid-template-columns: 1fr;
