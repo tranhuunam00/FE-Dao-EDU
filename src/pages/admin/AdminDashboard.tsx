@@ -2,13 +2,14 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import { Shield, Users, BookOpen, Layers, Activity, RefreshCw } from 'lucide-react';
-import { Card, Row, Col, Typography, Table, Spin, Button, message, ConfigProvider, theme, App } from 'antd';
+import { Card, Row, Col, Typography, Table, Spin, Button, message, App } from 'antd';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
   ResponsiveContainer, Legend, BarChart, Bar, PieChart, Pie, Cell 
 } from 'recharts';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../../context/theme-context';
 
 const { Title, Text } = Typography;
 
@@ -37,6 +38,7 @@ interface ActivityData {
 
 const AdminDashboardInner: React.FC = () => {
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [revenue, setRevenue] = useState<RevenueData[]>([]);
   const [activities, setActivities] = useState<ActivityData[]>([]);
@@ -65,14 +67,22 @@ const AdminDashboardInner: React.FC = () => {
     fetchDashboardData();
   }, []);
 
-  const cardStyle = { 
-    background: 'rgba(17, 24, 39, 0.65)', 
+  const isDark = resolvedTheme === 'dark';
+  const chartText = isDark ? 'rgba(255,255,255,0.55)' : '#64748b';
+  const chartGrid = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.1)';
+  const tooltipBackground = isDark ? 'rgba(17, 24, 39, 0.95)' : '#ffffff';
+  const tooltipText = isDark ? '#f8fafc' : '#172033';
+
+  const cardStyle = {
+    background: 'var(--card-bg)',
     backdropFilter: 'blur(16px)',
     WebkitBackdropFilter: 'blur(16px)',
-    border: '1px solid rgba(255,255,255,0.08)',
+    border: '1px solid var(--card-border)',
     borderRadius: '20px',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
-    color: '#fff',
+    boxShadow: isDark
+      ? '0 8px 32px rgba(0, 0, 0, 0.2)'
+      : '0 8px 28px rgba(15, 23, 42, 0.08)',
+    color: 'var(--text-primary)',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     cursor: 'pointer',
   };
@@ -92,12 +102,12 @@ const AdminDashboardInner: React.FC = () => {
         </span>
       )
     },
-    { title: 'Đối tượng', dataIndex: 'target', key: 'target', render: (t: string) => <span style={{ color: '#e5e7eb' }}>{t}</span> },
+    { title: 'Đối tượng', dataIndex: 'target', key: 'target', render: (t: string) => <span style={{ color: 'var(--text-primary)' }}>{t}</span> },
     { 
       title: 'Thời gian', 
       dataIndex: 'time', 
       key: 'time',
-      render: (v: string) => <span style={{ color: 'rgba(255,255,255,0.4)' }}>{dayjs(v).format('DD/MM/YYYY HH:mm')}</span>
+      render: (v: string) => <span style={{ color: 'var(--text-muted)' }}>{dayjs(v).format('DD/MM/YYYY HH:mm')}</span>
     }
   ];
 
@@ -145,7 +155,7 @@ const AdminDashboardInner: React.FC = () => {
             style={cardStyle} 
             className="hover-card-glow"
             onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.borderColor = 'rgba(99,102,241,0.5)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--card-border)'; }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
               <div style={{ 
@@ -157,8 +167,8 @@ const AdminDashboardInner: React.FC = () => {
                 <Users size={28} />
               </div>
               <div>
-                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Tổng Học Sinh</Text>
-                <Title level={2} style={{ color: '#fff', margin: 0, fontFamily: 'Outfit', fontWeight: 700 }}>
+                <Text style={{ color: 'var(--text-secondary)', fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Tổng Học Sinh</Text>
+                <Title level={2} style={{ color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit', fontWeight: 700 }}>
                   {summary?.totalStudents?.toLocaleString('vi-VN') || 0}
                 </Title>
               </div>
@@ -172,7 +182,7 @@ const AdminDashboardInner: React.FC = () => {
             style={cardStyle} 
             className="hover-card-glow"
             onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.borderColor = 'rgba(16,185,129,0.5)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--card-border)'; }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
               <div style={{ 
@@ -184,8 +194,8 @@ const AdminDashboardInner: React.FC = () => {
                 <Shield size={28} />
               </div>
               <div>
-                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Giáo Viên</Text>
-                <Title level={2} style={{ color: '#fff', margin: 0, fontFamily: 'Outfit', fontWeight: 700 }}>
+                <Text style={{ color: 'var(--text-secondary)', fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Giáo Viên</Text>
+                <Title level={2} style={{ color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit', fontWeight: 700 }}>
                   {summary?.totalTeachers?.toLocaleString('vi-VN') || 0}
                 </Title>
               </div>
@@ -199,7 +209,7 @@ const AdminDashboardInner: React.FC = () => {
             style={cardStyle} 
             className="hover-card-glow"
             onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.borderColor = 'rgba(245,158,11,0.5)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--card-border)'; }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
               <div style={{ 
@@ -211,8 +221,8 @@ const AdminDashboardInner: React.FC = () => {
                 <Layers size={28} />
               </div>
               <div>
-                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Lớp Học</Text>
-                <Title level={2} style={{ color: '#fff', margin: 0, fontFamily: 'Outfit', fontWeight: 700 }}>
+                <Text style={{ color: 'var(--text-secondary)', fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Lớp Học</Text>
+                <Title level={2} style={{ color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit', fontWeight: 700 }}>
                   {summary?.totalClasses?.toLocaleString('vi-VN') || 0}
                 </Title>
               </div>
@@ -226,7 +236,7 @@ const AdminDashboardInner: React.FC = () => {
             style={cardStyle} 
             className="hover-card-glow"
             onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.borderColor = 'rgba(236,72,153,0.5)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--card-border)'; }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
               <div style={{ 
@@ -238,8 +248,8 @@ const AdminDashboardInner: React.FC = () => {
                 <BookOpen size={28} />
               </div>
               <div>
-                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Chương Trình</Text>
-                <Title level={2} style={{ color: '#fff', margin: 0, fontFamily: 'Outfit', fontWeight: 700 }}>
+                <Text style={{ color: 'var(--text-secondary)', fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Chương Trình</Text>
+                <Title level={2} style={{ color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit', fontWeight: 700 }}>
                   {summary?.totalCourses?.toLocaleString('vi-VN') || 0}
                 </Title>
               </div>
@@ -255,11 +265,11 @@ const AdminDashboardInner: React.FC = () => {
             title={
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}>
                 <Activity size={20} color="#818cf8" />
-                <span style={{ color: '#fff', fontFamily: 'Outfit', fontSize: 18, fontWeight: 600 }}>Biểu đồ Doanh Thu Phân Tích</span>
+                <span style={{ color: 'var(--text-primary)', fontFamily: 'Outfit', fontSize: 18, fontWeight: 600 }}>Biểu đồ Doanh Thu Phân Tích</span>
               </div>
             } 
             style={{ ...cardStyle, height: '100%' }} 
-            headStyle={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+            headStyle={{ borderBottom: '1px solid var(--card-border)' }}
           >
             <div style={{ height: 380, width: '100%', marginTop: 20 }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -274,35 +284,35 @@ const AdminDashboardInner: React.FC = () => {
                       <stop offset="95%" stopColor="#34d399" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} vertical={false} />
                   <XAxis 
                     dataKey="month" 
-                    stroke="rgba(255,255,255,0.3)" 
-                    tick={{ fill: 'rgba(255,255,255,0.5)' }} 
+                    stroke={chartText}
+                    tick={{ fill: chartText }}
                     tickLine={false} 
                     axisLine={false} 
                     dy={10}
                   />
                   <YAxis 
-                    stroke="rgba(255,255,255,0.3)" 
+                    stroke={chartText}
                     tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} 
-                    tick={{ fill: 'rgba(255,255,255,0.5)' }} 
+                    tick={{ fill: chartText }}
                     tickLine={false} 
                     axisLine={false}
                     dx={-10}
                   />
                   <RechartsTooltip 
                     contentStyle={{ 
-                      backgroundColor: 'rgba(17, 24, 39, 0.9)', 
+                      backgroundColor: tooltipBackground,
                       backdropFilter: 'blur(10px)',
-                      borderColor: 'rgba(255,255,255,0.1)', 
-                      color: '#fff',
+                      borderColor: 'var(--card-border)',
+                      color: tooltipText,
                       borderRadius: 12,
                       boxShadow: '0 10px 25px rgba(0,0,0,0.5)'
                     }}
-                    itemStyle={{ color: '#fff', fontWeight: 600 }}
+                    itemStyle={{ color: tooltipText, fontWeight: 600 }}
                     formatter={(value: any) => `${Number(value).toLocaleString('vi-VN')} ₫`}
-                    labelStyle={{ color: 'rgba(255,255,255,0.6)', marginBottom: 8 }}
+                    labelStyle={{ color: chartText, marginBottom: 8 }}
                   />
                   <Legend verticalAlign="top" height={36} wrapperStyle={{ paddingBottom: 20 }} iconType="circle" />
                   <Area 
@@ -340,11 +350,11 @@ const AdminDashboardInner: React.FC = () => {
                   display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#10b981',
                   boxShadow: '0 0 10px #10b981'
                 }}></span>
-                <span style={{ color: '#fff', fontFamily: 'Outfit', fontSize: 16, fontWeight: 600 }}>Log Hệ Thống</span>
+                <span style={{ color: 'var(--text-primary)', fontFamily: 'Outfit', fontSize: 16, fontWeight: 600 }}>Log Hệ Thống</span>
               </div>
             } 
             style={{ ...cardStyle, height: '100%' }} 
-            headStyle={{ borderBottom: '1px solid rgba(255,255,255,0.06)', minHeight: 40 }}
+            headStyle={{ borderBottom: '1px solid var(--card-border)', minHeight: 40 }}
             bodyStyle={{ padding: '0 12px 12px 12px' }}
           >
             <Table 
@@ -370,11 +380,11 @@ const AdminDashboardInner: React.FC = () => {
                   display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#6366f1',
                   boxShadow: '0 0 10px #6366f1'
                 }}></span>
-                <span style={{ color: '#fff', fontFamily: 'Outfit', fontSize: 18, fontWeight: 600 }}>Tăng trưởng Học Sinh</span>
+                <span style={{ color: 'var(--text-primary)', fontFamily: 'Outfit', fontSize: 18, fontWeight: 600 }}>Tăng trưởng Học Sinh</span>
               </div>
             } 
             style={cardStyle} 
-            headStyle={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+            headStyle={{ borderBottom: '1px solid var(--card-border)' }}
           >
             <div style={{ width: '100%', height: 300 }}>
               <ResponsiveContainer>
@@ -382,12 +392,12 @@ const AdminDashboardInner: React.FC = () => {
                   { month: 'T1', students: 120 }, { month: 'T2', students: 135 }, { month: 'T3', students: 150 },
                   { month: 'T4', students: 180 }, { month: 'T5', students: 210 }, { month: 'T6', students: Math.max(summary?.totalStudents || 250, 250) }
                 ]}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="month" stroke="rgba(255,255,255,0.3)" tick={{ fill: 'rgba(255,255,255,0.5)' }} />
-                  <YAxis stroke="rgba(255,255,255,0.3)" tick={{ fill: 'rgba(255,255,255,0.5)' }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} vertical={false} />
+                  <XAxis dataKey="month" stroke={chartText} tick={{ fill: chartText }} />
+                  <YAxis stroke={chartText} tick={{ fill: chartText }} />
                   <RechartsTooltip 
-                    contentStyle={{ backgroundColor: 'rgba(17, 24, 39, 0.9)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, color: '#fff' }}
-                    itemStyle={{ color: '#fff' }}
+                    contentStyle={{ backgroundColor: tooltipBackground, borderColor: 'var(--card-border)', borderRadius: 8, color: tooltipText }}
+                    itemStyle={{ color: tooltipText }}
                   />
                   <Bar dataKey="students" name="Số học sinh" fill="url(#colorExpected)" radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -403,11 +413,11 @@ const AdminDashboardInner: React.FC = () => {
                   display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#34d399',
                   boxShadow: '0 0 10px #34d399'
                 }}></span>
-                <span style={{ color: '#fff', fontFamily: 'Outfit', fontSize: 18, fontWeight: 600 }}>Phân bố Học Sinh theo Khóa</span>
+                <span style={{ color: 'var(--text-primary)', fontFamily: 'Outfit', fontSize: 18, fontWeight: 600 }}>Phân bố Học Sinh theo Khóa</span>
               </div>
             } 
             style={cardStyle} 
-            headStyle={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+            headStyle={{ borderBottom: '1px solid var(--card-border)' }}
           >
             <div style={{ width: '100%', height: 300 }}>
               <ResponsiveContainer>
@@ -433,8 +443,8 @@ const AdminDashboardInner: React.FC = () => {
                     ))}
                   </Pie>
                   <RechartsTooltip 
-                    contentStyle={{ backgroundColor: 'rgba(17, 24, 39, 0.9)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, color: '#fff' }}
-                    itemStyle={{ color: '#fff' }}
+                    contentStyle={{ backgroundColor: tooltipBackground, borderColor: 'var(--card-border)', borderRadius: 8, color: tooltipText }}
+                    itemStyle={{ color: tooltipText }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -448,22 +458,9 @@ const AdminDashboardInner: React.FC = () => {
 
 export const AdminDashboard: React.FC = () => {
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: theme.darkAlgorithm,
-        token: {
-          colorPrimary: '#6366f1',
-          colorBgContainer: 'transparent',
-          colorBorder: 'rgba(255, 255, 255, 0.06)',
-          borderRadius: 8,
-          fontFamily: 'Inter, sans-serif',
-        },
-      }}
-    >
-      <App>
-        <AdminDashboardInner />
-      </App>
-    </ConfigProvider>
+    <App>
+      <AdminDashboardInner />
+    </App>
   );
 };
 

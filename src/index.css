@@ -541,15 +541,16 @@ button[disabled],
 }
 .premium-transparent-table .ant-table-thead > tr > th {
   background: transparent !important;
-  color: rgba(255, 255, 255, 0.5) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  color: var(--text-secondary) !important;
+  border-bottom: 1px solid var(--card-border) !important;
 }
 .premium-transparent-table .ant-table-tbody > tr > td {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--card-border) !important;
   transition: background 0.3s;
 }
 .premium-transparent-table .ant-table-tbody > tr:hover > td {
-  background: rgba(255, 255, 255, 0.02) !important;
+  background: var(--bg-tertiary) !important;
 }
 
 @media (max-width: 900px) {
