@@ -27,7 +27,7 @@ export const ClassesTab: React.FC<ClassesTabProps> = ({ studentClasses, setIsAdd
         </div>
       }
       className="glass-panel"
-      style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
+      style={{ border: 'none', background: 'var(--card-bg)' }}
     >
       <Table
         dataSource={studentClasses}

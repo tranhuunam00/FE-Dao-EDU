@@ -19,11 +19,11 @@ export const TuitionTab: React.FC<TuitionTabProps> = ({ tuitionDateRange, setTui
       <Card
         title={<span style={{ fontFamily: 'Outfit' }}><DollarOutlined /> Tính học phí theo khoảng thời gian</span>}
         className="glass-panel"
-        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: 16 }}
+        style={{ border: 'none', background: 'var(--card-bg)', marginBottom: 16 }}
       >
         <Space size="middle" wrap>
           <div>
-            <span style={{ color: 'rgba(255,255,255,0.6)', marginRight: 8, fontSize: '13px' }}>Khoảng thời gian:</span>
+            <span style={{ color: 'var(--text-secondary)', marginRight: 8, fontSize: '13px' }}>Khoảng thời gian:</span>
             <DatePicker.RangePicker
               value={tuitionDateRange}
               onChange={(vals) => setTuitionDateRange(vals as [dayjs.Dayjs | null, dayjs.Dayjs | null])}
@@ -47,20 +47,20 @@ export const TuitionTab: React.FC<TuitionTabProps> = ({ tuitionDateRange, setTui
         <>
           <Row gutter={16} style={{ marginBottom: 16 }}>
             <Col xs={12} md={8}>
-              <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', textAlign: 'center' }}>
-                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginBottom: 4 }}>Tổng buổi có mặt (tính tiền)</div>
+              <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)', textAlign: 'center' }}>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: 4 }}>Tổng buổi có mặt (tính tiền)</div>
                 <div style={{ color: '#10b981', fontSize: '24px', fontWeight: 700 }}>{tuitionReport.totalSessions}</div>
               </Card>
             </Col>
             <Col xs={12} md={8}>
-              <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', textAlign: 'center' }}>
-                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginBottom: 4 }}>Tổng buổi đã hoàn thành</div>
+              <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)', textAlign: 'center' }}>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: 4 }}>Tổng buổi đã hoàn thành</div>
                 <div style={{ color: '#6366f1', fontSize: '24px', fontWeight: 700 }}>{(tuitionReport.sessions || []).length}</div>
               </Card>
             </Col>
             <Col xs={12} md={8}>
-              <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', textAlign: 'center' }}>
-                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginBottom: 4 }}>Tổng học phí</div>
+              <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)', textAlign: 'center' }}>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: 4 }}>Tổng học phí</div>
                 <div style={{ color: '#f59e0b', fontSize: '22px', fontWeight: 700 }}>
                   {(tuitionReport.totalAmount || 0).toLocaleString('vi-VN')}&nbsp;₫
                 </div>
@@ -70,7 +70,7 @@ export const TuitionTab: React.FC<TuitionTabProps> = ({ tuitionDateRange, setTui
           <Card
             title={<span style={{ fontFamily: 'Outfit' }}><DollarOutlined /> Lịch sử đơn giá chương trình học áp dụng trong kỳ</span>}
             className="glass-panel"
-            style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: 16 }}
+            style={{ border: 'none', background: 'var(--card-bg)', marginBottom: 16 }}
           >
             <Table
               dataSource={tuitionReport.pricingHistory || []}
@@ -100,7 +100,7 @@ export const TuitionTab: React.FC<TuitionTabProps> = ({ tuitionDateRange, setTui
           <Card
             title={<span style={{ fontFamily: 'Outfit' }}>Chi tiết từng buổi học</span>}
             className="glass-panel"
-            style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
+            style={{ border: 'none', background: 'var(--card-bg)' }}
           >
             <Table
               dataSource={tuitionReport.sessions || []}

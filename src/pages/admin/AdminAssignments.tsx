@@ -21,7 +21,7 @@ const AdminAssignments: React.FC = () => {
     const { data } = await api.get(`/assignments/${assignment.id}/submissions`);
     setSubmissions(data.submissions || []);
   };
-  return <div><h2 style={{ color: '#fff', fontSize: 30 }}>Theo dõi bài tập</h2><p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>Dashboard toàn hệ thống dành cho quản trị viên.</p><Card className="glass-panel"><Table dataSource={items} rowKey="id" scroll={{ x: 900 }} columns={[
+  return <div><h2 style={{ color: 'var(--text-primary)', fontSize: 30 }}>Theo dõi bài tập</h2><p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>Dashboard toàn hệ thống dành cho quản trị viên.</p><Card className="glass-panel"><Table dataSource={items} rowKey="id" scroll={{ x: 900 }} columns={[
     { title: 'Bài tập', render: (_, r: any) => <div><b>{r.title}</b><div style={{ opacity: .6 }}>{r.classCode} - {r.className}</div></div> },
     { title: 'Hạn nộp', dataIndex: 'dueAt', render: v => v ? dayjs(v).format('DD/MM/YYYY HH:mm') : '-' },
     { title: 'Đã nộp', render: (_, r: any) => `${r.submittedCount}/${r.totalStudents}` },

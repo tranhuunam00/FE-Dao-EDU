@@ -325,19 +325,19 @@ const ClassDetailInner: React.FC = () => {
   }
 
   if (!classData) {
-    return <div style={{ color: '#fff', textAlign: 'center', padding: '60px' }}>Không tìm thấy thông tin lớp học.</div>;
+    return <div style={{ color: 'var(--text-primary)', textAlign: 'center', padding: '60px' }}>Không tìm thấy thông tin lớp học.</div>;
   }
 
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '12px 0' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid var(--card-border)' }}>
         <Button
           icon={<ArrowLeftOutlined />}
           onClick={() => navigate('/admin/classes')}
-          style={{ background: 'rgba(255,255,255,0.06)', border: 'none' }}
+          style={{ background: 'var(--bg-tertiary)', border: 'none' }}
         />
         <div style={{ flex: 1 }}>
-          <Title level={3} style={{ color: '#fff', margin: 0, fontFamily: 'Outfit' }}>
+          <Title level={3} style={{ color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit' }}>
             <TeamOutlined style={{ marginRight: 10, color: '#6366f1' }} />
             Lớp: {classData.className}
           </Title>
@@ -363,7 +363,7 @@ const ClassDetailInner: React.FC = () => {
             </span>
           }
           description={
-            <span style={{ color: 'rgba(255,255,255,0.7)' }}>
+            <span style={{ color: 'var(--text-secondary)' }}>
               Ngày kết thúc dự kiến: <strong style={{ color: '#f59e0b' }}>{dayjs(classData.finishDate).format('DD/MM/YYYY')}</strong>.
               Hãy xác nhận với phụ huynh và học sinh về việc tiếp tục hay kết thúc khóa học.
             </span>

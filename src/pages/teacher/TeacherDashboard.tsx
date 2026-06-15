@@ -162,7 +162,7 @@ export const TeacherDashboard: React.FC = () => {
         />
 
         {/* Quick info Card */}
-        <div className="glass-panel" style={{ padding: '24px', background: 'rgba(255,255,255,0.01)' }}>
+        <div className="glass-panel" style={{ padding: '24px', background: 'var(--card-bg)' }}>
           <h3 style={{ fontSize: '1.25rem', color: '#fff', marginBottom: '16px' }}>Thông tin giảng viên</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.95rem' }}>
             <div>

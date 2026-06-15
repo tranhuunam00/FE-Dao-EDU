@@ -93,7 +93,7 @@ const CourseDetailInner: React.FC = () => {
   }
 
   if (!course) {
-    return <div style={{ color: '#fff', textAlign: 'center', padding: '60px' }}>Không tìm thấy chương trình học.</div>;
+    return <div style={{ color: 'var(--text-primary)', textAlign: 'center', padding: '60px' }}>Không tìm thấy chương trình học.</div>;
   }
 
   const handleOpenPricingModal = (level: LevelData) => {
@@ -201,14 +201,14 @@ const CourseDetailInner: React.FC = () => {
 
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '12px 0' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid var(--card-border)' }}>
         <Button
           icon={<ArrowLeftOutlined />}
           onClick={() => navigate('/admin/courses')}
-          style={{ background: 'rgba(255,255,255,0.06)', border: 'none' }}
+          style={{ background: 'var(--bg-tertiary)', border: 'none' }}
         />
         <div style={{ flex: 1 }}>
-          <Title level={3} style={{ color: '#fff', margin: 0, fontFamily: 'Outfit' }}>
+          <Title level={3} style={{ color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit' }}>
             <BookOutlined style={{ marginRight: 10, color: '#6366f1' }} />
             {course.name}
           </Title>
@@ -221,12 +221,12 @@ const CourseDetailInner: React.FC = () => {
         </Tag>
       </div>
 
-      <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: 24 }}>
-        <Title level={5} style={{ color: '#fff', marginBottom: 16 }}>Thông tin chung</Title>
+      <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)', marginBottom: 24 }}>
+        <Title level={5} style={{ color: 'var(--text-primary)', marginBottom: 16 }}>Thông tin chung</Title>
         <Descriptions
           column={{ xs: 1, sm: 2, md: 3 }}
-          labelStyle={{ color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}
-          contentStyle={{ color: '#fff' }}
+          labelStyle={{ color: 'var(--text-secondary)', fontWeight: 500 }}
+          contentStyle={{ color: 'var(--text-primary)' }}
         >
           <Descriptions.Item label="Tên Chương trình">{course.name}</Descriptions.Item>
           <Descriptions.Item label="Mã chương trình">{course.shortName}</Descriptions.Item>
@@ -242,8 +242,8 @@ const CourseDetailInner: React.FC = () => {
         </Descriptions>
       </Card>
 
-      <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: 24 }}>
-        <Title level={5} style={{ color: '#fff', marginBottom: 16 }}>
+      <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)', marginBottom: 24 }}>
+        <Title level={5} style={{ color: 'var(--text-primary)', marginBottom: 16 }}>
           Cấu hình Level ({course.levels?.length || 0})
         </Title>
         <Table

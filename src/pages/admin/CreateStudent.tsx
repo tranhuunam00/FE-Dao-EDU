@@ -167,7 +167,7 @@ export const CreateStudent: React.FC = () => {
               alignItems: 'center',
               marginBottom: '24px',
               paddingBottom: '16px',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+              borderBottom: '1px solid var(--card-border)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -210,14 +210,14 @@ export const CreateStudent: React.FC = () => {
                 </Upload>
               </div>
               <div>
-                <h2 style={{ fontSize: '1.6rem', color: '#fff', margin: 0, fontFamily: 'Outfit' }}>
+                <h2 style={{ fontSize: '1.6rem', color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit' }}>
                   Thêm Học sinh mới
                 </h2>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                  <span style={{ color: '#9ca3af', fontSize: '0.88rem' }}>Mã học sinh:</span>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>Mã học sinh:</span>
                   <span style={{ color: '#6366f1', fontWeight: 600, fontSize: '0.88rem' }}>Auto generate</span>
-                  <Divider type="vertical" style={{ borderColor: 'rgba(255, 255, 255, 0.08)' }} />
-                  <span style={{ color: '#9ca3af', fontSize: '0.88rem' }}>Trạng thái:</span>
+                  <Divider type="vertical" style={{ borderColor: 'var(--card-border)' }} />
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>Trạng thái:</span>
                   <span style={{ color: getStatusColor(currentStatus), fontWeight: 600, fontSize: '0.88rem' }}>
                     {currentStatus === 'Waiting for class' ? 'Chờ xếp lớp' 
                      : currentStatus === 'Studying' ? 'Đang học' 
@@ -260,7 +260,7 @@ export const CreateStudent: React.FC = () => {
                       <Card
                         title={<span style={{ fontFamily: 'Outfit' }}><UserOutlined /> Thông tin cá nhân</span>}
                         className="glass-panel"
-                        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
+                        style={{ border: 'none', background: 'var(--card-bg)' }}
                       >
                         <Row gutter={16}>
                           <Col xs={12}>
@@ -319,7 +319,7 @@ export const CreateStudent: React.FC = () => {
                               <Input
                                 value={age !== null ? `${age} tuổi` : 'Chưa nhập ngày sinh'}
                                 disabled
-                                style={{ background: 'rgba(0,0,0,0.2)', color: '#9ca3af' }}
+                                style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
                               />
                             </Form.Item>
                           </Col>
@@ -337,9 +337,9 @@ export const CreateStudent: React.FC = () => {
                       <Card
                         title={<span style={{ fontFamily: 'Outfit' }}><TeamOutlined /> Thông tin Phụ huynh / Người giám hộ</span>}
                         className="glass-panel"
-                        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginTop: '24px' }}
+                        style={{ border: 'none', background: 'var(--card-bg)', marginTop: '24px' }}
                       >
-                        <Divider orientation={"left" as any} style={{ margin: '0 0 16px 0', borderColor: 'rgba(255,255,255,0.06)' }}>Người giám hộ 1</Divider>
+                        <Divider orientation={"left" as any} style={{ margin: '0 0 16px 0', borderColor: 'var(--card-border)' }}>Người giám hộ 1</Divider>
                         <Row gutter={16}>
                           <Col xs={12}>
                             <Form.Item name="parentGuardian1" label="Họ và tên">
@@ -367,7 +367,7 @@ export const CreateStudent: React.FC = () => {
                           </Col>
                         </Row>
 
-                        <Divider orientation={"left" as any} style={{ margin: '16px 0', borderColor: 'rgba(255,255,255,0.06)' }}>Người giám hộ 2</Divider>
+                        <Divider orientation={"left" as any} style={{ margin: '16px 0', borderColor: 'var(--card-border)' }}>Người giám hộ 2</Divider>
                         <Row gutter={16}>
                           <Col xs={12}>
                             <Form.Item name="parentGuardian2" label="Họ và tên">
@@ -402,7 +402,7 @@ export const CreateStudent: React.FC = () => {
                       <Card
                         title={<span style={{ fontFamily: 'Outfit' }}><EnvironmentOutlined /> Liên lạc & Địa chỉ</span>}
                         className="glass-panel"
-                        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
+                        style={{ border: 'none', background: 'var(--card-bg)' }}
                       >
                         <Form.Item
                           name="mobile"
@@ -420,7 +420,7 @@ export const CreateStudent: React.FC = () => {
                         </Form.Item>
 
                         <Form.Item name="country" label="Quốc gia">
-                          <Input disabled style={{ background: 'rgba(0,0,0,0.2)', color: '#9ca3af' }} />
+                          <Input disabled />
                         </Form.Item>
 
                         <Form.Item name="province" label="Tỉnh / Thành phố">
@@ -453,7 +453,7 @@ export const CreateStudent: React.FC = () => {
                       <Card
                         title={<span style={{ fontFamily: 'Outfit' }}><CalendarOutlined /> Ghi chú</span>}
                         className="glass-panel"
-                        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginTop: '24px' }}
+                        style={{ border: 'none', background: 'var(--card-bg)', marginTop: '24px' }}
                       >
                         <Form.Item name="description" label="Ghi chú thêm về học sinh">
                           <TextArea rows={4} placeholder="Ghi chú về sức khỏe, học lực, năng khiếu..." />
@@ -470,7 +470,7 @@ export const CreateStudent: React.FC = () => {
                   <Card
                     title={<span style={{ fontFamily: 'Outfit' }}><LockOutlined /> Tạo tài khoản đăng nhập học sinh</span>}
                     className="glass-panel"
-                    style={{ maxWidth: '600px', margin: '0 auto', border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
+                    style={{ maxWidth: '600px', margin: '0 auto', border: 'none', background: 'var(--card-bg)' }}
                   >
                     <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', fontSize: '0.9rem' }}>
                       Điền email và mật khẩu nếu bạn muốn tạo tài khoản đăng nhập cho học sinh này ngay lập tức. Học sinh có thể dùng tài khoản này để xem điểm, thời khóa biểu và tài liệu.
@@ -504,7 +504,7 @@ export const CreateStudent: React.FC = () => {
                   <Card
                     title={<span style={{ fontFamily: 'Outfit' }}><TeamOutlined /> Gán trạng thái và Lớp học</span>}
                     className="glass-panel"
-                    style={{ maxWidth: '600px', margin: '0 auto', border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
+                    style={{ maxWidth: '600px', margin: '0 auto', border: 'none', background: 'var(--card-bg)' }}
                   >
                     <Form.Item
                       name="status"
@@ -532,7 +532,7 @@ export const CreateStudent: React.FC = () => {
               gap: '12px',
               marginTop: '24px',
               paddingTop: '16px',
-              borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+              borderTop: '1px solid var(--card-border)',
             }}
           >
             <Button icon={<CloseOutlined />} onClick={handleCancel} size="large" style={{ background: 'transparent' }}>

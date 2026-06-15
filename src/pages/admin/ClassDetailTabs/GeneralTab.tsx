@@ -13,9 +13,9 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
   return (
     <Row gutter={[24, 24]}>
       <Col xs={24} md={16}>
-        <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}>
-          <Title level={5} style={{ color: '#fff', marginBottom: 16 }}>Chi tiết Lớp học</Title>
-          <Descriptions column={{ xs: 1, sm: 2 }} labelStyle={{ color: 'rgba(255,255,255,0.5)' }} contentStyle={{ color: '#fff' }}>
+        <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)' }}>
+          <Title level={5} style={{ color: 'var(--text-primary)', marginBottom: 16 }}>Chi tiết Lớp học</Title>
+          <Descriptions column={{ xs: 1, sm: 2 }} labelStyle={{ color: 'var(--text-secondary)' }} contentStyle={{ color: 'var(--text-primary)' }}>
             <Descriptions.Item label="Trung tâm">{classData.center?.name || '-'}</Descriptions.Item>
             <Descriptions.Item label="Chương trình">{classData.course?.name || '-'}</Descriptions.Item>
             <Descriptions.Item label="Mức độ (Level)">{classData.courseLevel?.levelName || '-'}</Descriptions.Item>
@@ -29,9 +29,9 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
           </Descriptions>
           {classData.description && (
             <>
-              <Divider style={{ margin: '12px 0', borderColor: 'rgba(255,255,255,0.06)' }} />
-              <div style={{ color: '#fff' }}>
-                <div style={{ color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>Ghi chú lớp:</div>
+              <Divider style={{ margin: '12px 0', borderColor: 'var(--card-border)' }} />
+              <div style={{ color: 'var(--text-primary)' }}>
+                <div style={{ color: 'var(--text-secondary)', marginBottom: 4 }}>Ghi chú lớp:</div>
                 <div>{classData.description}</div>
               </div>
             </>
@@ -39,19 +39,19 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
         </Card>
       </Col>
       <Col xs={24} md={8}>
-        <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', height: '100%' }}>
-          <Title level={5} style={{ color: '#fff', marginBottom: 16 }}>Lịch học cố định</Title>
+        <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)', height: '100%' }}>
+          <Title level={5} style={{ color: 'var(--text-primary)', marginBottom: 16 }}>Lịch học cố định</Title>
           {classData.schedules.length === 0 ? (
             <Text type="secondary">Chưa xếp lịch cố định.</Text>
           ) : (
             <List
               dataSource={classData.schedules}
               renderItem={(item: any) => (
-                <List.Item style={{ borderColor: 'rgba(255,255,255,0.06)', padding: '12px 0' }}>
+                <List.Item style={{ borderColor: 'var(--card-border)', padding: '12px 0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <Badge status="processing" />
                     <div>
-                      <Text strong style={{ color: '#fff' }}>Thứ: {item.weekday}</Text>
+                      <Text strong style={{ color: 'var(--text-primary)' }}>Thứ: {item.weekday}</Text>
                       <div>
                         <Text type="secondary" style={{ fontSize: '13px' }}>
                           <CalendarOutlined style={{ marginRight: 4 }} />

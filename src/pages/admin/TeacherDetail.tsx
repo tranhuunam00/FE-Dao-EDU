@@ -172,7 +172,7 @@ const TeacherDetailInner: React.FC = () => {
   }
 
   const renderOverviewTab = () => (
-    <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}>
+    <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)' }}>
       <Row gutter={24}>
         <Col xs={24} md={8} style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
@@ -181,8 +181,8 @@ const TeacherDetailInner: React.FC = () => {
               src={avatarPreview}
               icon={!avatarPreview ? <UserOutlined style={{ fontSize: '64px' }} /> : undefined}
               style={{
-                background: avatarPreview ? 'transparent' : 'rgba(255, 255, 255, 0.05)',
-                border: '2px dashed rgba(255, 255, 255, 0.2)',
+                background: avatarPreview ? 'transparent' : 'var(--bg-tertiary)',
+                border: '2px dashed var(--card-border)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -190,7 +190,7 @@ const TeacherDetailInner: React.FC = () => {
             />
           </div>
           <Upload showUploadList={false} beforeUpload={() => false} onChange={handleAvatarChange} accept="image/*">
-            <Button icon={<CameraOutlined />} style={{ background: 'rgba(255, 255, 255, 0.1)', border: 'none' }}>
+            <Button icon={<CameraOutlined />} style={{ background: 'var(--bg-tertiary)', border: 'none' }}>
               Cập nhật ảnh chân dung
             </Button>
           </Upload>
@@ -264,7 +264,7 @@ const TeacherDetailInner: React.FC = () => {
   );
 
   const renderAddressTab = () => (
-    <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}>
+    <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)' }}>
       <Row gutter={24}>
         <Col xs={24} md={8}>
           <Form.Item label="Quốc gia" name="country">
@@ -301,7 +301,7 @@ const TeacherDetailInner: React.FC = () => {
   );
 
   const renderLoginTab = () => (
-    <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}>
+    <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)' }}>
       <Alert
         message={teacher?.userId ? 'Cập nhật tài khoản đăng nhập' : 'Tạo tài khoản đăng nhập'}
         description={
@@ -376,7 +376,7 @@ const TeacherDetailInner: React.FC = () => {
               style={{ color: 'var(--text-secondary)' }}
             />
             <div>
-              <Title level={3} style={{ color: '#fff', margin: 0, fontFamily: 'Outfit' }}>
+              <Title level={3} style={{ color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit' }}>
                 {teacher?.teacherId} - {teacher?.lastName} {teacher?.firstName}
               </Title>
               <Text style={{ color: 'var(--text-secondary)' }}>
@@ -414,11 +414,11 @@ const TeacherDetailInner: React.FC = () => {
                   <Card
                     title={<span style={{ fontFamily: 'Outfit' }}><DollarOutlined /> Tính lương theo khoảng thời gian</span>}
                     className="glass-panel"
-                    style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: 16 }}
+                    style={{ border: 'none', background: 'var(--card-bg)', marginBottom: 16 }}
                   >
                     <Space size="middle" wrap>
                       <div>
-                        <span style={{ color: 'rgba(255,255,255,0.6)', marginRight: 8, fontSize: '13px' }}>Khoảng thời gian:</span>
+                        <span style={{ color: 'var(--text-secondary)', marginRight: 8, fontSize: '13px' }}>Khoảng thời gian:</span>
                         <DatePicker.RangePicker
                           value={wagesDateRange}
                           onChange={(vals) => setWagesDateRange(vals as [any, any])}
@@ -442,20 +442,20 @@ const TeacherDetailInner: React.FC = () => {
                     <>
                       <Row gutter={16} style={{ marginBottom: 16 }}>
                         <Col xs={12} md={8}>
-                          <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', textAlign: 'center' }}>
-                            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginBottom: 4 }}>Tổng buổi dạy</div>
+                          <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)', textAlign: 'center' }}>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: 4 }}>Tổng buổi dạy</div>
                             <div style={{ color: '#6366f1', fontSize: '24px', fontWeight: 700 }}>{wagesReport.totalSessions}</div>
                           </Card>
                         </Col>
                         <Col xs={12} md={8}>
-                          <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', textAlign: 'center' }}>
-                            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginBottom: 4 }}>Tổng buổi tính lương</div>
+                          <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)', textAlign: 'center' }}>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: 4 }}>Tổng buổi tính lương</div>
                             <div style={{ color: '#10b981', fontSize: '24px', fontWeight: 700 }}>{wagesReport.totalSessions}</div>
                           </Card>
                         </Col>
                         <Col xs={12} md={8}>
-                          <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', textAlign: 'center' }}>
-                            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginBottom: 4 }}>Tổng lương</div>
+                          <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)', textAlign: 'center' }}>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: 4 }}>Tổng lương</div>
                             <div style={{ color: '#f59e0b', fontSize: '22px', fontWeight: 700 }}>
                               {(wagesReport.totalAmount || 0).toLocaleString('vi-VN')}&nbsp;₫
                             </div>
@@ -465,7 +465,7 @@ const TeacherDetailInner: React.FC = () => {
                       <Card
                         title={<span style={{ fontFamily: 'Outfit' }}><DollarOutlined /> Lịch sử đơn giá lương áp dụng trong kỳ</span>}
                         className="glass-panel"
-                        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: 16 }}
+                        style={{ border: 'none', background: 'var(--card-bg)', marginBottom: 16 }}
                       >
                         <Table
                           dataSource={wagesReport.pricingHistory || []}
@@ -495,7 +495,7 @@ const TeacherDetailInner: React.FC = () => {
                       <Card
                         title={<span style={{ fontFamily: 'Outfit' }}>Chi tiết từng buổi dạy</span>}
                         className="glass-panel"
-                        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
+                        style={{ border: 'none', background: 'var(--card-bg)' }}
                       >
                         <Table
                           dataSource={wagesReport.sessions || []}
@@ -571,7 +571,7 @@ const TeacherDetailInner: React.FC = () => {
           className="custom-tabs"
         />
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--card-border)' }}>
           <Button
             type="primary"
             size="large"

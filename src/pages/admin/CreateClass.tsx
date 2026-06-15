@@ -296,14 +296,14 @@ const CreateClassInner: React.FC = () => {
 
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '12px 0' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid var(--card-border)' }}>
         <Button
           icon={<ArrowLeftOutlined />}
           onClick={() => navigate('/admin/classes')}
-          style={{ background: 'rgba(255,255,255,0.06)', border: 'none' }}
+          style={{ background: 'var(--bg-tertiary)', border: 'none' }}
         />
         <div>
-          <Title level={3} style={{ color: '#fff', margin: 0, fontFamily: 'Outfit' }}>
+          <Title level={3} style={{ color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit' }}>
             <TeamOutlined style={{ marginRight: 10, color: '#6366f1' }} />
             Tạo Lớp học mới
           </Title>
@@ -311,8 +311,8 @@ const CreateClassInner: React.FC = () => {
       </div>
 
       <Form form={form} layout="vertical" initialValues={{ status: 'Planning', skipHolidays: true }}>
-        <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: 24 }}>
-          <Title level={5} style={{ color: '#fff', marginBottom: 16 }}>Thông tin chung</Title>
+        <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)', marginBottom: 24 }}>
+          <Title level={5} style={{ color: 'var(--text-primary)', marginBottom: 16 }}>Thông tin chung</Title>
           <Row gutter={[16, 0]}>
             <Col xs={24} md={12}>
               <Form.Item name="centerId" label="Trung tâm" rules={[{ required: true, message: 'Bắt buộc' }]}>
@@ -457,10 +457,10 @@ const CreateClassInner: React.FC = () => {
           </Row>
         </Card>
 
-        <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: 24 }}>
+        <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)', marginBottom: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <div>
-              <Title level={5} style={{ color: '#fff', margin: 0 }}>Cấu hình Lịch học định kỳ</Title>
+              <Title level={5} style={{ color: 'var(--text-primary)', margin: 0 }}>Cấu hình Lịch học định kỳ</Title>
               <Text type="secondary" style={{ fontSize: '13px' }}>
                 Lịch học dùng để tự động sinh danh sách các buổi học khi lớp được kích hoạt hoạt động.
               </Text>
@@ -470,20 +470,20 @@ const CreateClassInner: React.FC = () => {
               onClick={addSchedule}
               disabled={!selectedCenterId}
               style={{
-                background: selectedCenterId ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.05)',
-                border: selectedCenterId ? '1px solid rgba(99,102,241,0.4)' : '1px solid rgba(255,255,255,0.1)',
-                color: selectedCenterId ? '#a5b4fc' : 'rgba(255,255,255,0.2)',
+                background: selectedCenterId ? 'rgba(99,102,241,0.2)' : 'var(--bg-tertiary)',
+                border: selectedCenterId ? '1px solid rgba(99,102,241,0.4)' : '1px solid var(--card-border)',
+                color: selectedCenterId ? 'var(--primary)' : 'var(--text-muted)',
               }}
             >
               Thêm giờ học
             </Button>
           </div>
           {!selectedCenterId ? (
-            <div style={{ textAlign: 'center', padding: '30px 0', color: 'rgba(255,255,255,0.3)' }}>
+            <div style={{ textAlign: 'center', padding: '30px 0', color: 'var(--text-muted)' }}>
               Vui lòng chọn "Trung tâm" trước để tải danh sách phòng học.
             </div>
           ) : schedules.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 0', color: 'rgba(255,255,255,0.3)' }}>
+            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>
               Chưa có giờ học nào. Bấm "Thêm giờ học" để lập lịch.
             </div>
           ) : (

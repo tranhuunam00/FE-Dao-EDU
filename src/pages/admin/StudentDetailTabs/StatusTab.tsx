@@ -9,7 +9,7 @@ export const StatusTab: React.FC = () => {
     <Card
       title={<span style={{ fontFamily: 'Outfit' }}><TeamOutlined /> Trạng thái học sinh</span>}
       className="glass-panel"
-      style={{ maxWidth: '600px', margin: '0 auto', border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
+      style={{ maxWidth: '600px', margin: '0 auto', border: 'none', background: 'var(--card-bg)' }}
     >
       <Form.Item
         name="status"

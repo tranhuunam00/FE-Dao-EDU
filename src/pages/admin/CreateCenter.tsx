@@ -74,7 +74,7 @@ const CreateCenterInner: React.FC = () => {
               style={{ color: 'var(--text-secondary)' }}
             />
             <div>
-              <Title level={3} style={{ color: '#fff', margin: 0, fontFamily: 'Outfit' }}>
+              <Title level={3} style={{ color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit' }}>
                 Thêm Trung Tâm Mới
               </Title>
               <Text style={{ color: 'var(--text-secondary)' }}>
@@ -94,7 +94,7 @@ const CreateCenterInner: React.FC = () => {
           </Button>
         </div>
 
-        <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}>
+        <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)' }}>
           <Row gutter={24}>
             <Col xs={24} md={12}>
               <Form.Item label="Tên Trung Tâm" name="name" rules={[{ required: true, message: 'Vui lòng nhập tên trung tâm' }]}>

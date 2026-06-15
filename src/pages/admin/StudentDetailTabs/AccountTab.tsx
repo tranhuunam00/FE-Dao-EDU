@@ -11,7 +11,7 @@ export const AccountTab: React.FC<AccountTabProps> = ({ student }) => {
     <Card
       title={<span style={{ fontFamily: 'Outfit' }}><LockOutlined /> Tài khoản đăng nhập học sinh</span>}
       className="glass-panel"
-      style={{ maxWidth: '600px', margin: '0 auto', border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
+      style={{ maxWidth: '600px', margin: '0 auto', border: 'none', background: 'var(--card-bg)' }}
     >
       {student.loginEmail ? (
         <div

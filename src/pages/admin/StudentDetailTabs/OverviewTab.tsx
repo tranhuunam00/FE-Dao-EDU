@@ -22,7 +22,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ student, age, selected
         <Card
           title={<span style={{ fontFamily: 'Outfit' }}><UserOutlined /> Thông tin cá nhân</span>}
           className="glass-panel"
-          style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
+          style={{ border: 'none', background: 'var(--card-bg)' }}
         >
           <Row gutter={16}>
             <Col xs={12}>
@@ -60,7 +60,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ student, age, selected
             </Col>
             <Col xs={12}>
               <Form.Item label="Tuổi">
-                <Input value={age !== null ? `${age} tuổi` : '—'} disabled style={{ background: 'rgba(0,0,0,0.2)', color: '#9ca3af' }} />
+                <Input value={age !== null ? `${age} tuổi` : '—'} disabled />
               </Form.Item>
             </Col>
           </Row>
@@ -72,9 +72,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ student, age, selected
         <Card
           title={<span style={{ fontFamily: 'Outfit' }}><TeamOutlined /> Phụ huynh / Người giám hộ</span>}
           className="glass-panel"
-          style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginTop: '24px' }}
+          style={{ border: 'none', background: 'var(--card-bg)', marginTop: '24px' }}
         >
-          <Divider style={{ margin: '0 0 16px 0', borderColor: 'rgba(255,255,255,0.06)' }}>Người giám hộ 1</Divider>
+          <Divider style={{ margin: '0 0 16px 0', borderColor: 'var(--card-border)' }}>Người giám hộ 1</Divider>
           <Row gutter={16}>
             <Col xs={12}>
               <Form.Item name="parentGuardian1" label="Họ và tên">
@@ -102,7 +102,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ student, age, selected
             </Col>
           </Row>
 
-          <Divider style={{ margin: '16px 0', borderColor: 'rgba(255,255,255,0.06)' }}>Người giám hộ 2</Divider>
+          <Divider style={{ margin: '16px 0', borderColor: 'var(--card-border)' }}>Người giám hộ 2</Divider>
           <Row gutter={16}>
             <Col xs={12}>
               <Form.Item name="parentGuardian2" label="Họ và tên">
@@ -136,7 +136,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ student, age, selected
         <Card
           title={<span style={{ fontFamily: 'Outfit' }}><EnvironmentOutlined /> Liên lạc & Địa chỉ</span>}
           className="glass-panel"
-          style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}
+          style={{ border: 'none', background: 'var(--card-bg)' }}
         >
           <Form.Item name="mobile" label="Số điện thoại chính" rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}>
             <Input prefix={<PhoneOutlined style={{ color: '#6b7280' }} />} />
@@ -145,7 +145,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ student, age, selected
             <Input type="email" prefix={<MailOutlined style={{ color: '#6b7280' }} />} />
           </Form.Item>
           <Form.Item name="country" label="Quốc gia">
-            <Input disabled style={{ background: 'rgba(0,0,0,0.2)', color: '#9ca3af' }} />
+            <Input disabled />
           </Form.Item>
           <Form.Item name="province" label="Tỉnh / Thành phố">
             <Select placeholder="Chọn Tỉnh/Thành phố" allowClear showSearch optionFilterProp="children">
@@ -170,7 +170,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ student, age, selected
         <Card
           title={<span style={{ fontFamily: 'Outfit' }}><CalendarOutlined /> Ghi chú</span>}
           className="glass-panel"
-          style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginTop: '24px' }}
+          style={{ border: 'none', background: 'var(--card-bg)', marginTop: '24px' }}
         >
           <Form.Item name="description" label="Ghi chú về học sinh">
             <TextArea rows={4} placeholder="Sức khỏe, học lực, năng khiếu..." />
@@ -179,16 +179,16 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ student, age, selected
 
         <Card
           className="glass-panel"
-          style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginTop: '24px' }}
+          style={{ border: 'none', background: 'var(--card-bg)', marginTop: '24px' }}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#9ca3af', fontSize: '0.85rem' }}>Ngày tạo:</span>
-              <span style={{ color: '#d1d5db', fontSize: '0.85rem' }}>{dayjs(student.createdAt).format('DD/MM/YYYY HH:mm')}</span>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Ngày tạo:</span>
+              <span style={{ color: 'var(--text-primary)', fontSize: '0.85rem' }}>{dayjs(student.createdAt).format('DD/MM/YYYY HH:mm')}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: '#9ca3af', fontSize: '0.85rem' }}>Cập nhật lần cuối:</span>
-              <span style={{ color: '#d1d5db', fontSize: '0.85rem' }}>{dayjs(student.updatedAt).format('DD/MM/YYYY HH:mm')}</span>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Cập nhật lần cuối:</span>
+              <span style={{ color: 'var(--text-primary)', fontSize: '0.85rem' }}>{dayjs(student.updatedAt).format('DD/MM/YYYY HH:mm')}</span>
             </div>
           </div>
         </Card>

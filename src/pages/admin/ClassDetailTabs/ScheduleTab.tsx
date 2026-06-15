@@ -94,10 +94,10 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({ sessions, handleGenera
   ];
 
   return (
-    <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}>
+    <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <div>
-          <Title level={5} style={{ color: '#fff', margin: 0 }}>Danh sách các buổi học</Title>
+          <Title level={5} style={{ color: 'var(--text-primary)', margin: 0 }}>Danh sách các buổi học</Title>
           <Text type="secondary" style={{ fontSize: '13px' }}>
             Các buổi học được sinh tự động dựa trên Lịch học cố định từ ngày Khai giảng.
           </Text>

@@ -182,7 +182,7 @@ const CenterDetailInner: React.FC = () => {
               style={{ color: 'var(--text-secondary)' }}
             />
             <div>
-              <Title level={3} style={{ color: '#fff', margin: 0, fontFamily: 'Outfit' }}>
+              <Title level={3} style={{ color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit' }}>
                 {center?.centerId} - {center?.name}
               </Title>
               <Text style={{ color: 'var(--text-secondary)' }}>
@@ -202,7 +202,7 @@ const CenterDetailInner: React.FC = () => {
           </Button>
         </div>
 
-        <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}>
+        <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)' }}>
           <Row gutter={24}>
             <Col xs={24} md={12}>
               <Form.Item label="Tên Trung Tâm" name="name" rules={[{ required: true, message: 'Vui lòng nhập tên trung tâm' }]}>
@@ -261,10 +261,10 @@ const CenterDetailInner: React.FC = () => {
 
       <Card
         className="glass-panel"
-        style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginTop: 24 }}
+        style={{ border: 'none', background: 'var(--card-bg)', marginTop: 24 }}
         title={
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-            <span style={{ color: '#fff', fontSize: '16px', fontFamily: 'Outfit' }}>
+            <span style={{ color: 'var(--text-primary)', fontSize: '16px', fontFamily: 'Outfit' }}>
               Danh sách Phòng học
             </span>
             <Button

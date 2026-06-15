@@ -98,7 +98,7 @@ const CreateCourseInner: React.FC = () => {
           placeholder="VD: TOÁN 6"
           value={record.levelName}
           onChange={e => updateLevel(record.key, 'levelName', e.target.value)}
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+          style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--card-border)' }}
         />
       ),
     },
@@ -112,7 +112,7 @@ const CreateCourseInner: React.FC = () => {
           placeholder="VD: TOAN6"
           value={record.levelCode}
           onChange={e => updateLevel(record.key, 'levelCode', e.target.value)}
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+          style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--card-border)' }}
         />
       ),
     },
@@ -126,7 +126,7 @@ const CreateCourseInner: React.FC = () => {
           min={0}
           value={record.totalHours}
           onChange={v => updateLevel(record.key, 'totalHours', v || 0)}
-          style={{ width: '100%', background: 'rgba(255,255,255,0.05)' }}
+          style={{ width: '100%', background: 'var(--bg-tertiary)' }}
         />
       ),
     },
@@ -142,14 +142,14 @@ const CreateCourseInner: React.FC = () => {
 
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '12px 0' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid var(--card-border)' }}>
         <Button
           icon={<ArrowLeftOutlined />}
           onClick={() => navigate('/admin/courses')}
-          style={{ background: 'rgba(255,255,255,0.06)', border: 'none' }}
+          style={{ background: 'var(--bg-tertiary)', border: 'none' }}
         />
         <div>
-          <Title level={3} style={{ color: '#fff', margin: 0, fontFamily: 'Outfit' }}>
+          <Title level={3} style={{ color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit' }}>
             <BookOutlined style={{ marginRight: 10, color: '#6366f1' }} />
             Thêm Chương trình học mới
           </Title>
@@ -157,8 +157,8 @@ const CreateCourseInner: React.FC = () => {
       </div>
 
       <Form form={form} layout="vertical" initialValues={{ status: 'Active' }}>
-        <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: 24 }}>
-          <Title level={5} style={{ color: '#fff', marginBottom: 16 }}>Thông tin chung</Title>
+        <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)', marginBottom: 24 }}>
+          <Title level={5} style={{ color: 'var(--text-primary)', marginBottom: 16 }}>Thông tin chung</Title>
           <Row gutter={[16, 0]}>
             <Col xs={24} md={12}>
               <Form.Item name="name" label="Tên Chương trình" rules={[{ required: true, message: 'Bắt buộc' }]}>
@@ -214,15 +214,15 @@ const CreateCourseInner: React.FC = () => {
           </Row>
         </Card>
 
-        <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)', marginBottom: 24 }}>
+        <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)', marginBottom: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <Title level={5} style={{ color: '#fff', margin: 0 }}>Cấu hình Level</Title>
+            <Title level={5} style={{ color: 'var(--text-primary)', margin: 0 }}>Cấu hình Level</Title>
             <Button icon={<PlusOutlined />} onClick={addLevel} style={{ background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)', color: '#a5b4fc' }}>
               Thêm Level
             </Button>
           </div>
           {levels.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 0', color: 'rgba(255,255,255,0.3)' }}>
+            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>
               Chưa có Level nào. Bấm "Thêm Level" để tạo cấu hình.
             </div>
           ) : (

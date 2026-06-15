@@ -94,7 +94,7 @@ const CreateTeacherInner: React.FC = () => {
   };
 
   const renderOverviewTab = () => (
-    <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}>
+    <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)' }}>
       <Row gutter={24}>
         <Col xs={24} md={8} style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
@@ -103,8 +103,8 @@ const CreateTeacherInner: React.FC = () => {
               src={avatarPreview}
               icon={!avatarPreview ? <UserOutlined style={{ fontSize: '64px' }} /> : undefined}
               style={{
-                background: avatarPreview ? 'transparent' : 'rgba(255, 255, 255, 0.05)',
-                border: '2px dashed rgba(255, 255, 255, 0.2)',
+                background: avatarPreview ? 'transparent' : 'var(--bg-tertiary)',
+                border: '2px dashed var(--card-border)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -112,7 +112,7 @@ const CreateTeacherInner: React.FC = () => {
             />
           </div>
           <Upload showUploadList={false} beforeUpload={() => false} onChange={handleAvatarChange} accept="image/*">
-            <Button icon={<CameraOutlined />} style={{ background: 'rgba(255, 255, 255, 0.1)', border: 'none' }}>
+            <Button icon={<CameraOutlined />} style={{ background: 'var(--bg-tertiary)', border: 'none' }}>
               Tải ảnh chân dung
             </Button>
           </Upload>
@@ -189,7 +189,7 @@ const CreateTeacherInner: React.FC = () => {
   );
 
   const renderAddressTab = () => (
-    <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}>
+    <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)' }}>
       <Row gutter={24}>
         <Col xs={24} md={8}>
           <Form.Item label="Quốc gia" name="country">
@@ -226,7 +226,7 @@ const CreateTeacherInner: React.FC = () => {
   );
 
   const renderLoginTab = () => (
-    <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}>
+    <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)' }}>
       <div style={{ marginBottom: '24px' }}>
         <Text style={{ color: 'var(--text-secondary)' }}>
           Khai báo thông tin dưới đây nếu bạn muốn tạo tài khoản cho nhân sự này đăng nhập vào hệ thống ngay lúc này. 
@@ -261,7 +261,7 @@ const CreateTeacherInner: React.FC = () => {
               style={{ color: 'var(--text-secondary)' }}
             />
             <div>
-              <Title level={3} style={{ color: '#fff', margin: 0, fontFamily: 'Outfit' }}>
+              <Title level={3} style={{ color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit' }}>
                 Thêm Nhân sự mới
               </Title>
               <Text style={{ color: 'var(--text-secondary)' }}>
@@ -299,7 +299,7 @@ const CreateTeacherInner: React.FC = () => {
           className="custom-tabs"
         />
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--card-border)' }}>
           <Button
             type="primary"
             size="large"

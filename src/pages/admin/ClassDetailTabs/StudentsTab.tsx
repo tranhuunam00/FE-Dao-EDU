@@ -86,9 +86,9 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({ classData, setIsAddStu
   ];
 
   return (
-    <Card className="glass-panel" style={{ border: 'none', background: 'rgba(17, 24, 39, 0.75)' }}>
+    <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Title level={5} style={{ color: '#fff', margin: 0 }}>Danh sách Học sinh trong lớp</Title>
+        <Title level={5} style={{ color: 'var(--text-primary)', margin: 0 }}>Danh sách Học sinh trong lớp</Title>
         <Button
           type="primary"
           icon={<PlusOutlined />}

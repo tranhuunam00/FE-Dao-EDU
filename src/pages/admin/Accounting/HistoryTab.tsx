@@ -312,7 +312,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
         <Button
           icon={<ArrowLeftOutlined />}
           onClick={() => { setSelectedPeriodId(null); setPeriodDetail(null); }}
-          style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: '#fff' }}
+          style={{ background: 'var(--bg-tertiary)', border: 'none', color: 'var(--text-primary)' }}
         >
           Quay lại danh sách
         </Button>
@@ -336,7 +336,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
               <Button
                 icon={periodDetail.period.status === 'Active' ? <LockOutlined /> : <UnlockOutlined />}
                 onClick={() => handleTogglePeriodStatus(periodDetail.period)}
-                style={{ borderColor: 'rgba(255,255,255,0.2)', background: 'transparent', color: '#fff' }}
+                style={{ borderColor: 'var(--card-border)', background: 'transparent', color: 'var(--text-primary)' }}
               >
                 {periodDetail.period.status === 'Active' ? 'Khóa đợt' : 'Mở khóa đợt'}
               </Button>
@@ -640,7 +640,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                       <div style={{ marginTop: 14, textAlign: 'left' }}>
                         <Text strong style={{ color: 'var(--text-primary)' }}>Nhật ký thanh toán</Text>
                         {[...qrRequest.logs].sort((a: any, b: any) => dayjs(a.createdAt).valueOf() - dayjs(b.createdAt).valueOf()).map((log: any) => (
-                          <div key={log.id} style={{ marginTop: 8, padding: 8, borderRadius: 6, background: 'rgba(255,255,255,.05)' }}>
+                          <div key={log.id} style={{ marginTop: 8, padding: 8, borderRadius: 6, background: 'var(--bg-tertiary)' }}>
                             <Tag color={log.status === 'success' ? 'green' : 'gold'}>{log.status}</Tag>
                             <Text style={{ color: 'var(--text-secondary)' }}>{log.message}</Text>
                             <div style={{ marginTop: 2, fontSize: 11, color: 'var(--text-muted)' }}>{dayjs(log.createdAt).format('DD/MM/YYYY HH:mm:ss')} · {log.source}</div>

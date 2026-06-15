@@ -280,7 +280,7 @@ const StudentDetailInner: React.FC = () => {
             alignItems: 'flex-start',
             marginBottom: '24px',
             paddingBottom: '16px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+            borderBottom: '1px solid var(--card-border)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -308,9 +308,9 @@ const StudentDetailInner: React.FC = () => {
               </Upload>
             </div>
             <div>
-              <h2 style={{ fontSize: '1.6rem', color: '#fff', margin: 0, fontFamily: 'Outfit' }}>
+              <h2 style={{ fontSize: '1.6rem', color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit' }}>
                 {student.lastName} {student.firstName}
-                {student.nickName && <span style={{ fontSize: '1rem', color: '#9ca3af', fontWeight: 400, marginLeft: '8px' }}>({student.nickName})</span>}
+                {student.nickName && <span style={{ fontSize: '1rem', color: 'var(--text-secondary)', fontWeight: 400, marginLeft: '8px' }}>({student.nickName})</span>}
               </h2>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '6px' }}>
                 <span
@@ -386,10 +386,10 @@ const StudentDetailInner: React.FC = () => {
 
         <div
           style={{
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--card-border)',
           }}
         >
-          <span style={{ color: '#9ca3af', fontSize: '0.85rem' }}>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
             ID: <code style={{ color: '#818cf8', background: 'rgba(99,102,241,0.1)', padding: '2px 6px', borderRadius: '4px' }}>{id}</code>
           </span>
           <Space>
