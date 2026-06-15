@@ -54,6 +54,9 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
   const settingsPath = user
     ? `/${user.role.toLowerCase()}/settings`
     : '/login';
+  const notificationsPath = user
+    ? `/${user.role.toLowerCase()}/notifications`
+    : '/login';
 
   const getNavigation = () => {
     if (!user) return [];
@@ -292,6 +295,9 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
                       <b>{item.title}</b><div style={{ color: 'var(--text-secondary)', marginTop: 4 }}>{item.message}</div>
                     </button>
                   ))}
+                  <Button type="link" block onClick={() => navigate(notificationsPath)} style={{ marginTop: 8 }}>
+                    Xem tất cả thông báo
+                  </Button>
                 </div>
               )}
             >

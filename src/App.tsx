@@ -42,6 +42,8 @@ import StudentTuition from './pages/student/StudentTuition';
 import StudentAssignments from './pages/student/StudentAssignments';
 import StudentLeaveRequests from './pages/student/StudentLeaveRequests';
 import Settings from './pages/Settings';
+import Notifications from './pages/Notifications';
+import NotificationLogs from './pages/admin/NotificationLogs';
 
 // Placeholder component
 const Placeholder = ({ title, desc }: { title: string; desc: string }) => (
@@ -91,9 +93,8 @@ function App() {
                     <Route path="assignments" element={<AdminAssignments />} />
                     <Route path="leave-requests" element={<ManagedLeaveRequests />} />
                     <Route path="settings" element={<Settings />} />
-                    <Route path="/logs" element={
-                      <Placeholder title="Nhật ký hệ thống" desc="Lịch sử hoạt động và nhật ký bảo mật." />
-                    } />
+                    <Route path="notifications" element={<Notifications />} />
+                    <Route path="logs" element={<NotificationLogs />} />
                   </Routes>
                 </DashboardLayout>
               </RouteGuard>
@@ -113,6 +114,7 @@ function App() {
                     <Route path="grades" element={<TeacherAssignments />} />
                     <Route path="leave-requests" element={<ManagedLeaveRequests />} />
                     <Route path="settings" element={<Settings />} />
+                    <Route path="notifications" element={<Notifications />} />
                     <Route path="materials" element={
                       <Placeholder title="Tài liệu học tập" desc="Tải lên và quản lý tài liệu cho các lớp học." />
                     } />
@@ -136,6 +138,7 @@ function App() {
                     <Route path="assignments" element={<StudentAssignments />} />
                     <Route path="leave-requests" element={<StudentLeaveRequests />} />
                     <Route path="settings" element={<Settings />} />
+                    <Route path="notifications" element={<Notifications />} />
                   </Routes>
                 </DashboardLayout>
               </RouteGuard>
