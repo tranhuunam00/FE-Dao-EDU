@@ -15,7 +15,8 @@ import {
   DollarSign,
   CalendarOff,
   Settings,
-  MessagesSquare
+  MessagesSquare,
+  Search
 } from 'lucide-react';
 import { TeamOutlined as AntdTeamOutlined, BankOutlined as AntdBankOutlined } from '@ant-design/icons';
 import { Badge, Button, Dropdown, Empty } from 'antd';
@@ -77,6 +78,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
           { name: 'Nhật ký hệ thống', path: '/admin/logs', icon: <Shield size={20} /> },
           { name: 'Ngày nghỉ lễ', path: '/admin/holidays', icon: <CalendarOff size={20} /> },
           { name: 'Yêu cầu liên hệ', path: '/admin/contact-requests', icon: <MessagesSquare size={20} /> },
+          { name: 'Lead Facebook', path: '/admin/facebook-leads', icon: <Search size={20} /> },
         ];
       case Role.TEACHER:
         return [
