@@ -10,6 +10,7 @@ module.exports = {
       autorestart: true,
       max_memory_restart: '256M',
       min_uptime: '10s',
+
       restart_delay: 3000,
 
       time: true,
