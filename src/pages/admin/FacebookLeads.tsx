@@ -74,6 +74,7 @@ interface LeadDemand {
     authorUrl: string;
     text: string;
     depth: number;
+    sourceUrl?: string;
   }[];
   createdAt: string;
 }
@@ -483,7 +484,7 @@ function FacebookLeadsInner() {
                     <Card
                       key={demand.id}
                       size="small"
-                      style={{ background: 'rgba(255,255,255,0.01)', borderColor: 'var(--card-border)' }}
+                      style={{ background: 'rgba(255,255,255,0.01)', borderColor: 'var(--card-border)', borderRadius: 8 }}
                     >
                       <Descriptions size="small" column={1} bordered style={{ marginBottom: 12 }}>
                         <Descriptions.Item label="Thời gian">
@@ -494,6 +495,11 @@ function FacebookLeadsInner() {
                             {demand.postId} <ExternalLink size={12} style={{ display: 'inline', marginLeft: 2 }} />
                           </a>
                         </Descriptions.Item>
+                        <Descriptions.Item label="Phân loại">
+                          <Tag color="cyan" style={{ textTransform: 'capitalize' }}>
+                            {demand.classification === 'POTENTIAL_PARENT' ? 'Phụ huynh tiềm năng' : demand.classification}
+                          </Tag>
+                        </Descriptions.Item>
                         <Descriptions.Item label="Đánh giá">
                           <Space>
                             <Tag color={levelColors[demand.leadLevel]}>
@@ -502,8 +508,16 @@ function FacebookLeadsInner() {
                             <Text strong>{demand.leadScore}/100đ</Text>
                           </Space>
                         </Descriptions.Item>
-                        <Descriptions.Item label="Lý do AI">
-                          {demand.reasons.join(', ')}
+                        <Descriptions.Item label="Phân tích nhu cầu (AI)">
+                          {demand.reasons && demand.reasons.length > 0 ? (
+                            <ul style={{ paddingLeft: 16, margin: 0, color: 'var(--text-muted)' }}>
+                              {demand.reasons.map((reason, idx) => (
+                                <li key={idx} style={{ marginBottom: 4 }}>{reason}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <Text type="secondary">Không có lý do chi tiết</Text>
+                          )}
                         </Descriptions.Item>
                       </Descriptions>
 
@@ -520,37 +534,56 @@ function FacebookLeadsInner() {
                         }}
                       >
                         {demand.evidence && demand.evidence.length > 0 ? (
-                          demand.evidence.map((ev, idx) => (
-                            <div
-                              key={idx}
-                              style={{
-                                paddingLeft: ev.depth * 18,
-                                marginBottom: 6,
-                                borderLeft: ev.depth > 0 ? '1px dashed rgba(255, 255, 255, 0.15)' : 'none',
-                              }}
-                            >
-                              <Text
-                                strong
+                          demand.evidence.map((ev, idx) => {
+                            const author = ev.authorName || (ev.depth === 0 ? leadDetail.lead.authorName : 'Không rõ tên');
+                            return (
+                              <div
+                                key={idx}
                                 style={{
-                                  color: ev.depth === 0 ? 'var(--primary)' : 'var(--text-primary)',
-                                  fontSize: '0.85rem',
+                                  paddingLeft: ev.depth * 18,
+                                  marginBottom: 6,
+                                  borderLeft: ev.depth > 0 ? '1px dashed rgba(255, 255, 255, 0.15)' : 'none',
                                 }}
                               >
-                                {ev.authorName}
-                              </Text>
-                              <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>: </span>
-                              <Paragraph
-                                style={{
-                                  display: 'inline',
-                                  fontSize: '0.85rem',
-                                  color: '#e5e7eb',
-                                  marginBottom: 0,
-                                }}
-                              >
-                                {ev.text || '(Không có text)'}
-                              </Paragraph>
-                            </div>
-                          ))
+                                <Text
+                                  strong
+                                  style={{
+                                    color: ev.depth === 0 ? 'var(--primary)' : 'var(--text-primary)',
+                                    fontSize: '0.85rem',
+                                  }}
+                                >
+                                  {author}
+                                </Text>
+                                {ev.sourceUrl && (
+                                  <a
+                                    href={ev.sourceUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    style={{
+                                      fontSize: '0.75rem',
+                                      marginLeft: 6,
+                                      color: 'var(--text-muted)',
+                                      opacity: 0.8,
+                                    }}
+                                    title="Xem bình luận gốc trên Facebook"
+                                  >
+                                    <ExternalLink size={10} style={{ display: 'inline', verticalAlign: 'middle' }} />
+                                  </a>
+                                )}
+                                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>: </span>
+                                <Paragraph
+                                  style={{
+                                    display: 'inline',
+                                    fontSize: '0.85rem',
+                                    color: '#e5e7eb',
+                                    marginBottom: 0,
+                                  }}
+                                >
+                                  {ev.text || '(Không có text)'}
+                                </Paragraph>
+                              </div>
+                            );
+                          })
                         ) : (
                           <Text type="secondary">Không có bằng chứng bình luận</Text>
                         )}
