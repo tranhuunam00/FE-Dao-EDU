@@ -37,6 +37,15 @@ interface LeadEvidence {
   commentId: string;
   depth: number;
   itemLeadScore: number;
+  threadPath?: {
+    kind: string;
+    text: string;
+    depth: number;
+    authorName: string;
+    authorUrl?: string;
+    commentId?: string;
+    sourceUrl?: string;
+  }[];
 }
 
 interface LeadProfile {
@@ -97,6 +106,181 @@ const levelColors: Record<LeadLevel, string> = {
   WARM: 'orange',
   COLD: 'blue',
   NONE: 'default',
+};
+
+const renderEvidenceThread = (ev: any, leadAuthorName: string) => {
+  const thread = ev.threadPath;
+  if (!thread || !Array.isArray(thread) || thread.length === 0) {
+    const author = ev.authorName || (ev.depth === 0 ? leadAuthorName : 'Không rõ tên');
+    return (
+      <div
+        style={{
+          paddingLeft: (ev.depth || 0) * 18,
+          marginBottom: 6,
+          borderLeft: (ev.depth || 0) > 0 ? '1px dashed rgba(255, 255, 255, 0.15)' : 'none',
+        }}
+      >
+        <Text
+          strong
+          style={{
+            color: (ev.depth || 0) === 0 ? 'var(--primary)' : 'var(--text-primary)',
+            fontSize: '0.85rem',
+          }}
+        >
+          {author}
+        </Text>
+        {ev.sourceUrl && (
+          <a
+            href={ev.sourceUrl}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              fontSize: '0.75rem',
+              marginLeft: 6,
+              color: 'var(--text-muted)',
+              opacity: 0.8,
+            }}
+            title="Xem bình luận gốc trên Facebook"
+          >
+            <ExternalLink size={10} style={{ display: 'inline', verticalAlign: 'middle' }} />
+          </a>
+        )}
+        <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>: </span>
+        <Paragraph
+          style={{
+            display: 'inline',
+            fontSize: '0.85rem',
+            color: '#e5e7eb',
+            marginBottom: 0,
+          }}
+        >
+          {ev.text || '(Không có text)'}
+        </Paragraph>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '8px 0', width: '100%' }}>
+      {thread.map((item: any, index: number) => {
+        const isPost = item.kind === 'POST';
+        const isTargetComment = index === thread.length - 1;
+        const author = item.authorName || 'Ẩn danh';
+        const indent = index * 24;
+        
+        return (
+          <div
+            key={index}
+            style={{
+              display: 'flex',
+              gap: '12px',
+              paddingLeft: `${indent}px`,
+              position: 'relative',
+              alignItems: 'flex-start',
+            }}
+          >
+            {index > 0 && (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: `${(index - 1) * 24 + 12}px`,
+                  top: '-12px',
+                  bottom: '14px',
+                  width: '12px',
+                  borderLeft: '2px solid rgba(255, 255, 255, 0.12)',
+                  borderBottom: '2px solid rgba(255, 255, 255, 0.12)',
+                  borderRadius: '0 0 0 8px',
+                  pointerEvents: 'none',
+                }}
+              />
+            )}
+            
+            <div
+              style={{
+                width: isPost ? '28px' : '24px',
+                height: isPost ? '28px' : '24px',
+                borderRadius: '50%',
+                background: isPost 
+                  ? '#1890ff' 
+                  : (isTargetComment ? '#52c41a' : '#d9d9d9'),
+                color: isPost || isTargetComment ? '#fff' : '#000',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: isPost ? '12px' : '10px',
+                fontWeight: 'bold',
+                flexShrink: 0,
+                zIndex: 2,
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              }}
+            >
+              {isPost ? 'P' : (author.charAt(0).toUpperCase() || '?')}
+            </div>
+
+            <div
+              style={{
+                flex: 1,
+                background: isTargetComment 
+                  ? 'rgba(82, 196, 26, 0.08)' 
+                  : (isPost ? 'rgba(24, 144, 255, 0.05)' : 'rgba(255, 255, 255, 0.03)'),
+                border: isTargetComment
+                  ? '1px solid rgba(82, 196, 26, 0.25)'
+                  : (isPost ? '1px solid rgba(24, 144, 255, 0.15)' : '1px solid rgba(255, 255, 255, 0.06)'),
+                padding: '8px 12px',
+                borderRadius: '12px',
+                position: 'relative',
+                boxShadow: isTargetComment ? '0 0 10px rgba(82, 196, 26, 0.1)' : 'none',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <Space size={6}>
+                  {item.authorUrl ? (
+                    <a
+                      href={item.authorUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.85rem' }}
+                    >
+                      {author}
+                    </a>
+                  ) : (
+                    <Text strong style={{ fontSize: '0.85rem' }}>
+                      {author}
+                    </Text>
+                  )}
+                  {isTargetComment && (
+                    <Tag color="success" style={{ fontSize: '0.7rem', margin: 0 }}>
+                      Lead
+                    </Tag>
+                  )}
+                  {isPost && (
+                    <Tag color="processing" style={{ fontSize: '0.7rem', margin: 0 }}>
+                      Post
+                    </Tag>
+                  )}
+                </Space>
+                
+                {item.sourceUrl && (
+                  <a
+                    href={item.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ color: 'var(--text-muted)', opacity: 0.6 }}
+                  >
+                    <ExternalLink size={12} />
+                  </a>
+                )}
+              </div>
+              
+              <Paragraph style={{ margin: 0, fontSize: '0.85rem', color: '#e5e7eb', lineHeight: 1.4 }}>
+                {item.text || '(Không có nội dung)'}
+              </Paragraph>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 };
 
 function FacebookLeadScansInner() {
@@ -349,17 +533,11 @@ function LeadProfileSummary({
         <List
           size="small"
           dataSource={profile.evidence || []}
-          renderItem={(evidence) => (
-            <List.Item>
-              <Space direction="vertical" size={2}>
-                <Text type="secondary">
-                  {evidence.kind} cấp {evidence.depth} · {evidence.itemLeadScore}
-                  /100
-                </Text>
-                <Paragraph style={{ marginBottom: 0 }} ellipsis={{ rows: 3 }}>
-                  {evidence.text || '(Không có text)'}
-                </Paragraph>
-              </Space>
+          renderItem={(evidence, idx) => (
+            <List.Item style={{ padding: '4px 0', border: 'none' }}>
+              <div style={{ width: '100%', marginBottom: idx < profile.evidence.length - 1 ? 12 : 0 }}>
+                {renderEvidenceThread(evidence, profile.authorName)}
+              </div>
             </List.Item>
           )}
         />
