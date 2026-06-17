@@ -3,6 +3,7 @@ import {
   App,
   Button,
   Card,
+  Checkbox,
   Col,
   Descriptions,
   Drawer,
@@ -112,6 +113,8 @@ function FacebookLeadsInner() {
   const [leadsPage, setLeadsPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>();
+  const [excludeAnonymous, setExcludeAnonymous] = useState(false);
+  const [levelFilter, setLevelFilter] = useState<string>();
 
   // Detail Drawer State
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
@@ -135,6 +138,8 @@ function FacebookLeadsInner() {
           search: searchQuery || undefined,
           status: statusFilter || undefined,
           platform: 'facebook', // Currently scoped to Facebook
+          excludeAnonymous: excludeAnonymous ? 'true' : undefined,
+          leadLevel: levelFilter || undefined,
         },
       });
       setLeads(data.items || []);
@@ -144,7 +149,7 @@ function FacebookLeadsInner() {
     } finally {
       setLeadsLoading(false);
     }
-  }, [message, leadsPage, searchQuery, statusFilter]);
+  }, [message, leadsPage, searchQuery, statusFilter, excludeAnonymous, levelFilter]);
 
   useEffect(() => {
     if (activeTab === 'crm') {
@@ -377,6 +382,32 @@ function FacebookLeadsInner() {
                       }}
                       options={statusOptions}
                     />
+                    <Select
+                      allowClear
+                      placeholder="Cấp độ Lead"
+                      style={{ width: 150 }}
+                      value={levelFilter}
+                      onChange={(value) => {
+                        setLevelFilter(value);
+                        setLeadsPage(1);
+                      }}
+                      options={[
+                        { value: 'HOT', label: 'HOT (Nóng)' },
+                        { value: 'WARM', label: 'WARM (Ấm)' },
+                        { value: 'COLD', label: 'COLD (Lạnh)' },
+                        { value: 'NONE', label: 'NONE (Không tiềm năng)' },
+                      ]}
+                    />
+                    <Checkbox
+                      checked={excludeAnonymous}
+                      onChange={(e) => {
+                        setExcludeAnonymous(e.target.checked);
+                        setLeadsPage(1);
+                      }}
+                      style={{ color: 'var(--text-primary)', marginLeft: 4 }}
+                    >
+                      Không lấy ẩn danh
+                    </Checkbox>
                     <Button
                       icon={<RefreshCw size={14} />}
                       loading={leadsLoading}
