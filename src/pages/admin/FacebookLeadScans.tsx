@@ -574,18 +574,84 @@ function ScanDetail({ scanId }: { scanId: string }) {
   );
 }
 
+function sortCommentsToTree(items: any[]): any[] {
+  if (!items || items.length === 0) return [];
+
+  const post = items.find((x) => x.kind === 'POST');
+  const comments = items.filter((x) => x.kind === 'COMMENT');
+
+  const childrenMap = new Map<string, any[]>();
+  const rootComments: any[] = [];
+  const commentMap = new Map<string, any>();
+
+  for (const c of comments) {
+    const key = c.commentId || c.fingerprint;
+    if (key) {
+      commentMap.set(key, c);
+    }
+  }
+
+  for (const c of comments) {
+    const parentId = c.parentCommentId || c.parentFingerprint;
+    if (parentId && commentMap.has(parentId)) {
+      if (!childrenMap.has(parentId)) {
+        childrenMap.set(parentId, []);
+      }
+      childrenMap.get(parentId)!.push(c);
+    } else {
+      rootComments.push(c);
+    }
+  }
+
+  const sortByDate = (a: any, b: any) => {
+    const ad = a.lastSeenAt || a.capturedAt || '';
+    const bd = b.lastSeenAt || b.capturedAt || '';
+    return ad.localeCompare(bd);
+  };
+
+  rootComments.sort(sortByDate);
+  for (const list of childrenMap.values()) {
+    list.sort(sortByDate);
+  }
+
+  const result: any[] = [];
+  if (post) {
+    result.push(post);
+  }
+
+  function traverse(comment: any) {
+    result.push(comment);
+    const key = comment.commentId || comment.fingerprint;
+    if (key && childrenMap.has(key)) {
+      const children = childrenMap.get(key)!;
+      for (const child of children) {
+        traverse(child);
+      }
+    }
+  }
+
+  for (const rc of rootComments) {
+    traverse(rc);
+  }
+
+  return result;
+}
+
 function AllCommentsList({ items }: { items: any[] }) {
   if (!items || !items.length) {
     return <Empty description="Không có bình luận nào." />;
   }
 
+  const sortedItems = sortCommentsToTree(items);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '8px 0', width: '100%' }}>
-      {items.map((item: any, index: number) => {
+      {sortedItems.map((item: any, index: number) => {
         const isPost = item.kind === 'POST';
         const author = item.authorName || 'Ẩn danh';
         const depth = item.depth || 0;
         const indent = depth * 24;
+
 
         return (
           <div
