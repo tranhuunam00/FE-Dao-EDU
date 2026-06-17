@@ -47,7 +47,7 @@ import Notifications from './pages/Notifications';
 import NotificationLogs from './pages/admin/NotificationLogs';
 import HolidaySettings from './pages/admin/HolidaySettings';
 import ContactRequests from './pages/admin/ContactRequests';
-import FacebookLeadScans from './pages/admin/FacebookLeadScans';
+import FacebookLeads from './pages/admin/FacebookLeads';
 
 // Placeholder component
 const Placeholder = ({ title, desc }: { title: string; desc: string }) => (
@@ -102,7 +102,7 @@ function App() {
                     <Route path="logs" element={<NotificationLogs />} />
                     <Route path="holidays" element={<HolidaySettings />} />
                     <Route path="contact-requests" element={<ContactRequests />} />
-                    <Route path="facebook-leads" element={<FacebookLeadScans />} />
+                    <Route path="facebook-leads" element={<FacebookLeads />} />
                   </Routes>
                 </DashboardLayout>
               </RouteGuard>
