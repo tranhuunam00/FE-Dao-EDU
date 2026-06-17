@@ -11,6 +11,7 @@ import {
   Table,
   Tag,
   Typography,
+  Spin,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { ExternalLink, RefreshCw } from 'lucide-react';
@@ -80,6 +81,7 @@ interface FacebookLeadScan {
   acceptedItems: number;
   duplicateItems: number;
   detection: LeadDetection;
+  items?: any[];
   createdAt: string;
 }
 
@@ -426,7 +428,7 @@ function FacebookLeadScansInner() {
         width={720}
         onClose={() => setSelected(null)}
       >
-        {selected ? <ScanDetail scan={selected} /> : null}
+        {selected ? <ScanDetail scanId={selected.id} /> : null}
       </Drawer>
     </div>
   );
@@ -451,37 +453,79 @@ function renderCandidatePreview(scan: FacebookLeadScan) {
   );
 }
 
-function ScanDetail({ scan }: { scan: FacebookLeadScan }) {
-  const candidates = scan.detection?.aiCandidates || [];
-  const profiles = scan.detection?.leadProfiles || [];
+function ScanDetail({ scanId }: { scanId: string }) {
+  const [detail, setDetail] = useState<FacebookLeadScan | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { message } = App.useApp();
+
+  useEffect(() => {
+    let active = true;
+    const loadDetail = async () => {
+      setLoading(true);
+      try {
+        const { data } = await api.get(`/facebook-lead-scans/${scanId}`);
+        if (active) {
+          setDetail(data);
+        }
+      } catch {
+        message.error('Không thể tải chi tiết đợt quét.');
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+    void loadDetail();
+    return () => {
+      active = false;
+    };
+  }, [scanId, message]);
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px 0' }}>
+        <Spin size="large" tip="Đang tải chi tiết..." />
+      </div>
+    );
+  }
+
+  if (!detail) {
+    return <Empty description="Không tìm thấy chi tiết đợt quét." />;
+  }
+
+  const candidates = detail.detection?.aiCandidates || [];
+  const profiles = detail.detection?.leadProfiles || [];
+  const items = detail.items || [];
 
   return (
-    <Space direction="vertical" size={16} style={{ width: '100%' }}>
+    <Space direction="vertical" size={24} style={{ width: '100%' }}>
       <Descriptions bordered size="small" column={1}>
-        <Descriptions.Item label="Scan ID">{scan.id}</Descriptions.Item>
+        <Descriptions.Item label="Scan ID">{detail.id}</Descriptions.Item>
         <Descriptions.Item label="Session">
-          {scan.scanSessionId}
+          {detail.scanSessionId}
         </Descriptions.Item>
         <Descriptions.Item label="Bài viết">
-          {scan.postUrl ? (
-            <a href={scan.postUrl} target="_blank" rel="noreferrer">
-              {scan.postUrl}
+          {detail.postUrl ? (
+            <a href={detail.postUrl} target="_blank" rel="noreferrer">
+              {detail.postUrl}
             </a>
           ) : (
             '-'
           )}
         </Descriptions.Item>
         <Descriptions.Item label="Detector">
-          {scan.detection?.detectorVersion || '-'}
+          {detail.detection?.detectorVersion || '-'}
         </Descriptions.Item>
         <Descriptions.Item label="Dữ liệu">
-          {scan.itemCount} item, {scan.acceptedItems} mới, {scan.duplicateItems}{' '}
+          {detail.itemCount} item, {detail.acceptedItems} mới, {detail.duplicateItems}{' '}
           trùng
         </Descriptions.Item>
       </Descriptions>
 
       <div>
-        <Title level={4}>AI candidates</Title>
+        <Title level={4} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: 6 }}>
+          1. AI candidates & Chứng minh
+        </Title>
         {candidates.length ? (
           <List
             dataSource={candidates}
@@ -497,10 +541,151 @@ function ScanDetail({ scan }: { scan: FacebookLeadScan }) {
       </div>
 
       <div>
-        <Title level={4}>Tất cả profile đã phân loại</Title>
-        <Text type="secondary">{profiles.length} hồ sơ</Text>
+        <Title level={4} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: 6 }}>
+          Tất cả profile đã phân loại
+        </Title>
+        <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
+          {profiles.length} hồ sơ
+        </Text>
+        {profiles.length ? (
+          <List
+            dataSource={profiles}
+            renderItem={(profile) => (
+              <List.Item>
+                <LeadProfileSummary profile={profile} expanded={false} />
+              </List.Item>
+            )}
+          />
+        ) : (
+          <Empty description="Chưa có hồ sơ được phân loại." />
+        )}
+      </div>
+
+      <div>
+        <Title level={4} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: 6 }}>
+          2. Toàn bộ bình luận đã lưu trong DB (theo postId)
+        </Title>
+        <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
+          {items.length} bình luận / bài viết
+        </Text>
+        <AllCommentsList items={items} />
       </div>
     </Space>
+  );
+}
+
+function AllCommentsList({ items }: { items: any[] }) {
+  if (!items || !items.length) {
+    return <Empty description="Không có bình luận nào." />;
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '8px 0', width: '100%' }}>
+      {items.map((item: any, index: number) => {
+        const isPost = item.kind === 'POST';
+        const author = item.authorName || 'Ẩn danh';
+        const depth = item.depth || 0;
+        const indent = depth * 24;
+
+        return (
+          <div
+            key={item.commentId || item.fingerprint || index}
+            style={{
+              display: 'flex',
+              gap: '12px',
+              paddingLeft: `${indent}px`,
+              position: 'relative',
+              alignItems: 'flex-start',
+            }}
+          >
+            {depth > 0 && (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: `${(depth - 1) * 24 + 12}px`,
+                  top: '-12px',
+                  bottom: '14px',
+                  width: '12px',
+                  borderLeft: '2px solid rgba(255, 255, 255, 0.12)',
+                  borderBottom: '2px solid rgba(255, 255, 255, 0.12)',
+                  borderRadius: '0 0 0 8px',
+                  pointerEvents: 'none',
+                }}
+              />
+            )}
+
+            <div
+              style={{
+                width: isPost ? '28px' : '24px',
+                height: isPost ? '28px' : '24px',
+                borderRadius: '50%',
+                background: isPost ? '#1890ff' : '#d9d9d9',
+                color: isPost ? '#fff' : '#000',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: isPost ? '12px' : '10px',
+                fontWeight: 'bold',
+                flexShrink: 0,
+                zIndex: 2,
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              }}
+            >
+              {isPost ? 'P' : (author.charAt(0).toUpperCase() || '?')}
+            </div>
+
+            <div
+              style={{
+                flex: 1,
+                background: isPost ? 'rgba(24, 144, 255, 0.05)' : 'rgba(255, 255, 255, 0.03)',
+                border: isPost ? '1px solid rgba(24, 144, 255, 0.15)' : '1px solid rgba(255, 255, 255, 0.06)',
+                padding: '8px 12px',
+                borderRadius: '12px',
+                position: 'relative',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <Space size={6}>
+                  {item.authorUrl ? (
+                    <a
+                      href={item.authorUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.85rem' }}
+                    >
+                      {author}
+                    </a>
+                  ) : (
+                    <Text strong style={{ fontSize: '0.85rem' }}>
+                      {author}
+                    </Text>
+                  )}
+                  {isPost && (
+                    <Tag color="processing" style={{ fontSize: '0.7rem', margin: 0 }}>
+                      Post
+                    </Tag>
+                  )}
+                </Space>
+                {item.sourceUrl && (
+                  <a
+                    href={item.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ color: 'var(--text-muted)', opacity: 0.6 }}
+                  >
+                    <ExternalLink size={12} />
+                  </a>
+                )}
+              </div>
+
+              <Paragraph style={{ margin: 0, fontSize: '0.85rem', color: '#e5e7eb', lineHeight: 1.4 }}>
+                {item.text || '(Không có nội dung)'}
+              </Paragraph>
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
