@@ -97,6 +97,8 @@ interface Lead {
   authorName: string;
   authorUrl: string;
   contactStatus: string;
+  leadLevel: LeadLevel;
+  leadScore: number;
   createdAt: string;
   updatedAt: string;
   demands?: LeadDemand[];
@@ -273,24 +275,27 @@ function FacebookLeadsInner() {
       key: 'ai_eval',
       width: 320,
       render: (_, row) => {
+        const level = row.leadLevel || 'NONE';
+        const score = row.leadScore || 0;
         const latestDemand = row.demands?.[0];
-        if (!latestDemand) return <Text type="secondary">Chưa có đánh giá</Text>;
 
         return (
           <Space direction="vertical" size={2}>
             <Space>
-              <Tag color={levelColors[latestDemand.leadLevel]}>
-                {latestDemand.leadLevel}
+              <Tag color={levelColors[level]}>
+                {level}
               </Tag>
-              <Text strong>{latestDemand.leadScore}/100đ</Text>
+              <Text strong>{score}/100đ</Text>
             </Space>
-            <Paragraph
-              type="secondary"
-              ellipsis={{ rows: 2 }}
-              style={{ fontSize: '0.85rem', marginBottom: 0, color: 'var(--text-muted)' }}
-            >
-              {latestDemand.reasons.join(' · ') || 'Không có lý do chi tiết'}
-            </Paragraph>
+            {latestDemand && (
+              <Paragraph
+                type="secondary"
+                ellipsis={{ rows: 2 }}
+                style={{ fontSize: '0.85rem', marginBottom: 0, color: 'var(--text-muted)' }}
+              >
+                {latestDemand.reasons.join(' · ') || 'Không có lý do chi tiết'}
+              </Paragraph>
+            )}
           </Space>
         );
       },
