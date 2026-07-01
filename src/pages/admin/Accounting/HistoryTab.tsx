@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Button, Table, Typography, Space, Tag, Spin, App, Modal, Popconfirm, Select, DatePicker, Form, Input } from 'antd';
-import { LockOutlined, UnlockOutlined, CheckCircleOutlined, DeleteOutlined, CloseCircleOutlined, ArrowLeftOutlined, DownloadOutlined, QrcodeOutlined, SendOutlined, PrinterOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Button, Table, Typography, Space, Tag, Spin, App, Modal, Popconfirm, Select, DatePicker, Form, Input, Tooltip, Badge } from 'antd';
+import { LockOutlined, UnlockOutlined, CheckCircleOutlined, DeleteOutlined, CloseCircleOutlined, ArrowLeftOutlined, DownloadOutlined, QrcodeOutlined, SendOutlined, PrinterOutlined, CopyOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../../services/api';
 
@@ -49,6 +49,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
   const [qrRequest, setQrRequest] = useState<any>(null);
   const [qrVisible, setQrVisible] = useState(false);
   const [qrSending, setQrSending] = useState(false);
+  const [qrAllSending, setQrAllSending] = useState(false);
 
   const loadPeriods = async () => {
     setPeriodsLoading(true);
@@ -178,6 +179,26 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
     }
   };
 
+  const generateQr = async (order: any, silent = false) => {
+    setCurrentOrder(order);
+    if (!silent) setQrSending(true);
+    try {
+      const { data } = await api.post(`/tuition-payment-requests/bills/${order.id}/generate-qr`);
+      if (!silent) {
+        setQrRequest(data);
+        setQrVisible(true);
+        message.success(order.hasAccount ? 'Đã tạo QR và gửi thông báo cho học sinh' : 'Đã tạo QR — Sao chép link gửi qua Zalo cho phụ huynh');
+      }
+      loadPeriodDetail(selectedPeriodId!);
+      return data;
+    } catch (err: any) {
+      if (!silent) message.error(err.response?.data?.message || 'Không thể tạo QR thanh toán');
+      return null;
+    } finally {
+      if (!silent) setQrSending(false);
+    }
+  };
+
   const sendTuitionQr = async (order: any) => {
     setCurrentOrder(order);
     setQrSending(true);
@@ -194,6 +215,26 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
     }
   };
 
+  const sendQrToAll = async () => {
+    if (!periodDetail) return;
+    const unpaidOrders = periodDetail.orders.filter((o: any) => o.status !== 'Paid' && !o.paymentRequest);
+    if (unpaidOrders.length === 0) {
+      message.info('Tất cả học sinh đã có QR hoặc đã thanh toán.');
+      return;
+    }
+    setQrAllSending(true);
+    let successCount = 0;
+    let failCount = 0;
+    for (const order of unpaidOrders) {
+      const result = await generateQr(order, true);
+      if (result) successCount++; else failCount++;
+    }
+    setQrAllSending(false);
+    if (successCount > 0) message.success(`Đã tạo QR cho ${successCount} học sinh.${failCount > 0 ? ` Lỗi ${failCount} học sinh.` : ''}`);
+    else message.error('Không thể tạo QR cho bất kỳ học sinh nào.');
+    loadPeriodDetail(selectedPeriodId!);
+  };
+
   const showTuitionQr = (order: any) => {
     setCurrentOrder(order);
     setQrRequest(order.paymentRequest);
@@ -201,9 +242,9 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
   };
 
   const showDetailModal = (record: any, type: string) => {
-    setDetailType(type as 'student' | 'teacher');
+    setDetailType(type === 'tuition' ? 'student' : 'teacher');
     setDetailTitle(`${record.code} - ${record.name}`);
-    setDetailItems(record.sessionBreakdown || []);
+    setDetailItems(record.items || []);
     setDetailAuditLogs(record.auditLogs || []);
     setDetailVisible(true);
   };
@@ -386,6 +427,21 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
               >
                 {periodDetail.period.status === 'Active' ? 'Khóa đợt' : 'Mở khóa đợt'}
               </Button>
+              {periodDetail.period.type === 'tuition' && periodDetail.period.status === 'Active' && (
+                <Tooltip title={`Tạo QR cho tất cả học sinh chưa thanh toán (${periodDetail.orders.filter((o: any) => o.status !== 'Paid' && !o.paymentRequest).length} học sinh)`}>
+                  <Badge count={periodDetail.orders.filter((o: any) => o.status !== 'Paid' && !o.paymentRequest).length} size="small">
+                    <Button
+                      type="primary"
+                      icon={<ThunderboltOutlined />}
+                      loading={qrAllSending}
+                      onClick={sendQrToAll}
+                      style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', border: 'none' }}
+                    >
+                      Gửi QR tất cả
+                    </Button>
+                  </Badge>
+                </Tooltip>
+              )}
             </>
           )}
           <Button
@@ -575,7 +631,11 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                       <div>
                         <Text style={{ color: 'var(--text-primary)' }}>{r.processedBy?.name || 'Hệ thống'}</Text>
                         <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                          {r.paymentMethod === 'bank_transfer' ? 'Chuyển khoản' : r.paymentMethod === 'cash' ? 'Tiền mặt' : r.paymentMethod || '—'}
+                          {r.paymentRequest ? (
+                            <span style={{ color: '#10b981', fontWeight: 600 }}>Đối soát tự động</span>
+                          ) : (
+                            r.paymentMethod === 'bank_transfer' ? 'Chuyển khoản' : r.paymentMethod === 'cash' ? 'Tiền mặt' : r.paymentMethod || '—'
+                          )}
                         </div>
                       </div>
                     ) : <Text type="secondary">—</Text>
@@ -600,7 +660,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                           <Button type="link" size="small" onClick={() => showDetailModal(r, periodDetail.period.type)} style={{ color: '#38bdf8' }}>Chi tiết</Button>
                           {periodDetail.period.type === 'tuition' && r.paymentRequest && (
                             <Button type="link" size="small" icon={<QrcodeOutlined />} onClick={() => showTuitionQr(r)} style={{ color: '#a78bfa', padding: 0 }}>
-                              Đối soát
+                              Xem QR / Đối soát
                             </Button>
                           )}
                           {periodDetail.period.type === 'tuition' && r.status === 'Paid' && r.receiptCode && (
@@ -615,9 +675,15 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                               ) : (
                                 <>
                                   {periodDetail.period.type === 'tuition' && !r.paymentRequest && (
-                                      <Button size="small" icon={<SendOutlined />} loading={qrSending} onClick={() => sendTuitionQr(r)}>
-                                        Gửi QR
-                                      </Button>
+                                    <Button
+                                      size="small"
+                                      icon={<QrcodeOutlined />}
+                                      loading={qrSending}
+                                      onClick={() => generateQr(r)}
+                                      style={{ background: 'rgba(124,58,237,0.15)', borderColor: 'rgba(124,58,237,0.4)', color: '#a78bfa' }}
+                                    >
+                                      Lấy QR
+                                    </Button>
                                   )}
                                   <Popconfirm
                                     title="Xác nhận thanh toán?"
@@ -737,8 +803,20 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
               open={qrVisible}
               onCancel={() => setQrVisible(false)}
               footer={[
-                <Button key="resend" icon={<SendOutlined />} loading={qrSending} onClick={() => currentOrder && sendTuitionQr(currentOrder)}>
-                  Gửi lại
+                qrRequest?.qrUrl && (
+                  <Button
+                    key="copy"
+                    icon={<CopyOutlined />}
+                    onClick={() => {
+                      navigator.clipboard.writeText(qrRequest.qrUrl);
+                      message.success('Đã sao chép link QR — Dán vào Zalo để gửi phụ huynh!');
+                    }}
+                  >
+                    Sao chép link QR
+                  </Button>
+                ),
+                <Button key="resend" icon={<QrcodeOutlined />} loading={qrSending} onClick={() => currentOrder && generateQr(currentOrder)}>
+                  Tạo lại QR
                 </Button>,
                 <Button key="close" type="primary" onClick={() => setQrVisible(false)}>Đóng</Button>
               ]}
