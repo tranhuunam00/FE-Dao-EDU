@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   App, Tag, Button, Spin,
-  Tabs, Modal, Form, Select, DatePicker, TimePicker, Switch, Input, Divider, Alert, Typography, Descriptions, Row, Col, Table
+  Tabs, Modal, Form, Select, DatePicker, TimePicker, Switch, Input, Divider, Alert, Typography, Descriptions, Row, Col, Table, InputNumber
 } from 'antd';
 import {
   ArrowLeftOutlined, TeamOutlined, CalendarOutlined,
@@ -67,6 +67,11 @@ const ClassDetailInner: React.FC = () => {
   const [isEditSessionVisible, setIsEditSessionVisible] = useState(false);
   const [sessionForm] = Form.useForm();
 
+  // Editing Class details
+  const [isEditClassVisible, setIsEditClassVisible] = useState(false);
+  const [classForm] = Form.useForm();
+  const [savingClass, setSavingClass] = useState(false);
+
   const loadAllData = async () => {
     if (!id) return;
     try {
@@ -92,6 +97,49 @@ const ClassDetailInner: React.FC = () => {
     api.get('/teachers?page=1&limit=100').then(({ data }) => setTeachers(data.teachers || [])).catch(() => {});
     api.get('/students?page=1&limit=1000').then(({ data }) => setAllStudents(data.students || [])).catch(() => {});
   }, [id]);
+
+  const openEditClassModal = () => {
+    if (!classData) return;
+    classForm.setFieldsValue({
+      className: classData.className,
+      classCode: classData.classCode,
+      status: classData.status,
+      startDate: classData.startDate ? dayjs(classData.startDate) : null,
+      finishDate: classData.finishDate ? dayjs(classData.finishDate) : null,
+      maxSize: classData.maxSize,
+      mainTeacherId: classData.mainTeacherId,
+      skipHolidays: classData.skipHolidays,
+      description: classData.description,
+    });
+    setIsEditClassVisible(true);
+  };
+
+  const handleEditClassSubmit = async () => {
+    try {
+      const values = await classForm.validateFields();
+      setSavingClass(true);
+      const payload = {
+        className: values.className,
+        classCode: values.classCode,
+        status: values.status,
+        startDate: values.startDate ? values.startDate.format('YYYY-MM-DD') : null,
+        finishDate: values.finishDate ? values.finishDate.format('YYYY-MM-DD') : null,
+        maxSize: values.maxSize,
+        mainTeacherId: values.mainTeacherId || null,
+        skipHolidays: values.skipHolidays,
+        description: values.description || null,
+      };
+
+      await api.put(`/classes/${id}`, payload);
+      message.success('Cập nhật thông tin lớp học thành công!');
+      setIsEditClassVisible(false);
+      loadAllData();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi cập nhật thông tin lớp học');
+    } finally {
+      setSavingClass(false);
+    }
+  };
 
   const handleAddStudent = async () => {
     if (!selectedStudentId || !id) return;
@@ -345,7 +393,15 @@ const ClassDetailInner: React.FC = () => {
             Mã lớp: {classData.classCode} • {classData.course?.name} ({classData.courseLevel?.levelName})
           </Text>
         </div>
-        <Tag color={classData.status === 'Active' ? 'green' : 'blue'} style={{ fontSize: '14px', padding: '4px 16px' }}>
+        <Button
+          type="primary"
+          icon={<EditOutlined />}
+          onClick={openEditClassModal}
+          style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
+        >
+          Sửa lớp học
+        </Button>
+        <Tag color={classData.status === 'Active' ? 'green' : 'blue'} style={{ fontSize: '14px', padding: '4px 16px', margin: 0 }}>
           {classData.status === 'Active' ? 'Hoạt động' : 'Nháp/Lên kế hoạch'}
         </Tag>
       </div>
@@ -611,6 +667,79 @@ const ClassDetailInner: React.FC = () => {
               );
             }}
           </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Modal Sửa Lớp Học */}
+      <Modal
+        title="Chỉnh sửa thông tin Lớp học"
+        open={isEditClassVisible}
+        onOk={handleEditClassSubmit}
+        onCancel={() => setIsEditClassVisible(false)}
+        confirmLoading={savingClass}
+        okText="Lưu thay đổi"
+        cancelText="Hủy"
+        width={650}
+      >
+        <Form form={classForm} layout="vertical" style={{ padding: '12px 0' }}>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="classCode" label="Mã lớp" rules={[{ required: true, message: 'Bắt buộc' }]}>
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="className" label="Tên lớp" rules={[{ required: true, message: 'Bắt buộc' }]}>
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="status" label="Trạng thái" rules={[{ required: true, message: 'Bắt buộc' }]}>
+                <Select>
+                  <Option value="Planning">Lên kế hoạch</Option>
+                  <Option value="Active">Hoạt động</Option>
+                  <Option value="Completed">Đã kết thúc</Option>
+                  <Option value="Closed">Đã đóng</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="mainTeacherId" label="Giáo viên chính">
+                <Select placeholder="Chọn giáo viên" allowClear showSearch optionFilterProp="children">
+                  {teachers.map(t => (
+                    <Option key={t.id} value={t.id}>
+                      {t.firstName} {t.lastName} ({t.email || t.mobile || 'GV'})
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="startDate" label="Ngày khai giảng" rules={[{ required: true, message: 'Bắt buộc' }]}>
+                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="finishDate" label="Ngày kết thúc dự kiến" rules={[{ required: true, message: 'Bắt buộc' }]}>
+                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="maxSize" label="Sĩ số tối đa">
+                <InputNumber min={1} style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="skipHolidays" label="Bỏ qua ngày lễ" valuePropName="checked">
+                <Switch checkedChildren="Bật" unCheckedChildren="Tắt" />
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item name="description" label="Ghi chú / Mô tả">
+                <Input.TextArea rows={3} />
+              </Form.Item>
+            </Col>
+          </Row>
         </Form>
       </Modal>
     </div>
