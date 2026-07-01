@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Card, Typography, Row, Col, App, Tag, Table, Button, Spin, Descriptions,
-  Modal, Form, InputNumber, DatePicker
+  Modal, Form, InputNumber, DatePicker, Input, Checkbox
 } from 'antd';
 import { ArrowLeftOutlined, BookOutlined, DollarOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -69,6 +69,11 @@ const CourseDetailInner: React.FC = () => {
   const [submittingPricing, setSubmittingPricing] = useState(false);
   const [form] = Form.useForm();
 
+  // Modal states for adding new level
+  const [levelModalVisible, setLevelModalVisible] = useState(false);
+  const [submittingLevel, setSubmittingLevel] = useState(false);
+  const [levelForm] = Form.useForm();
+
   const fetchCourse = async () => {
     try {
       const { data } = await api.get(`/courses/${id}`);
@@ -99,7 +104,8 @@ const CourseDetailInner: React.FC = () => {
   const handleOpenPricingModal = (level: LevelData) => {
     setSelectedLevel(level);
     // Find current active pricing to prefill values
-    const current = level.pricing?.find((p) => !p.effectiveTo || new Date(p.effectiveTo) >= new Date());
+    const todayStr = dayjs().format('YYYY-MM-DD');
+    const current = level.pricing?.find((p) => p.effectiveFrom <= todayStr && (!p.effectiveTo || p.effectiveTo >= todayStr));
     if (current) {
       form.setFieldsValue({
         pricePerSession: Number(current.pricePerSession),
@@ -139,6 +145,28 @@ const CourseDetailInner: React.FC = () => {
     }
   };
 
+  const handleLevelSubmit = async (values: any) => {
+    setSubmittingLevel(true);
+    try {
+      const payload = {
+        levelName: values.levelName,
+        levelCode: values.levelCode.trim(),
+        totalHours: Number(values.totalHours),
+        isFixedHour: !!values.isFixedHour,
+        canUpgrade: !!values.canUpgrade,
+        gradebookSetting: values.gradebookSetting || undefined,
+      };
+      await api.post(`/courses/${id}/levels`, payload);
+      message.success('Thêm Level mới thành công!');
+      setLevelModalVisible(false);
+      fetchCourse();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Không thể thêm Level mới.');
+    } finally {
+      setSubmittingLevel(false);
+    }
+  };
+
   const levelColumns = [
     {
       title: 'Level',
@@ -164,7 +192,8 @@ const CourseDetailInner: React.FC = () => {
       key: 'currentPrice',
       width: 180,
       render: (_: any, record: LevelData) => {
-        const current = record.pricing?.find((p) => !p.effectiveTo || new Date(p.effectiveTo) >= new Date());
+        const todayStr = dayjs().format('YYYY-MM-DD');
+        const current = record.pricing?.find((p) => p.effectiveFrom <= todayStr && (!p.effectiveTo || p.effectiveTo >= todayStr));
         return current
           ? <Text strong style={{ color: '#34d399' }}>{Number(current.pricePerSession).toLocaleString()}đ / buổi</Text>
           : <Text type="secondary">Chưa cấu hình</Text>;
@@ -175,7 +204,8 @@ const CourseDetailInner: React.FC = () => {
       key: 'currentWage',
       width: 180,
       render: (_: any, record: LevelData) => {
-        const current = record.pricing?.find((p) => !p.effectiveTo || new Date(p.effectiveTo) >= new Date());
+        const todayStr = dayjs().format('YYYY-MM-DD');
+        const current = record.pricing?.find((p) => p.effectiveFrom <= todayStr && (!p.effectiveTo || p.effectiveTo >= todayStr));
         return current
           ? <Text strong style={{ color: '#fbbf24' }}>{Number(current.teacherWagePerSession).toLocaleString()}đ / buổi</Text>
           : <Text type="secondary">Chưa cấu hình</Text>;
@@ -243,9 +273,23 @@ const CourseDetailInner: React.FC = () => {
       </Card>
 
       <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)', marginBottom: 24 }}>
-        <Title level={5} style={{ color: 'var(--text-primary)', marginBottom: 16 }}>
-          Cấu hình Level ({course.levels?.length || 0})
-        </Title>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <Title level={5} style={{ color: 'var(--text-primary)', margin: 0 }}>
+            Cấu hình Level ({course.levels?.length || 0})
+          </Title>
+          <Button
+            type="primary"
+            size="small"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              levelForm.resetFields();
+              setLevelModalVisible(true);
+            }}
+            style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)', border: 'none' }}
+          >
+            Thêm Level
+          </Button>
+        </div>
         <Table
           columns={levelColumns}
           dataSource={course.levels || []}
@@ -364,6 +408,81 @@ const CourseDetailInner: React.FC = () => {
                 label="Ngày kết thúc (Không bắt buộc)"
               >
                 <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder="Để trống nếu hiện hành" />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </Modal>
+
+      {/* Level Modal */}
+      <Modal
+        title="Thêm Level mới"
+        open={levelModalVisible}
+        onCancel={() => setLevelModalVisible(false)}
+        onOk={() => levelForm.submit()}
+        confirmLoading={submittingLevel}
+        okText="Thêm Level"
+        cancelText="Hủy"
+        destroyOnClose
+      >
+        <Form
+          form={levelForm}
+          layout="vertical"
+          onFinish={handleLevelSubmit}
+          style={{ marginTop: 16 }}
+          initialValues={{ isFixedHour: false, canUpgrade: true }}
+        >
+          <Form.Item
+            name="levelName"
+            label="Tên Level"
+            rules={[{ required: true, message: 'Vui lòng nhập tên Level!' }]}
+          >
+            <Input placeholder="Ví dụ: Toán 6" />
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="levelCode"
+                label="Mã Level"
+                rules={[{ required: true, message: 'Vui lòng nhập mã Level!' }]}
+              >
+                <Input placeholder="Ví dụ: TOAN6" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="totalHours"
+                label="Tổng số giờ"
+                rules={[{ required: true, message: 'Vui lòng nhập tổng số giờ!' }]}
+              >
+                <InputNumber style={{ width: '100%' }} min={1} placeholder="Ví dụ: 200" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item
+            name="gradebookSetting"
+            label="Thiết lập đầu điểm (Không bắt buộc)"
+          >
+            <Input.TextArea placeholder="Ví dụ: Quiz 30%, Project 30%, Final 40%" rows={3} />
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="isFixedHour"
+                valuePropName="checked"
+              >
+                <Checkbox>Giờ học cố định</Checkbox>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="canUpgrade"
+                valuePropName="checked"
+              >
+                <Checkbox>Cho phép nâng cấp</Checkbox>
               </Form.Item>
             </Col>
           </Row>
