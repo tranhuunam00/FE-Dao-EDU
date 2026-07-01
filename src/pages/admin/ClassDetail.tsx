@@ -10,6 +10,7 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../services/api';
+import { useAuth, Role } from '../../context/AuthContext';
 
 import { GeneralTab } from './ClassDetailTabs/GeneralTab';
 import { StudentsTab } from './ClassDetailTabs/StudentsTab';
@@ -46,6 +47,8 @@ const ClassDetailInner: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { message, modal } = App.useApp();
+  const { user } = useAuth();
+  const isAdmin = user?.role === Role.ADMIN;
 
   const [loading, setLoading] = useState(true);
   const [classData, setClassData] = useState<any>(null);
@@ -62,6 +65,7 @@ const ClassDetailInner: React.FC = () => {
   const [currentSession, setCurrentSession] = useState<ClassSession | null>(null);
   const [sessionAttendance, setSessionAttendance] = useState<StudentAttendance[]>([]);
   const [savingAttendance, setSavingAttendance] = useState(false);
+  const [isOverrideMode, setIsOverrideMode] = useState(false);
 
   // Editing Session details
   const [isEditSessionVisible, setIsEditSessionVisible] = useState(false);
@@ -281,6 +285,44 @@ const ClassDetailInner: React.FC = () => {
           message.error(err.response?.data?.message || 'Lỗi khi hoàn thành buổi học');
         }
       }
+    });
+  };
+
+  const handleOverrideAttendance = () => {
+    if (!currentSession) return;
+    modal.confirm({
+      title: '⚠️ Xác nhận sửa điểm danh đã chốt',
+      content: (
+        <div>
+          <p>Bạn sắp <strong>sửa bảng điểm danh của buổi học đã kết thúc</strong>.</p>
+          <p style={{ color: '#ef4444' }}>Lưu ý: Chỉ được phép với các buổi <strong>chưa được đưa vào hóa đơn tính tiền</strong>. Hệ thống sẽ từ chối nếu bất kỳ học sinh nào đã được tính tiền.</p>
+          <p>Bạn có chắc chắn muốn tiếp tục không?</p>
+        </div>
+      ),
+      okText: 'Xác nhận sửa',
+      okButtonProps: { danger: true },
+      cancelText: 'Hủy',
+      onOk: async () => {
+        setSavingAttendance(true);
+        try {
+          await api.post(`/classes/sessions/${currentSession.id}/attendance-override`, {
+            attendance: sessionAttendance.map(a => ({
+              studentId: a.studentId,
+              isPresent: a.isPresent,
+              reason: a.reason,
+              note: a.note,
+            })),
+          });
+          message.success('Đã cập nhật điểm danh thành công!');
+          setIsOverrideMode(false);
+          setIsSessionModalVisible(false);
+          loadAllData();
+        } catch (err: any) {
+          message.error(err.response?.data?.message || 'Không thể sửa điểm danh.');
+        } finally {
+          setSavingAttendance(false);
+        }
+      },
     });
   };
 
@@ -556,6 +598,37 @@ const ClassDetailInner: React.FC = () => {
               )}
             </div>
 
+            {/* Admin override section */}
+            {currentSession.attendanceLocked && isAdmin && (
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8, padding: '8px 12px', background: 'rgba(239,68,68,0.08)', borderRadius: 8, border: '1px solid rgba(239,68,68,0.25)' }}>
+                {!isOverrideMode ? (
+                  <Button
+                    danger
+                    size="small"
+                    icon={<EditOutlined />}
+                    onClick={() => setIsOverrideMode(true)}
+                  >
+                    Sửa điểm danh (Admin)
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      type="primary"
+                      danger
+                      size="small"
+                      icon={<SaveOutlined />}
+                      onClick={handleOverrideAttendance}
+                      loading={savingAttendance}
+                    >
+                      Lưu thay đổi
+                    </Button>
+                    <Button size="small" onClick={() => setIsOverrideMode(false)}>Hủy sửa</Button>
+                  </>
+                )}
+                <span style={{ color: '#ef4444', fontSize: 12 }}>⚠️ Chỉ admin — Chỉ áp dụng nếu buổi chưa tính tiền</span>
+              </div>
+            )}
+
             <Divider style={{ margin: '16px 0' }}>Bảng điểm danh học sinh</Divider>
 
             {currentSession.status === 'Scheduled' ? (
@@ -583,7 +656,7 @@ const ClassDetailInner: React.FC = () => {
                       render: (val, record) => (
                         <Switch
                           checked={val}
-                          disabled={currentSession.attendanceLocked}
+                          disabled={currentSession.attendanceLocked && !isOverrideMode}
                           onChange={(checked) => {
                             setSessionAttendance(prev => prev.map(a => a.studentId === record.studentId ? { ...a, isPresent: checked } : a));
                           }}
@@ -597,7 +670,7 @@ const ClassDetailInner: React.FC = () => {
                         <Input
                           placeholder="Nhập lý do vắng..."
                           value={record.reason}
-                          disabled={currentSession.attendanceLocked || record.isPresent}
+                          disabled={currentSession.attendanceLocked && (!isOverrideMode || record.isPresent)}
                           onChange={(e) => {
                             setSessionAttendance(prev => prev.map(a => a.studentId === record.studentId ? { ...a, reason: e.target.value } : a));
                           }}
