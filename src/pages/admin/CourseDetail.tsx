@@ -155,6 +155,9 @@ const CourseDetailInner: React.FC = () => {
         isFixedHour: !!values.isFixedHour,
         canUpgrade: !!values.canUpgrade,
         gradebookSetting: values.gradebookSetting || undefined,
+        pricePerSession: Number(values.pricePerSession),
+        teacherWagePerSession: Number(values.teacherWagePerSession),
+        effectiveFrom: values.effectiveFrom.format('YYYY-MM-DD'),
       };
       await api.post(`/courses/${id}/levels`, payload);
       message.success('Thêm Level mới thành công!');
@@ -283,6 +286,11 @@ const CourseDetailInner: React.FC = () => {
             icon={<PlusOutlined />}
             onClick={() => {
               levelForm.resetFields();
+              levelForm.setFieldsValue({
+                isFixedHour: false,
+                canUpgrade: true,
+                effectiveFrom: dayjs(),
+              });
               setLevelModalVisible(true);
             }}
             style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)', border: 'none' }}
@@ -350,6 +358,7 @@ const CourseDetailInner: React.FC = () => {
         okText="Lưu bảng giá"
         cancelText="Hủy"
         destroyOnClose
+        width={750}
       >
         <Form
           form={form}
@@ -412,6 +421,42 @@ const CourseDetailInner: React.FC = () => {
             </Col>
           </Row>
         </Form>
+
+        {selectedLevel?.pricing && selectedLevel.pricing.length > 0 && (
+          <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--card-border)' }}>
+            <Text strong style={{ color: '#a5b4fc', marginBottom: 8, display: 'block' }}>
+              <DollarOutlined /> Lịch sử Bảng giá
+            </Text>
+            <Table
+              dataSource={selectedLevel.pricing}
+              rowKey="id"
+              pagination={false}
+              size="small"
+              columns={[
+                {
+                  title: 'Đơn giá học viên / buổi',
+                  dataIndex: 'pricePerSession',
+                  render: (v: number) => <Text strong style={{ color: '#34d399' }}>{Number(v).toLocaleString()}đ</Text>,
+                },
+                {
+                  title: 'Lương trả giáo viên / buổi',
+                  dataIndex: 'teacherWagePerSession',
+                  render: (v: number) => <Text strong style={{ color: '#fbbf24' }}>{Number(v).toLocaleString()}đ</Text>,
+                },
+                {
+                  title: 'Từ ngày',
+                  dataIndex: 'effectiveFrom',
+                  render: (v: string) => dayjs(v).format('DD/MM/YYYY'),
+                },
+                {
+                  title: 'Đến ngày',
+                  dataIndex: 'effectiveTo',
+                  render: (v: string | null) => v ? dayjs(v).format('DD/MM/YYYY') : <Tag color="green">Hiện hành</Tag>,
+                },
+              ]}
+            />
+          </div>
+        )}
       </Modal>
 
       {/* Level Modal */}
@@ -430,7 +475,7 @@ const CourseDetailInner: React.FC = () => {
           layout="vertical"
           onFinish={handleLevelSubmit}
           style={{ marginTop: 16 }}
-          initialValues={{ isFixedHour: false, canUpgrade: true }}
+          initialValues={{ isFixedHour: false, canUpgrade: true, effectiveFrom: dayjs() }}
         >
           <Form.Item
             name="levelName"
@@ -460,6 +505,49 @@ const CourseDetailInner: React.FC = () => {
               </Form.Item>
             </Col>
           </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="pricePerSession"
+                label="Đơn giá thu học viên / buổi"
+                rules={[{ required: true, message: 'Vui lòng nhập đơn giá học sinh!' }]}
+              >
+                <InputNumber
+                  style={{ width: '100%' }}
+                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  parser={(value) => value!.replace(/\$\s?|(,*)/g, '') as any}
+                  addonAfter="VND"
+                  placeholder="Ví dụ: 150,000"
+                  min={0}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="teacherWagePerSession"
+                label="Đơn giá trả giáo viên / buổi"
+                rules={[{ required: true, message: 'Vui lòng nhập lương giáo viên!' }]}
+              >
+                <InputNumber
+                  style={{ width: '100%' }}
+                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  parser={(value) => value!.replace(/\$\s?|(,*)/g, '') as any}
+                  addonAfter="VND"
+                  placeholder="Ví dụ: 80,000"
+                  min={0}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item
+            name="effectiveFrom"
+            label="Ngày bắt đầu áp dụng"
+            rules={[{ required: true, message: 'Vui lòng chọn ngày áp dụng!' }]}
+          >
+            <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+          </Form.Item>
 
           <Form.Item
             name="gradebookSetting"
