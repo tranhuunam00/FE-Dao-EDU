@@ -72,7 +72,7 @@ export const TeacherCalendar: React.FC<{ embeddedSessions?: any[], onSessionClic
       {/* Calendar Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <h3 style={{ fontSize: '1.4rem', fontWeight: 600, color: '#fff' }}>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 600, color: 'var(--text-primary)' }}>
               {monthNames[month]} {year}
             </h3>
             <button onClick={todayMonth} className="btn" style={{ padding: '6px 12px', fontSize: '0.85rem', background: 'rgba(255,255,255,0.05)' }}>Hôm nay</button>
@@ -191,7 +191,7 @@ export const TeacherCalendar: React.FC<{ embeddedSessions?: any[], onSessionClic
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h2 style={{ fontSize: '2rem', color: '#fff', fontFamily: 'var(--font-display)' }}>
+          <h2 style={{ fontSize: '2rem', color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
             Lịch học & Điểm danh
           </h2>
           <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>Theo dõi lịch học và chuyên cần của bạn</p>

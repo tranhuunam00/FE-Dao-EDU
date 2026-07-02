@@ -124,7 +124,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
           <X size={24} />
         </button>
 
-        <h2 style={{ fontSize: '1.5rem', color: '#fff', marginBottom: '8px' }}>
+        <h2 style={{ fontSize: '1.5rem', color: 'var(--text-primary)', marginBottom: '8px' }}>
           Điểm danh: {session.className}
         </h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>

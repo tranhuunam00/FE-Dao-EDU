@@ -70,7 +70,7 @@ export const StudentDashboard: React.FC = () => {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
         <div>
-          <h2 style={{ fontSize: '2rem', color: '#fff', fontFamily: 'var(--font-display)' }}>
+          <h2 style={{ fontSize: '2rem', color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
             Xin chào, {data?.studentInfo?.name || user?.name || 'Học sinh'} 👋
           </h2>
           <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>Theo dõi thời khóa biểu, điểm danh và kết quả học tập của bạn</p>
@@ -93,7 +93,7 @@ export const StudentDashboard: React.FC = () => {
           </div>
           <div>
             <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Số môn học</div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#fff', marginTop: '4px' }}>{data?.grades.length ?? 0}</div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>{data?.grades.length ?? 0}</div>
           </div>
         </div>
 
@@ -103,7 +103,7 @@ export const StudentDashboard: React.FC = () => {
           </div>
           <div>
             <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>GPA trung bình</div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#fff', marginTop: '4px' }}>
+            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>
               {data?.grades.length
                 ? (data.grades.reduce((s, g) => s + g.score, 0) / data.grades.length).toFixed(1)
                 : '—'}
@@ -117,7 +117,7 @@ export const StudentDashboard: React.FC = () => {
           </div>
           <div>
             <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Số buổi học sắp tới</div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#fff', marginTop: '4px' }}>
+            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>
               {data?.sessions.filter(s => s.status === 'Scheduled').length ?? 0}
             </div>
           </div>
@@ -135,7 +135,7 @@ export const StudentDashboard: React.FC = () => {
           <div className="glass-panel" style={{ flex: '2 1 460px', padding: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
               <BarChart2 size={20} style={{ color: 'var(--primary)' }} />
-              <h3 style={{ fontSize: '1.2rem', color: '#fff' }}>Kết quả học tập</h3>
+              <h3 style={{ fontSize: '1.2rem', color: 'var(--text-primary)' }}>Kết quả học tập</h3>
             </div>
             <div className="table-container">
               <table className="custom-table">
@@ -177,13 +177,13 @@ export const StudentDashboard: React.FC = () => {
           <div className="glass-panel" style={{ flex: '1 1 280px', padding: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
               <BookOpen size={20} style={{ color: 'var(--accent)' }} />
-              <h3 style={{ fontSize: '1.2rem', color: '#fff' }}>Lịch thi sắp tới</h3>
+              <h3 style={{ fontSize: '1.2rem', color: 'var(--text-primary)' }}>Lịch thi sắp tới</h3>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {data?.upcomingExams.map((exam, i) => (
                 <div key={i} className="glass-panel" style={{ padding: '14px 16px', background: 'rgba(168,85,247,0.05)', borderColor: 'rgba(168,85,247,0.15)' }}>
                   <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{exam.date} · {exam.time}</div>
-                  <div style={{ fontSize: '0.98rem', fontWeight: 600, color: '#fff', marginTop: '4px' }}>{exam.subject}</div>
+                  <div style={{ fontSize: '0.98rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '4px' }}>{exam.subject}</div>
                   <div style={{ marginTop: '6px' }}>
                     <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '99px', background: 'rgba(168,85,247,0.15)', color: 'var(--accent)', border: '1px solid rgba(168,85,247,0.3)' }}>
                       {exam.type}

@@ -80,7 +80,7 @@ export const TeacherDashboard: React.FC = () => {
       {/* Title */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
         <div>
-          <h2 style={{ fontSize: '2rem', color: '#fff', fontFamily: 'var(--font-display)' }}>Khu vực giảng dạy</h2>
+          <h2 style={{ fontSize: '2rem', color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>Khu vực giảng dạy</h2>
           <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>Quản lý lớp học và lịch dạy hôm nay</p>
         </div>
         <button onClick={fetchTeacherData} className="btn btn-outline" style={{ display: 'flex', gap: '8px' }}>
@@ -111,7 +111,7 @@ export const TeacherDashboard: React.FC = () => {
           </div>
           <div>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Lịch dạy hôm nay</div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#fff', marginTop: '4px' }}>
+            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>
               {data?.sessions?.filter((s: any) => s.date === new Date().toISOString().split('T')[0]).length || 0} ca dạy
             </div>
           </div>
@@ -133,7 +133,7 @@ export const TeacherDashboard: React.FC = () => {
           </div>
           <div>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Bài kiểm tra chờ chấm</div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#fff', marginTop: '4px' }}>{data?.pendingGradingCount} bài</div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>{data?.pendingGradingCount} bài</div>
           </div>
         </div>
       </div>
@@ -149,15 +149,15 @@ export const TeacherDashboard: React.FC = () => {
 
         {/* Quick info Card */}
         <div className="glass-panel" style={{ padding: '24px', background: 'var(--card-bg)' }}>
-          <h3 style={{ fontSize: '1.25rem', color: '#fff', marginBottom: '16px' }}>Thông tin giảng viên</h3>
+          <h3 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', marginBottom: '16px' }}>Thông tin giảng viên</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.95rem' }}>
             <div>
               <span style={{ color: 'var(--text-muted)' }}>Họ tên: </span>
-              <span style={{ color: '#fff', fontWeight: 500 }}>{data?.teacherInfo.name}</span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{data?.teacherInfo.name}</span>
             </div>
             <div>
               <span style={{ color: 'var(--text-muted)' }}>Mã giáo viên: </span>
-              <span style={{ color: '#fff', fontWeight: 500 }}>{data?.teacherInfo.id}</span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{data?.teacherInfo.id}</span>
             </div>
             <div>
               <span style={{ color: 'var(--text-muted)' }}>Quyền truy cập: </span>

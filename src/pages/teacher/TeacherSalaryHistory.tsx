@@ -94,7 +94,7 @@ const TeacherSalaryHistory: React.FC = () => {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
         <div>
-          <h2 style={{ fontSize: '2rem', color: '#fff' }}>Lịch sử nhận lương</h2>
+          <h2 style={{ fontSize: '2rem', color: 'var(--text-primary)' }}>Lịch sử nhận lương</h2>
           <p style={{ color: 'var(--text-secondary)', marginTop: 4 }}>
             Theo dõi các kỳ thanh toán và chi tiết lớp đã giảng dạy.
           </p>
@@ -114,7 +114,7 @@ const TeacherSalaryHistory: React.FC = () => {
         {[
           { label: 'Tổng đã nhận', value: currency(data.summary.totalPaid), color: '#34d399' },
           { label: 'Còn chờ thanh toán', value: currency(data.summary.totalPending), color: '#fbbf24' },
-          { label: 'Kỳ đã thanh toán', value: `${data.summary.paidPeriods}/${data.summary.totalPeriods}`, color: '#fff' },
+          { label: 'Kỳ đã thanh toán', value: `${data.summary.paidPeriods}/${data.summary.totalPeriods}`, color: 'var(--text-primary)' },
         ].map((item) => (
           <div key={item.label} className="glass-panel" style={{ padding: 18 }}>
             <div style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{item.label}</div>
@@ -177,7 +177,7 @@ const TeacherSalaryHistory: React.FC = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                     <DollarSign size={26} color={paid ? '#34d399' : '#fbbf24'} />
                     <div>
-                      <div style={{ color: '#fff', fontSize: 17, fontWeight: 700 }}>
+                      <div style={{ color: 'var(--text-primary)', fontSize: 17, fontWeight: 700 }}>
                         Kỳ lương tháng {wage.month}
                       </div>
                       <div style={{ color: 'var(--text-secondary)', marginTop: 5 }}>

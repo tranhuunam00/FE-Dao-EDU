@@ -59,7 +59,7 @@ export const AssignmentsTab: React.FC<AssignmentsTabProps> = ({ classId }) => {
             title: 'Tiêu đề bài tập',
             render: (_, r: any) => (
               <div>
-                <b style={{ color: '#fff' }}>{r.title}</b>
+                <b style={{ color: 'var(--text-primary)' }}>{r.title}</b>
                 {r.description && <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: 4 }}>{r.description}</div>}
               </div>
             )

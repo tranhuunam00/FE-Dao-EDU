@@ -65,7 +65,7 @@ export const Unauthorized: React.FC = () => {
           fontSize: '1.8rem',
           fontFamily: 'var(--font-display)',
           marginBottom: '12px',
-          color: '#fff'
+          color: 'var(--text-primary)'
         }}>
           Truy cập bị từ chối
         </h1>

@@ -149,7 +149,7 @@ export const StudyMaterials: React.FC = () => {
     <div style={{ padding: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <Title level={2} style={{ color: '#fff', margin: 0, fontFamily: 'var(--font-display)' }}>Tài liệu học tập</Title>
+          <Title level={2} style={{ color: 'var(--text-primary)', margin: 0, fontFamily: 'var(--font-display)' }}>Tài liệu học tập</Title>
           <Paragraph style={{ color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>Tải lên và tải về tài liệu cho các lớp học</Paragraph>
         </div>
         {canUpload && selectedClassId && (
@@ -209,7 +209,7 @@ export const StudyMaterials: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <FileTextOutlined style={{ fontSize: 24, color: '#818cf8' }} />
                   <div>
-                    <div style={{ color: '#fff', fontWeight: 600, fontSize: 14 }}>{v}</div>
+                    <div style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: 14 }}>{v}</div>
                     {r.description && <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginTop: 2 }}>{r.description}</div>}
                   </div>
                 </div>

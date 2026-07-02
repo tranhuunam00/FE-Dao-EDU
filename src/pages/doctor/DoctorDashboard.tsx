@@ -62,7 +62,7 @@ export const DoctorDashboard: React.FC = () => {
       {/* Title */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
         <div>
-          <h2 style={{ fontSize: '2rem', color: '#fff', fontFamily: 'var(--font-display)' }}>Khu vực chuyên môn</h2>
+          <h2 style={{ fontSize: '2rem', color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>Khu vực chuyên môn</h2>
           <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>Quản lý bệnh nhân và lịch hẹn hôm nay</p>
         </div>
         <button onClick={fetchDoctorData} className="btn btn-outline" style={{ display: 'flex', gap: '8px' }}>
@@ -93,7 +93,7 @@ export const DoctorDashboard: React.FC = () => {
           </div>
           <div>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Lịch khám hôm nay</div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#fff', marginTop: '4px' }}>{data?.appointments.length} ca</div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>{data?.appointments.length} ca</div>
           </div>
         </div>
 
@@ -113,7 +113,7 @@ export const DoctorDashboard: React.FC = () => {
           </div>
           <div>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Đơn thuốc chờ duyệt</div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#fff', marginTop: '4px' }}>{data?.pendingPrescriptionsCount} đơn</div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>{data?.pendingPrescriptionsCount} đơn</div>
           </div>
         </div>
       </div>
@@ -124,7 +124,7 @@ export const DoctorDashboard: React.FC = () => {
         <div className="glass-panel" style={{ flex: '2 1 500px', padding: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
             <Users size={20} style={{ color: 'var(--secondary)' }} />
-            <h3 style={{ fontSize: '1.25rem', color: '#fff' }}>Lịch hẹn của tôi</h3>
+            <h3 style={{ fontSize: '1.25rem', color: 'var(--text-primary)' }}>Lịch hẹn của tôi</h3>
           </div>
 
           <div className="table-container">
@@ -157,15 +157,15 @@ export const DoctorDashboard: React.FC = () => {
 
         {/* Quick info Card */}
         <div className="glass-panel" style={{ flex: '1 1 300px', padding: '24px', background: 'rgba(255,255,255,0.01)' }}>
-          <h3 style={{ fontSize: '1.25rem', color: '#fff', marginBottom: '16px' }}>Thông tin tài khoản</h3>
+          <h3 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', marginBottom: '16px' }}>Thông tin tài khoản</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.95rem' }}>
             <div>
               <span style={{ color: 'var(--text-muted)' }}>Email: </span>
-              <span style={{ color: '#fff', fontWeight: 500 }}>{data?.doctorInfo.email}</span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{data?.doctorInfo.email}</span>
             </div>
             <div>
               <span style={{ color: 'var(--text-muted)' }}>Mã nhân viên: </span>
-              <span style={{ color: '#fff', fontWeight: 500 }}>{data?.doctorInfo.id}</span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{data?.doctorInfo.id}</span>
             </div>
             <div>
               <span style={{ color: 'var(--text-muted)' }}>Quyền truy cập: </span>

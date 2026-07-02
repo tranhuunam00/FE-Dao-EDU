@@ -106,7 +106,7 @@ const ManagedLeaveRequests: React.FC = () => {
         style={{ width: '100%', justifyContent: 'space-between', marginBottom: 20 }}
       >
         <div>
-          <h2 style={{ color: '#fff', fontSize: 30, marginBottom: 4 }}>
+          <h2 style={{ color: 'var(--text-primary)', fontSize: 30, marginBottom: 4 }}>
             Quản lý đơn xin nghỉ
           </h2>
           <p style={{ color: 'var(--text-secondary)' }}>

@@ -81,7 +81,7 @@ export const PatientDashboard: React.FC = () => {
       {/* Title */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
         <div>
-          <h2 style={{ fontSize: '2rem', color: '#fff', fontFamily: 'var(--font-display)' }}>Cổng sức khỏe cá nhân</h2>
+          <h2 style={{ fontSize: '2rem', color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>Cổng sức khỏe cá nhân</h2>
           <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>Tra cứu bệnh án, lịch khám bệnh của bạn</p>
         </div>
         <button onClick={fetchPatientData} className="btn btn-outline" style={{ display: 'flex', gap: '8px' }}>
@@ -94,7 +94,7 @@ export const PatientDashboard: React.FC = () => {
         <div className="glass-panel" style={{ flex: '2 1 500px', padding: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
             <FileText size={20} style={{ color: 'var(--primary)' }} />
-            <h3 style={{ fontSize: '1.25rem', color: '#fff' }}>Lịch sử điều trị & Bệnh án</h3>
+            <h3 style={{ fontSize: '1.25rem', color: 'var(--text-primary)' }}>Lịch sử điều trị & Bệnh án</h3>
           </div>
 
           <div className="table-container">
@@ -128,13 +128,13 @@ export const PatientDashboard: React.FC = () => {
           <div className="glass-panel" style={{ padding: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
               <Heart size={18} style={{ color: 'var(--danger)' }} />
-              <h3 style={{ fontSize: '1.15rem', color: '#fff' }}>Lịch khám sắp tới</h3>
+              <h3 style={{ fontSize: '1.15rem', color: 'var(--text-primary)' }}>Lịch khám sắp tới</h3>
             </div>
             
             {data?.upcomingAppointments.map((app, idx) => (
               <div key={idx} className="glass-panel" style={{ padding: '16px', background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(99, 102, 241, 0.2)' }}>
                 <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{app.date} | {app.time}</div>
-                <div style={{ fontSize: '1rem', fontWeight: 600, color: '#fff', marginTop: '6px' }}>{app.doctorName}</div>
+                <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '6px' }}>{app.doctorName}</div>
                 <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span className="badge badge-patient" style={{ fontSize: '0.7rem' }}>{app.status}</span>
                 </div>
@@ -144,7 +144,7 @@ export const PatientDashboard: React.FC = () => {
 
           {/* Book Appointment Form */}
           <div className="glass-panel" style={{ padding: '24px' }}>
-            <h3 style={{ fontSize: '1.15rem', color: '#fff', marginBottom: '16px' }}>Đăng ký khám nhanh</h3>
+            <h3 style={{ fontSize: '1.15rem', color: 'var(--text-primary)', marginBottom: '16px' }}>Đăng ký khám nhanh</h3>
             
             {bookSuccess ? (
               <div className="glass-panel animate-fade-in" style={{

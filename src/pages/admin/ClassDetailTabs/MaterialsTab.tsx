@@ -110,7 +110,7 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ classId }) => {
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <FileTextOutlined style={{ fontSize: 24, color: '#818cf8' }} />
                 <div>
-                  <b style={{ color: '#fff' }}>{r.title}</b>
+                  <b style={{ color: 'var(--text-primary)' }}>{r.title}</b>
                   {r.description && <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: 4 }}>{r.description}</div>}
                 </div>
               </div>

@@ -150,7 +150,7 @@ const TeacherClasses: React.FC = () => {
         }}
       >
         <div>
-          <h2 style={{ fontSize: '2rem', color: '#fff' }}>Lớp và học sinh</h2>
+          <h2 style={{ fontSize: '2rem', color: 'var(--text-primary)' }}>Lớp và học sinh</h2>
           <p style={{ color: 'var(--text-secondary)', marginTop: 4 }}>
             Theo dõi các lớp được phân công và thông tin học sinh đang theo học.
           </p>
@@ -192,7 +192,7 @@ const TeacherClasses: React.FC = () => {
                 <item.icon size={26} color={item.color} />
                 <div>
                   <div style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{item.label}</div>
-                  <div style={{ color: '#fff', fontSize: 24, fontWeight: 700, marginTop: 3 }}>
+                  <div style={{ color: 'var(--text-primary)', fontSize: 24, fontWeight: 700, marginTop: 3 }}>
                     {item.value}
                   </div>
                 </div>
@@ -203,7 +203,7 @@ const TeacherClasses: React.FC = () => {
           {data.classes.length === 0 ? (
             <div className="glass-panel" style={{ padding: 48, textAlign: 'center' }}>
               <BookOpen size={44} style={{ margin: '0 auto 14px', color: 'var(--text-muted)' }} />
-              <h3 style={{ color: '#fff' }}>Chưa có lớp được phân công</h3>
+              <h3 style={{ color: 'var(--text-primary)' }}>Chưa có lớp được phân công</h3>
               <p style={{ color: 'var(--text-secondary)', marginTop: 8 }}>
                 Các lớp giáo viên chính hoặc buổi dạy được phân công sẽ xuất hiện tại đây.
               </p>
@@ -255,12 +255,12 @@ const TeacherClasses: React.FC = () => {
                         }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                          <strong style={{ color: '#fff' }}>{item.classCode}</strong>
+                          <strong style={{ color: 'var(--text-primary)' }}>{item.classCode}</strong>
                           <span className={item.status === 'Active' ? 'badge badge-teacher' : 'badge badge-student'}>
                             {item.status === 'Active' ? 'Đang học' : item.status}
                           </span>
                         </div>
-                        <div style={{ color: '#fff', marginTop: 8 }}>{item.className}</div>
+                        <div style={{ color: 'var(--text-primary)', marginTop: 8 }}>{item.className}</div>
                         <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginTop: 6 }}>
                           {item.courseName} {item.levelName ? `• ${item.levelName}` : ''}
                         </div>
@@ -285,7 +285,7 @@ const TeacherClasses: React.FC = () => {
                       }}
                     >
                       <div>
-                        <div style={{ color: '#fff', fontSize: 20, fontWeight: 700 }}>
+                        <div style={{ color: 'var(--text-primary)', fontSize: 20, fontWeight: 700 }}>
                           {selectedClass.className}
                         </div>
                         <div style={{ color: 'var(--primary)', marginTop: 4 }}>
@@ -359,7 +359,7 @@ const TeacherClasses: React.FC = () => {
                         {filteredStudents.map((student) => (
                           <tr key={student.enrollmentId}>
                             <td>
-                              <div style={{ color: '#fff', fontWeight: 600 }}>
+                              <div style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
                                 {student.lastName} {student.firstName}
                                 {student.nickName ? ` (${student.nickName})` : ''}
                               </div>

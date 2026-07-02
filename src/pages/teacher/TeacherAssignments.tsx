@@ -127,11 +127,11 @@ const TeacherAssignments: React.FC = () => {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-        <div><h2 style={{ color: '#fff', fontSize: 30 }}>Bài tập & Chấm điểm</h2><p style={{ color: 'var(--text-secondary)' }}>Giao bài theo lớp, theo dõi tiến độ và trả điểm.</p></div>
+        <div><h2 style={{ color: 'var(--text-primary)', fontSize: 30 }}>Bài tập & Chấm điểm</h2><p style={{ color: 'var(--text-secondary)' }}>Giao bài theo lớp, theo dõi tiến độ và trả điểm.</p></div>
         <Button type="primary" icon={<Plus size={16} />} onClick={() => setCreateOpen(true)}>Giao bài</Button>
       </div>
       <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
-        {cards.map(([label, value, Icon, color]: any) => <Col xs={12} lg={6} key={label}><Card className="glass-panel"><Space><Icon color={color} /><div><small style={{ color: 'var(--text-secondary)' }}>{label}</small><div style={{ color: '#fff', fontSize: 24, fontWeight: 700 }}>{value}</div></div></Space></Card></Col>)}
+        {cards.map(([label, value, Icon, color]: any) => <Col xs={12} lg={6} key={label}><Card className="glass-panel"><Space><Icon color={color} /><div><small style={{ color: 'var(--text-secondary)' }}>{label}</small><div style={{ color: 'var(--text-primary)', fontSize: 24, fontWeight: 700 }}>{value}</div></div></Space></Card></Col>)}
       </Row>
       <Card className="glass-panel" title="Danh sách bài tập">
         <Table loading={loading} dataSource={assignments} rowKey="id" scroll={{ x: 900 }} columns={[

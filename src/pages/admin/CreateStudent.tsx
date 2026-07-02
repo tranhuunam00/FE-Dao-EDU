@@ -205,7 +205,7 @@ export const CreateStudent: React.FC = () => {
                       boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
                     }}
                   >
-                    <CameraOutlined style={{ fontSize: '12px', color: '#fff' }} />
+                    <CameraOutlined style={{ fontSize: '12px', color: 'var(--text-primary)' }} />
                   </div>
                 </Upload>
               </div>
