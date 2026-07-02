@@ -40,21 +40,7 @@ export const TeacherDashboard: React.FC = () => {
     try {
       const response = await api.get('/dashboard/teacher');
       
-      // Process sessions for calendar colors
-      if (response.data && response.data.sessions) {
-        response.data.sessions = response.data.sessions.map((s: any) => {
-          let color = 'blue';
-          if (s.isPast) {
-            // Check if attendance is done. For now we assume if it's past and attendanceLocked is true, or status is Completed
-            if (s.attendanceLocked || s.status === 'Completed') {
-              color = 'green';
-            } else {
-              color = 'red';
-            }
-          }
-          return { ...s, attendanceColor: color };
-        });
-      }
+
 
       setData(response.data);
     } catch (err: any) {
