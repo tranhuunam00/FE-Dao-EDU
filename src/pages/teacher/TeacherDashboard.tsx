@@ -34,20 +34,23 @@ export const TeacherDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedSession, setSelectedSession] = useState<any | null>(null);
 
-  const fetchTeacherData = async () => {
-    setLoading(true);
+  const fetchTeacherData = async (silent = false) => {
+    if (!silent) setLoading(true);
     setError(null);
     try {
       const response = await api.get('/dashboard/teacher');
-      
-
-
       setData(response.data);
+      if (selectedSession) {
+        const freshSession = response.data.sessions?.find((s: any) => s.id === selectedSession.id);
+        if (freshSession) {
+          setSelectedSession(freshSession);
+        }
+      }
     } catch (err: any) {
       console.error(err);
       setError(err.response?.data?.message || 'Lỗi khi tải dữ liệu Giáo viên. Vui lòng kiểm tra backend.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -68,7 +71,7 @@ export const TeacherDashboard: React.FC = () => {
       <div className="glass-panel" style={{ padding: '24px', borderColor: 'var(--danger)', color: '#fca5a5' }}>
         <h3 style={{ marginBottom: '12px' }}>Không thể kết nối đến máy chủ</h3>
         <p>{error}</p>
-        <button onClick={fetchTeacherData} className="btn btn-outline" style={{ marginTop: '16px', gap: '8px' }}>
+        <button onClick={() => fetchTeacherData()} className="btn btn-outline" style={{ marginTop: '16px', gap: '8px' }}>
           <RefreshCw size={16} /> Thử lại
         </button>
       </div>
@@ -83,7 +86,7 @@ export const TeacherDashboard: React.FC = () => {
           <h2 style={{ fontSize: '2rem', color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>Khu vực giảng dạy</h2>
           <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>Quản lý lớp học và lịch dạy hôm nay</p>
         </div>
-        <button onClick={fetchTeacherData} className="btn btn-outline" style={{ display: 'flex', gap: '8px' }}>
+        <button onClick={() => fetchTeacherData()} className="btn btn-outline" style={{ display: 'flex', gap: '8px' }}>
           <RefreshCw size={16} /> Làm mới
         </button>
       </div>
@@ -173,7 +176,7 @@ export const TeacherDashboard: React.FC = () => {
         <AttendanceModal 
           session={selectedSession} 
           onClose={() => setSelectedSession(null)} 
-          onSuccess={fetchTeacherData} 
+          onSuccess={() => fetchTeacherData(true)} 
         />
       )}
     </div>

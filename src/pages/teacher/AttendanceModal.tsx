@@ -46,6 +46,11 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
     fetchAttendance();
   }, [session.id]);
 
+  useEffect(() => {
+    setSessionStatus(session.status);
+    setAttendanceLocked(session.attendanceLocked);
+  }, [session.status, session.attendanceLocked]);
+
   const toggleAttendance = (studentId: string) => {
     if (attendanceLocked || sessionStatus === 'Scheduled') return;
     setAttendances(prev => prev.map(a => 
