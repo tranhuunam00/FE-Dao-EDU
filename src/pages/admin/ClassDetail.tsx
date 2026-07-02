@@ -15,6 +15,8 @@ import { useAuth, Role } from '../../context/AuthContext';
 import { GeneralTab } from './ClassDetailTabs/GeneralTab';
 import { StudentsTab } from './ClassDetailTabs/StudentsTab';
 import { ScheduleTab } from './ClassDetailTabs/ScheduleTab';
+import { AssignmentsTab } from './ClassDetailTabs/AssignmentsTab';
+import { MaterialsTab } from './ClassDetailTabs/MaterialsTab';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -486,6 +488,16 @@ const ClassDetailInner: React.FC = () => {
             key: 'sessions',
             label: `Lịch dạy & Điểm danh (${sessions.length})`,
             children: <ScheduleTab sessions={sessions} handleGenerateSessions={handleGenerateSessions} openSessionDetail={openSessionDetail} />
+          },
+          {
+            key: 'assignments',
+            label: 'Bài tập',
+            children: <AssignmentsTab classId={classData.id} />
+          },
+          {
+            key: 'materials',
+            label: 'Tài liệu học tập',
+            children: <MaterialsTab classId={classData.id} />
           }
         ]}
       />
