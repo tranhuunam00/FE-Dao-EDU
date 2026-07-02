@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Button, Table, Typography, Space, Tag, Spin, App, Modal, Popconfirm, Select, DatePicker, Form, Input, Tooltip, Badge } from 'antd';
-import { LockOutlined, UnlockOutlined, CheckCircleOutlined, DeleteOutlined, CloseCircleOutlined, ArrowLeftOutlined, DownloadOutlined, QrcodeOutlined, SendOutlined, PrinterOutlined, CopyOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { LockOutlined, UnlockOutlined, CheckCircleOutlined, DeleteOutlined, CloseCircleOutlined, ArrowLeftOutlined, DownloadOutlined, QrcodeOutlined, PrinterOutlined, CopyOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../../services/api';
 
@@ -25,7 +25,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
 
   const [periods, setPeriods] = useState<any[]>([]);
   const [periodsLoading, setPeriodsLoading] = useState(false);
-  
+
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null);
   const [periodDetail, setPeriodDetail] = useState<any>(null);
   const [periodDetailLoading, setPeriodDetailLoading] = useState(false);
@@ -199,21 +199,6 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
     }
   };
 
-  const sendTuitionQr = async (order: any) => {
-    setCurrentOrder(order);
-    setQrSending(true);
-    try {
-      const { data } = await api.post(`/tuition-payment-requests/bills/${order.id}/send`);
-      setQrRequest(data);
-      setQrVisible(true);
-      message.success('Đã gửi QR và thông báo cho học sinh');
-      loadPeriodDetail(selectedPeriodId!);
-    } catch (err: any) {
-      message.error(err.response?.data?.message || 'Không thể gửi QR thanh toán');
-    } finally {
-      setQrSending(false);
-    }
-  };
 
   const sendQrToAll = async () => {
     if (!periodDetail) return;
@@ -245,7 +230,9 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
     setDetailType(type === 'tuition' ? 'student' : 'teacher');
     setDetailTitle(`${record.code} - ${record.name}`);
     setDetailItems(record.items || []);
+
     setDetailAuditLogs(record.auditLogs || []);
+
     setDetailVisible(true);
   };
 
@@ -868,19 +855,19 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                 pagination={false}
                 size="small"
                 columns={[
-                  { 
-                    title: 'Ngày học', 
-                    dataIndex: 'className', 
-                    key: 'sessionDate', 
+                  {
+                    title: 'Ngày học',
+                    dataIndex: 'className',
+                    key: 'sessionDate',
                     align: 'center',
                     render: (v) => {
                       const match = v?.match(/\(Buổi (.*?)\)/);
                       return match ? match[1] : '-';
                     }
                   },
-                  { 
-                    title: 'Lớp học', 
-                    dataIndex: 'className', 
+                  {
+                    title: 'Lớp học',
+                    dataIndex: 'className',
                     key: 'className',
                     render: (v) => v?.replace(/\(Buổi .*?\)/, '').trim() || v
                   },
