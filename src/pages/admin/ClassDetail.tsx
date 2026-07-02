@@ -641,6 +641,28 @@ const ClassDetailInner: React.FC = () => {
               </div>
             ) : (
               <div>
+                <div style={{ marginBottom: 12, display: 'flex', gap: 8 }}>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      setSessionAttendance(prev => prev.map(a => ({ ...a, isPresent: true })));
+                    }}
+                    disabled={currentSession.attendanceLocked && !isOverrideMode}
+                    style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}
+                  >
+                    Có mặt tất cả
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      setSessionAttendance(prev => prev.map(a => ({ ...a, isPresent: false })));
+                    }}
+                    disabled={currentSession.attendanceLocked && !isOverrideMode}
+                    style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444' }}
+                  >
+                    Vắng mặt tất cả
+                  </Button>
+                </div>
                 <Table
                   dataSource={sessionAttendance}
                   rowKey="studentId"
