@@ -34,7 +34,9 @@ const StudentAssignments: React.FC = () => {
     if (values.answerText) formData.append('answerText', values.answerText);
     values.files?.forEach((item: any) => formData.append('files', item.originFileObj));
     try {
-      await api.post(`/assignments/${selected.id}/submit`, formData);
+      await api.post(`/assignments/${selected.id}/submit`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       message.success('Đã nộp bài thành công');
       setSelected(null);
       form.resetFields();

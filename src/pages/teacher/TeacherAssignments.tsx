@@ -60,7 +60,9 @@ const TeacherAssignments: React.FC = () => {
       if (files?.length) {
         const formData = new FormData();
         files.forEach((item: any) => formData.append('files', item.originFileObj));
-        await api.post(`/assignments/${data.id}/attachments`, formData);
+        await api.post(`/assignments/${data.id}/attachments`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
       }
       if (requestedStatus === 'published') {
         await api.patch(`/assignments/${data.id}`, { status: 'published' });
