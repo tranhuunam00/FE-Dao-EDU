@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Button, Table, Typography, Space, Tag, Spin, App, Modal, Popconfirm, Select, DatePicker, Form, Input, Tooltip, Badge } from 'antd';
-import { LockOutlined, UnlockOutlined, CheckCircleOutlined, DeleteOutlined, CloseCircleOutlined, ArrowLeftOutlined, DownloadOutlined, QrcodeOutlined, PrinterOutlined, CopyOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { LockOutlined, UnlockOutlined, CheckCircleOutlined, DeleteOutlined, CloseCircleOutlined, ArrowLeftOutlined, DownloadOutlined, QrcodeOutlined, PrinterOutlined, CopyOutlined, ThunderboltOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../../services/api';
 
@@ -668,37 +668,57 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                     title: 'Trạng thái',
                     dataIndex: 'status',
                     key: 'status',
-                    width: 130,
+                    width: 140,
                     align: 'center' as const,
-                    render: (v: string) => (
-                      <Tag color={v === 'Paid' ? 'green' : 'red'} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                        {v === 'Paid' ? <CheckCircleOutlined /> : <CloseCircleOutlined />} {v === 'Paid' ? 'Thành công' : 'Chờ thu/chi'}
-                      </Tag>
-                    )
+                    render: (v: string, r: any) => {
+                      if (v === 'Paid') {
+                        return (
+                          <Tag color="green" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <CheckCircleOutlined /> Thành công
+                          </Tag>
+                        );
+                      }
+                      if (r.paymentRequest?.claimedAt) {
+                        return (
+                          <Tag color="gold" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <ClockCircleOutlined /> PH đã báo nộp
+                          </Tag>
+                        );
+                      }
+                      return (
+                        <Tag color="red" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <CloseCircleOutlined /> {periodDetail.period.type === 'tuition' ? 'Chờ thanh toán' : 'Chờ chi trả'}
+                        </Tag>
+                      );
+                    }
                   },
                   {
-                    title: 'Thời gian giao dịch',
-                    key: 'paymentTimestamps',
-                    width: 220,
+                    title: 'Thời gian PH xác nhận',
+                    key: 'claimedAt',
+                    width: 180,
                     render: (_, r: any) => {
                       const claimed = r.paymentRequest?.claimedAt;
+                      return claimed ? (
+                        <Text style={{ color: '#fbbf24', fontWeight: 500 }}>
+                          {dayjs(claimed).format('DD/MM/YYYY HH:mm')}
+                        </Text>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)' }}>—</span>
+                      );
+                    }
+                  },
+                  {
+                    title: 'Thời gian duyệt/đối soát',
+                    key: 'paymentDate',
+                    width: 180,
+                    render: (_, r: any) => {
                       const paid = r.status === 'Paid' ? r.paymentDate : null;
-                      return (
-                        <div style={{ fontSize: '0.85rem', lineHeight: '1.4' }}>
-                          {claimed && (
-                            <div>
-                              <span style={{ color: 'var(--text-secondary)' }}>PH báo nộp: </span>
-                              <span style={{ color: '#fbbf24', fontWeight: 500 }}>{dayjs(claimed).format('DD/MM/YYYY HH:mm')}</span>
-                            </div>
-                          )}
-                          {paid && (
-                            <div>
-                              <span style={{ color: 'var(--text-secondary)' }}>Duyệt/Đối soát: </span>
-                              <span style={{ color: '#10b981', fontWeight: 600 }}>{dayjs(paid).format('DD/MM/YYYY HH:mm')}</span>
-                            </div>
-                          )}
-                          {!claimed && !paid && <span style={{ color: 'var(--text-muted)' }}>—</span>}
-                        </div>
+                      return paid ? (
+                        <Text style={{ color: '#10b981', fontWeight: 600 }}>
+                          {dayjs(paid).format('DD/MM/YYYY HH:mm')}
+                        </Text>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)' }}>—</span>
                       );
                     }
                   },
