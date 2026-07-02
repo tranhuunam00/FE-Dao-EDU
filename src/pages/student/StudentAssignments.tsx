@@ -93,7 +93,7 @@ const StudentAssignments: React.FC = () => {
 
   return (
     <div>
-      <h2 style={{ color: '#fff', fontSize: 30 }}>Bài tập của tôi</h2>
+      <h2 style={{ fontSize: 30, color: 'var(--text-primary)' }}>Bài tập của tôi</h2>
       <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>Theo dõi hạn nộp, nộp bài và xem kết quả.</p>
       <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
         {cards.map(([label, value, Icon, color]: any) => (
@@ -103,7 +103,7 @@ const StudentAssignments: React.FC = () => {
                 <Icon color={color} />
                 <div>
                   <small style={{ color: 'var(--text-secondary)' }}>{label}</small>
-                  <div style={{ fontSize: 24, fontWeight: 700, color: '#fff' }}>{value}</div>
+                  <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>{value}</div>
                 </div>
               </Space>
             </Card>
@@ -124,7 +124,7 @@ const StudentAssignments: React.FC = () => {
             >
               <div style={{ color: 'var(--text-secondary)' }}>{item.classEntity?.classCode} - {item.classEntity?.className}</div>
               <p style={{ margin: '12px 0', color: 'var(--text-primary)' }}>{item.description || 'Không có mô tả'}</p>
-              <div style={{ color: 'var(--text-secondary)' }}>Hạn nộp: <b style={{ color: '#fff' }}>{item.dueAt ? dayjs(item.dueAt).format('DD/MM/YYYY HH:mm') : 'Không giới hạn'}</b></div>
+              <div style={{ color: 'var(--text-secondary)' }}>Hạn nộp: <b style={{ color: 'var(--text-primary)' }}>{item.dueAt ? dayjs(item.dueAt).format('DD/MM/YYYY HH:mm') : 'Không giới hạn'}</b></div>
               
               <div style={{ margin: '12px 0' }}>
                 {item.attachments?.map((x: any) => (
@@ -140,7 +140,7 @@ const StudentAssignments: React.FC = () => {
                 <div style={{ padding: 12, background: 'rgba(52,211,153,.1)', borderRadius: 8, marginBottom: 12 }}>
                   <span style={{ color: 'var(--text-secondary)' }}>Điểm:</span> <b style={{ color: '#10b981' }}>{Number(item.submission.score)}/{Number(item.maxScore)}</b>
                   <br />
-                  <span style={{ color: 'var(--text-secondary)' }}>Nhận xét:</span> <span style={{ color: '#fff' }}>{item.submission.feedback || '-'}</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>Nhận xét:</span> <span style={{ color: 'var(--text-primary)' }}>{item.submission.feedback || '-'}</span>
                 </div>
               )}
 
