@@ -108,7 +108,7 @@ const LoginInner: React.FC = () => {
       alignItems: 'center',
       justifyContent: 'center',
       minHeight: '100vh',
-      backgroundColor: 'var(--bg-primary)',
+      backgroundColor: '#0f172a',
       padding: '24px',
       position: 'relative',
       overflow: 'hidden'
@@ -151,7 +151,7 @@ const LoginInner: React.FC = () => {
               style={{
                 width: '100%',
                 border: 'none',
-                background: 'rgba(17, 24, 39, 0.75)',
+                background: 'rgba(17, 24, 39, 0.95)',
                 boxShadow: '0 20px 50px rgba(0, 0, 0, 0.4)',
                 padding: '16px'
               }}
@@ -200,7 +200,7 @@ const LoginInner: React.FC = () => {
                     id="login-email"
                     placeholder="admin@dao.edu.vn"
                     size="large"
-                    style={{ background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', color: '#fff' }}
+                    style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.08)', color: '#fff' }}
                     disabled={loading}
                   />
                 </Form.Item>
@@ -216,7 +216,7 @@ const LoginInner: React.FC = () => {
                     id="login-password"
                     placeholder="••••••••"
                     size="large"
-                    style={{ background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', color: '#fff' }}
+                    style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.08)', color: '#fff' }}
                     disabled={loading}
                   />
                 </Form.Item>
@@ -257,7 +257,7 @@ const LoginInner: React.FC = () => {
                 style={{
                   width: '100%',
                   border: 'none',
-                  background: 'rgba(99, 102, 241, 0.03)',
+                  background: 'rgba(99, 102, 241, 0.06)',
                   borderColor: 'rgba(99, 102, 241, 0.12)',
                   boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)',
                   padding: '16px',

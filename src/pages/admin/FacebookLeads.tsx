@@ -693,7 +693,7 @@ function FacebookLeadsInner() {
           <Row gutter={24} style={{ height: '100%', display: 'flex' }}>
             {/* Left Column: Demand / Evidence Comments Tree */}
             <Col span={12} style={{ borderRight: '1px solid var(--card-border)', height: '100%', overflowY: 'auto', paddingRight: 16 }}>
-              <Title level={4} style={{ borderBottom: '1px solid var(--card-border)', paddingBottom: 8 }}>
+              <Title level={4} style={{ borderBottom: '1px solid var(--card-border)', paddingBottom: 8, color: 'var(--text-primary)' }}>
                 Lịch sử Nhu cầu ({leadDetail.demands.length})
               </Title>
               {leadDetail.demands.length === 0 ? (
@@ -772,7 +772,7 @@ function FacebookLeadsInner() {
             {/* Right Column: Interaction Care Timeline & Form */}
             <Col span={12} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', paddingLeft: 16 }}>
               <div style={{ flex: 1, overflowY: 'auto', marginBottom: 16 }}>
-                <Title level={4} style={{ borderBottom: '1px solid var(--card-border)', paddingBottom: 8 }}>
+                <Title level={4} style={{ borderBottom: '1px solid var(--card-border)', paddingBottom: 8, color: 'var(--text-primary)' }}>
                   Lịch sử Chăm sóc ({leadDetail.interactions.length})
                 </Title>
 

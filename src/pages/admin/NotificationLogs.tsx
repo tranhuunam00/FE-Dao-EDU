@@ -86,7 +86,7 @@ export default function NotificationLogs() {
       <div style={{ marginBottom: 20 }}>
         <Space>
           <SafetyCertificateOutlined style={{ color: 'var(--primary)', fontSize: 24 }} />
-          <Title level={2} style={{ margin: 0 }}>Nhật ký thông báo</Title>
+          <Title level={2} style={{ margin: 0, color: 'var(--text-primary)' }}>Nhật ký thông báo</Title>
         </Space>
         <div style={{ color: 'var(--text-secondary)', marginTop: 6 }}>
           Audit log bất biến cho các sự kiện tạo, đọc, đánh dấu chưa đọc và lưu trữ.

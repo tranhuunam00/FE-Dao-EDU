@@ -523,7 +523,7 @@ function ScanDetail({ scanId }: { scanId: string }) {
       </Descriptions>
 
       <div>
-        <Title level={4} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: 6 }}>
+        <Title level={4} style={{ borderBottom: '1px solid var(--card-border)', paddingBottom: 6, color: 'var(--text-primary)' }}>
           1. AI candidates & Chứng minh
         </Title>
         {candidates.length ? (
@@ -541,7 +541,7 @@ function ScanDetail({ scanId }: { scanId: string }) {
       </div>
 
       <div>
-        <Title level={4} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: 6 }}>
+        <Title level={4} style={{ borderBottom: '1px solid var(--card-border)', paddingBottom: 6, color: 'var(--text-primary)' }}>
           Tất cả profile đã phân loại
         </Title>
         <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
@@ -562,7 +562,7 @@ function ScanDetail({ scanId }: { scanId: string }) {
       </div>
 
       <div>
-        <Title level={4} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: 6 }}>
+        <Title level={4} style={{ borderBottom: '1px solid var(--card-border)', paddingBottom: 6, color: 'var(--text-primary)' }}>
           2. Toàn bộ bình luận đã lưu trong DB (theo postId)
         </Title>
         <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>

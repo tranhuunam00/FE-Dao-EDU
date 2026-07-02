@@ -112,7 +112,7 @@ const Settings: React.FC = () => {
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto' }}>
       <div style={{ marginBottom: 24 }}>
-        <Title level={2} style={{ marginBottom: 4 }}>
+        <Title level={2} style={{ marginBottom: 4, color: 'var(--text-primary)' }}>
           Cài đặt tài khoản
         </Title>
         <Text type="secondary">

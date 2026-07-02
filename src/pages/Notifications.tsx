@@ -110,7 +110,7 @@ export default function Notifications() {
           <div>
             <Space>
               <BellOutlined style={{ color: 'var(--primary)', fontSize: 24 }} />
-              <Title level={2} style={{ margin: 0 }}>Trung tâm thông báo</Title>
+              <Title level={2} style={{ margin: 0, color: 'var(--text-primary)' }}>Trung tâm thông báo</Title>
               <Badge count={unreadCount} />
             </Space>
             <div style={{ color: 'var(--text-secondary)', marginTop: 6 }}>
