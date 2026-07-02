@@ -59,7 +59,7 @@ const ClassDetailInner: React.FC = () => {
 
   // Modals / Drawer Control
   const [isAddStudentVisible, setIsAddStudentVisible] = useState(false);
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
 
   const [isSessionModalVisible, setIsSessionModalVisible] = useState(false);
   const [currentSession, setCurrentSession] = useState<ClassSession | null>(null);
@@ -146,12 +146,12 @@ const ClassDetailInner: React.FC = () => {
   };
 
   const handleAddStudent = async () => {
-    if (!selectedStudentId || !id) return;
+    if (selectedStudentIds.length === 0 || !id) return;
     try {
-      await api.post(`/classes/${id}/students`, { studentId: selectedStudentId });
+      await api.post(`/classes/${id}/students`, { studentIds: selectedStudentIds });
       message.success('Đã thêm học sinh vào lớp thành công!');
       setIsAddStudentVisible(false);
-      setSelectedStudentId(null);
+      setSelectedStudentIds([]);
       loadAllData();
     } catch (err: any) {
       message.error(err.response?.data?.message || 'Lỗi khi thêm học sinh');
@@ -494,19 +494,23 @@ const ClassDetailInner: React.FC = () => {
         title="Thêm Học sinh vào Lớp"
         open={isAddStudentVisible}
         onOk={handleAddStudent}
-        onCancel={() => setIsAddStudentVisible(false)}
+        onCancel={() => {
+          setIsAddStudentVisible(false);
+          setSelectedStudentIds([]);
+        }}
         okText="Thêm"
         cancelText="Hủy"
       >
         <div style={{ padding: '12px 0' }}>
           <Text style={{ display: 'block', marginBottom: 8 }}>Chọn học sinh từ hệ thống:</Text>
           <Select
+            mode="multiple"
             placeholder="Tìm theo Tên hoặc Email..."
             style={{ width: '100%' }}
             showSearch
             optionFilterProp="children"
-            onChange={setSelectedStudentId}
-            value={selectedStudentId}
+            onChange={setSelectedStudentIds}
+            value={selectedStudentIds}
           >
             {allStudents
               .filter(s => !classData.students.some((cs:any) => cs.studentId === s.id && cs.status === 'Active'))
