@@ -36,12 +36,14 @@ interface ClassSession {
   id: string;
   roomId: string | null;
   teacherId: string | null;
+  assistantId: string | null;
   date: string;
   startTime: string;
   endTime: string;
   status: string;
   attendanceLocked: boolean;
   teacher?: { firstName: string; lastName: string };
+  assistant?: { firstName: string; lastName: string };
   room?: { name: string };
 }
 
@@ -338,6 +340,7 @@ const ClassDetailInner: React.FC = () => {
         endTime: values.endTime ? values.endTime.format('HH:mm') : undefined,
         roomId: values.roomId,
         teacherId: values.teacherId,
+        assistantId: values.assistantId || null,
         scope: values.scope,
       };
 
@@ -562,6 +565,12 @@ const ClassDetailInner: React.FC = () => {
                 {currentSession.status === 'Completed' && <Tag color="green">Hoàn thành</Tag>}
                 {currentSession.status === 'Cancelled' && <Tag color="red">Nghỉ học</Tag>}
               </Descriptions.Item>
+              <Descriptions.Item label="Giáo viên">
+                {currentSession.teacher ? `${currentSession.teacher.firstName} ${currentSession.teacher.lastName}` : <span style={{ color: 'var(--text-muted)' }}>Chưa phân công</span>}
+              </Descriptions.Item>
+              <Descriptions.Item label="Trợ giảng (TA)">
+                {currentSession.assistant ? `${currentSession.assistant.firstName} ${currentSession.assistant.lastName}` : <span style={{ color: 'var(--text-muted)' }}>Chưa phân công</span>}
+              </Descriptions.Item>
             </Descriptions>
 
             <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
@@ -604,6 +613,7 @@ const ClassDetailInner: React.FC = () => {
                       endTime: dayjs(currentSession.endTime, 'HH:mm:ss'),
                       roomId: currentSession.roomId,
                       teacherId: currentSession.teacherId,
+                      assistantId: currentSession.assistantId,
                       scope: 'single',
                     });
                     setIsEditSessionVisible(true);
@@ -810,8 +820,13 @@ const ClassDetailInner: React.FC = () => {
                     </Select>
                   </Form.Item>
                   <Form.Item name="teacherId" label="Giáo viên đứng lớp">
-                    <Select placeholder="Chọn giáo viên" allowClear>
+                    <Select placeholder="Chọn giáo viên" allowClear showSearch optionFilterProp="children">
                       {teachers.map(t => <Option key={t.id} value={t.id}>{t.firstName} {t.lastName}</Option>)}
+                    </Select>
+                  </Form.Item>
+                  <Form.Item name="assistantId" label="Trợ giảng (TA)">
+                    <Select placeholder="Chọn trợ giảng" allowClear showSearch optionFilterProp="children">
+                      {teachers.map(t => <Option key={t.id} value={t.id}>{t.firstName} {t.lastName}{t.type === 'TeachingAssistant' ? ' (TA)' : ''}</Option>)}
                     </Select>
                   </Form.Item>
                 </>

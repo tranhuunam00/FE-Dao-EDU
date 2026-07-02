@@ -9,12 +9,14 @@ interface ClassSession {
   id: string;
   roomId: string | null;
   teacherId: string | null;
+  assistantId: string | null;
   date: string;
   startTime: string;
   endTime: string;
   status: string;
   attendanceLocked: boolean;
   teacher?: { firstName: string; lastName: string };
+  assistant?: { firstName: string; lastName: string };
   room?: { name: string };
 }
 
@@ -46,12 +48,23 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({ sessions, handleGenera
       render: (text: string) => text || <Text type="secondary">Chưa xếp phòng</Text>,
     },
     {
-      title: 'Giáo viên',
+      title: 'Giáo viên & Trợ giảng',
       key: 'teacher',
       render: (_: any, record: ClassSession) => {
-        return record.teacher
-          ? `${record.teacher.firstName} ${record.teacher.lastName}`
-          : <Text type="secondary">Chưa xếp gv</Text>;
+        return (
+          <div>
+            <div>
+              {record.teacher
+                ? `${record.teacher.firstName} ${record.teacher.lastName}`
+                : <Text type="secondary">Chưa xếp gv</Text>}
+            </div>
+            {record.assistant && (
+              <div style={{ fontSize: '11px', opacity: 0.7 }}>
+                TA: {record.assistant.firstName} {record.assistant.lastName}
+              </div>
+            )}
+          </div>
+        );
       },
     },
     {
