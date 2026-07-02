@@ -12,6 +12,7 @@ import {
   Row,
   Col,
   Modal,
+  Segmented,
 } from 'antd';
 import {
   DollarOutlined,
@@ -33,6 +34,7 @@ export const StudentTuition: React.FC = () => {
   const [qrVisible, setQrVisible] = useState(false);
   const [confirmingTransfer, setConfirmingTransfer] = useState(false);
   const [simulatingTerminal, setSimulatingTerminal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'unpaid' | 'paid'>('unpaid');
 
   useEffect(() => {
     fetchTuition();
@@ -42,7 +44,10 @@ export const StudentTuition: React.FC = () => {
     try {
       setLoading(true);
       const res = await api.get('/students/me/tuition');
-      setBills(res.data || []);
+      const fetchedBills = res.data || [];
+      setBills(fetchedBills);
+      const hasUnpaid = fetchedBills.some((b: any) => b.status === 'Unpaid');
+      setActiveTab(hasUnpaid ? 'unpaid' : 'paid');
     } catch (err: any) {
       message.error(err.response?.data?.message || 'Không thể tải dữ liệu học phí.');
     } finally {
@@ -99,8 +104,13 @@ export const StudentTuition: React.FC = () => {
     }
   };
 
-  // Group bills by Period
-  const groupedBills = bills.reduce((acc: any, bill: any) => {
+  const unpaidBills = bills.filter(b => b.status === 'Unpaid');
+  const paidBills = bills.filter(b => b.status === 'Paid');
+
+  const filteredBills = activeTab === 'unpaid' ? unpaidBills : paidBills;
+
+  // Group filtered bills by Period
+  const groupedBills = filteredBills.reduce((acc: any, bill: any) => {
     const periodName = bill.period ? bill.period.name : `Đợt tháng ${bill.month}`;
     if (!acc[periodName]) {
       acc[periodName] = [];
@@ -184,7 +194,7 @@ export const StudentTuition: React.FC = () => {
             >
               <Statistic
                 title={<span style={{ color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '0.85rem' }}>Số hóa đơn chưa thanh toán</span>}
-                value={bills.filter(b => b.status === 'Unpaid').length}
+                value={unpaidBills.length}
                 valueStyle={{ color: '#10b981', fontWeight: 800, fontSize: '2.4rem', fontFamily: 'Outfit' }}
                 prefix={<FileTextOutlined style={{ fontSize: '2rem', marginRight: '8px' }} />}
               />
@@ -192,15 +202,28 @@ export const StudentTuition: React.FC = () => {
           </Col>
         </Row>
 
-        <Title level={4} style={{ color: 'var(--text-primary)', marginBottom: '24px', fontFamily: 'Outfit' }}>
-          <DollarOutlined /> Lịch sử Hóa đơn theo Đợt
-        </Title>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: 12 }}>
+          <Title level={4} style={{ color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit' }}>
+            <DollarOutlined /> Lịch sử Hóa đơn theo Đợt
+          </Title>
+          <Segmented
+            value={activeTab}
+            onChange={(value) => setActiveTab(value as 'unpaid' | 'paid')}
+            options={[
+              { label: `Chưa thanh toán (${unpaidBills.length})`, value: 'unpaid' },
+              { label: `Đã thanh toán (${paidBills.length})`, value: 'paid' },
+            ]}
+            style={{ background: 'var(--bg-secondary)', padding: '4px', borderRadius: '8px' }}
+          />
+        </div>
 
         {loading ? (
           <div style={{ padding: '40px', color: 'var(--text-secondary)' }}>Đang tải dữ liệu...</div>
         ) : Object.keys(groupedBills).length === 0 ? (
           <Card className="glass-panel" style={{ border: 'none', textAlign: 'center', padding: '40px 0' }}>
-            <Text type="secondary">Chưa có dữ liệu học phí nào.</Text>
+            <Text type="secondary">
+              {activeTab === 'unpaid' ? 'Không có hóa đơn chưa thanh toán.' : 'Chưa có hóa đơn đã thanh toán.'}
+            </Text>
           </Card>
         ) : (
           <Collapse 
