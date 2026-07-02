@@ -696,7 +696,11 @@ const ClassDetailInner: React.FC = () => {
                           checked={val}
                           disabled={currentSession.attendanceLocked && !isOverrideMode}
                           onChange={(checked) => {
-                            setSessionAttendance(prev => prev.map(a => a.studentId === record.studentId ? { ...a, isPresent: checked } : a));
+                            setSessionAttendance(prev => prev.map(a => 
+                              a.studentId === record.studentId 
+                                ? { ...a, isPresent: checked, reason: checked ? "" : "Nghỉ có phép" } 
+                                : a
+                            ));
                           }}
                         />
                       ),
@@ -704,17 +708,53 @@ const ClassDetailInner: React.FC = () => {
                     {
                       title: 'Lý do vắng mặt / Ghi chú',
                       key: 'reason',
-                      render: (_, record) => (
-                        <Input
-                          placeholder="Nhập lý do vắng..."
-                          value={record.reason}
-                          disabled={currentSession.attendanceLocked && (!isOverrideMode || record.isPresent)}
-                          onChange={(e) => {
-                            setSessionAttendance(prev => prev.map(a => a.studentId === record.studentId ? { ...a, reason: e.target.value } : a));
-                          }}
-                          size="small"
-                        />
-                      ),
+                      render: (_, record) => {
+                        if (record.isPresent) return <span style={{ color: 'var(--text-muted)' }}>—</span>;
+                        
+                        const isExcusedDefault = record.reason === 'Nghỉ có phép';
+                        const isUnexcused = !record.reason || record.reason.trim() === '';
+                        
+                        const selectValue = isExcusedDefault ? 'Nghỉ có phép' : isUnexcused ? 'Nghỉ không phép' : 'custom';
+
+                        return (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%' }}>
+                            <Select
+                              value={selectValue}
+                              disabled={currentSession.attendanceLocked && !isOverrideMode}
+                              style={{ width: '100%' }}
+                              size="small"
+                              onChange={(val) => {
+                                let newReason = '';
+                                if (val === 'Nghỉ có phép') newReason = 'Nghỉ có phép';
+                                else if (val === 'Nghỉ không phép') newReason = '';
+                                else newReason = 'Lý do khác';
+                                
+                                setSessionAttendance(prev => prev.map(a => 
+                                  a.studentId === record.studentId ? { ...a, reason: newReason } : a
+                                ));
+                              }}
+                              options={[
+                                { value: 'Nghỉ có phép', label: 'Nghỉ có phép' },
+                                { value: 'Nghỉ không phép', label: 'Nghỉ không phép' },
+                                { value: 'custom', label: 'Khác (Nhập lý do)' },
+                              ]}
+                            />
+                            {selectValue === 'custom' && (
+                              <Input
+                                placeholder="Nhập lý do vắng..."
+                                value={record.reason}
+                                disabled={currentSession.attendanceLocked && !isOverrideMode}
+                                onChange={(e) => {
+                                  setSessionAttendance(prev => prev.map(a => 
+                                    a.studentId === record.studentId ? { ...a, reason: e.target.value } : a
+                                  ));
+                                }}
+                                size="small"
+                              />
+                            )}
+                          </div>
+                        );
+                      }
                     },
                   ]}
                 />

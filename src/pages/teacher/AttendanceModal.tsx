@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
-import { X, CheckCircle, Circle, Save, Play, CheckCircle2 } from 'lucide-react';
-import { message } from 'antd';
+import { X, Save, Play, CheckCircle2 } from 'lucide-react';
+import { message, Switch } from 'antd';
 
 interface StudentAttendance {
   id: string;
@@ -50,13 +50,6 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
     setSessionStatus(session.status);
     setAttendanceLocked(session.attendanceLocked);
   }, [session.status, session.attendanceLocked]);
-
-  const toggleAttendance = (studentId: string) => {
-    if (attendanceLocked || sessionStatus === 'Scheduled') return;
-    setAttendances(prev => prev.map(a => 
-      a.studentId === studentId ? { ...a, isPresent: !a.isPresent } : a
-    ));
-  };
 
   const startSession = async () => {
     try {
@@ -162,7 +155,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
                 <button
                   className="btn btn-outline"
                   onClick={() => {
-                    setAttendances(prev => prev.map(a => ({ ...a, isPresent: true })));
+                    setAttendances(prev => prev.map(a => ({ ...a, isPresent: true, reason: "" })));
                   }}
                   disabled={attendanceLocked || sessionStatus === 'Scheduled'}
                   style={{ padding: '4px 12px', fontSize: '0.85rem' }}
@@ -172,7 +165,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
                 <button
                   className="btn btn-outline"
                   onClick={() => {
-                    setAttendances(prev => prev.map(a => ({ ...a, isPresent: false })));
+                    setAttendances(prev => prev.map(a => ({ ...a, isPresent: false, reason: "Nghỉ có phép" })));
                   }}
                   disabled={attendanceLocked || sessionStatus === 'Scheduled'}
                   style={{ padding: '4px 12px', fontSize: '0.85rem', color: '#ef4444', borderColor: '#ef4444' }}
@@ -186,22 +179,76 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
                     <th>Mã HS</th>
                     <th>Họ và Tên</th>
                     <th style={{ textAlign: 'center' }}>Điểm danh</th>
+                    <th style={{ width: '40%' }}>Lý do vắng mặt / Ghi chú</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {attendances.map(a => (
-                    <tr key={a.id} onClick={() => toggleAttendance(a.studentId)} style={{ cursor: (attendanceLocked || sessionStatus === 'Scheduled') ? 'default' : 'pointer', opacity: (attendanceLocked || sessionStatus === 'Scheduled') ? 0.7 : 1 }}>
-                      <td style={{ color: 'var(--text-secondary)' }}>{a.student?.studentId}</td>
-                      <td style={{ fontWeight: 500 }}>{a.student?.lastName} {a.student?.firstName}</td>
-                      <td style={{ textAlign: 'center' }}>
-                        {a.isPresent ? (
-                          <CheckCircle size={24} style={{ color: 'var(--secondary)', margin: '0 auto' }} />
-                        ) : (
-                          <Circle size={24} style={{ color: 'var(--text-muted)', margin: '0 auto' }} />
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                  {attendances.map(a => {
+                    const isExcusedDefault = a.reason === 'Nghỉ có phép';
+                    const isUnexcused = !a.reason || a.reason.trim() === '';
+                    const selectValue = isExcusedDefault ? 'Nghỉ có phép' : isUnexcused ? 'Nghỉ không phép' : 'custom';
+
+                    return (
+                      <tr key={a.id} style={{ opacity: (attendanceLocked || sessionStatus === 'Scheduled') ? 0.7 : 1 }}>
+                        <td style={{ color: 'var(--text-secondary)' }}>{a.student?.studentId}</td>
+                        <td style={{ fontWeight: 500 }}>{a.student?.lastName} {a.student?.firstName}</td>
+                        <td style={{ textAlign: 'center' }}>
+                          <Switch
+                            checked={a.isPresent}
+                            disabled={attendanceLocked || sessionStatus === 'Scheduled'}
+                            onChange={(checked) => {
+                              setAttendances(prev => prev.map(item => 
+                                item.studentId === a.studentId 
+                                  ? { ...item, isPresent: checked, reason: checked ? "" : "Nghỉ có phép" } 
+                                  : item
+                              ));
+                            }}
+                          />
+                        </td>
+                        <td>
+                          {!a.isPresent ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <select
+                                value={selectValue}
+                                disabled={attendanceLocked || sessionStatus === 'Scheduled'}
+                                style={{ padding: '4px', borderRadius: '4px', border: '1px solid var(--border-color, #ddd)', fontSize: '0.85rem', width: '100%', background: 'transparent', color: 'inherit' }}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  let newReason = '';
+                                  if (val === 'Nghỉ có phép') newReason = 'Nghỉ có phép';
+                                  else if (val === 'Nghỉ không phép') newReason = '';
+                                  else newReason = 'Lý do khác';
+                                  setAttendances(prev => prev.map(item => 
+                                    item.studentId === a.studentId ? { ...item, reason: newReason } : item
+                                  ));
+                                }}
+                              >
+                                <option value="Nghỉ có phép" style={{ background: 'var(--card-bg, #fff)', color: 'var(--text-primary, #000)' }}>Nghỉ có phép</option>
+                                <option value="Nghỉ không phép" style={{ background: 'var(--card-bg, #fff)', color: 'var(--text-primary, #000)' }}>Nghỉ không phép</option>
+                                <option value="custom" style={{ background: 'var(--card-bg, #fff)', color: 'var(--text-primary, #000)' }}>Khác (Nhập lý do)</option>
+                              </select>
+                              {selectValue === 'custom' && (
+                                <input
+                                  type="text"
+                                  placeholder="Nhập lý do vắng..."
+                                  value={a.reason}
+                                  disabled={attendanceLocked || sessionStatus === 'Scheduled'}
+                                  style={{ padding: '4px', borderRadius: '4px', border: '1px solid var(--border-color, #ddd)', fontSize: '0.85rem', width: '100%', background: 'transparent', color: 'inherit' }}
+                                  onChange={(e) => {
+                                    setAttendances(prev => prev.map(item => 
+                                      item.studentId === a.studentId ? { ...item, reason: e.target.value } : item
+                                    ));
+                                  }}
+                                />
+                              )}
+                            </div>
+                          ) : (
+                            <span style={{ color: 'var(--text-muted)' }}>—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
