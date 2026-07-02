@@ -28,6 +28,8 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
   const [attendances, setAttendances] = useState<StudentAttendance[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [sessionStatus, setSessionStatus] = useState(session.status);
+  const [attendanceLocked, setAttendanceLocked] = useState(session.attendanceLocked);
 
   useEffect(() => {
     const fetchAttendance = async () => {
@@ -45,7 +47,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
   }, [session.id]);
 
   const toggleAttendance = (studentId: string) => {
-    if (session.attendanceLocked) return;
+    if (attendanceLocked || sessionStatus === 'Scheduled') return;
     setAttendances(prev => prev.map(a => 
       a.studentId === studentId ? { ...a, isPresent: !a.isPresent } : a
     ));
@@ -56,6 +58,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
       setSubmitting(true);
       await api.post(`/classes/sessions/${session.id}/start-attendance?bypassTimeCheck=true`);
       message.success('Đã bắt đầu điểm danh.');
+      setSessionStatus('In-Progress');
       onSuccess();
     } catch (err: any) {
       message.error(err.response?.data?.message || 'Lỗi khi bắt đầu.');
@@ -90,6 +93,8 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
       setSubmitting(true);
       await api.post(`/classes/sessions/${session.id}/complete`);
       message.success('Đã chốt điểm danh và kết thúc lớp!');
+      setSessionStatus('Completed');
+      setAttendanceLocked(true);
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -126,7 +131,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
           Ngày: {session.date} | Thời gian: {session.startTime} - {session.endTime} | Phòng: {session.roomName}
         </p>
 
-        {session.status === 'Scheduled' && (
+        {sessionStatus === 'Scheduled' && (
           <div style={{ padding: '16px', backgroundColor: 'rgba(99, 102, 241, 0.1)', borderRadius: '8px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ color: 'var(--primary)' }}>Buổi học chưa bắt đầu.</span>
             <button className="btn btn-primary" onClick={startSession} disabled={submitting} style={{ display: 'flex', gap: '8px' }}>
@@ -135,7 +140,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
           </div>
         )}
 
-        {session.attendanceLocked && (
+        {attendanceLocked && (
           <div style={{ padding: '16px', backgroundColor: 'rgba(16, 185, 129, 0.1)', borderRadius: '8px', marginBottom: '20px', color: 'var(--secondary)' }}>
             Buổi học này đã hoàn thành và chốt điểm danh. Không thể thay đổi.
           </div>
@@ -147,36 +152,60 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
           ) : attendances.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>Chưa có học sinh nào trong lớp này.</div>
           ) : (
-            <table className="custom-table">
-              <thead>
-                <tr>
-                  <th>Mã HS</th>
-                  <th>Họ và Tên</th>
-                  <th style={{ textAlign: 'center' }}>Điểm danh</th>
-                </tr>
-              </thead>
-              <tbody>
-                {attendances.map(a => (
-                  <tr key={a.id} onClick={() => toggleAttendance(a.studentId)} style={{ cursor: session.attendanceLocked ? 'default' : 'pointer', opacity: session.attendanceLocked ? 0.7 : 1 }}>
-                    <td style={{ color: 'var(--text-secondary)' }}>{a.student?.studentId}</td>
-                    <td style={{ fontWeight: 500 }}>{a.student?.lastName} {a.student?.firstName}</td>
-                    <td style={{ textAlign: 'center' }}>
-                      {a.isPresent ? (
-                        <CheckCircle size={24} style={{ color: 'var(--secondary)', margin: '0 auto' }} />
-                      ) : (
-                        <Circle size={24} style={{ color: 'var(--text-muted)', margin: '0 auto' }} />
-                      )}
-                    </td>
+            <div>
+              <div style={{ marginBottom: 12, display: 'flex', gap: 8 }}>
+                <button
+                  className="btn btn-outline"
+                  onClick={() => {
+                    setAttendances(prev => prev.map(a => ({ ...a, isPresent: true })));
+                  }}
+                  disabled={attendanceLocked || sessionStatus === 'Scheduled'}
+                  style={{ padding: '4px 12px', fontSize: '0.85rem' }}
+                >
+                  Có mặt tất cả
+                </button>
+                <button
+                  className="btn btn-outline"
+                  onClick={() => {
+                    setAttendances(prev => prev.map(a => ({ ...a, isPresent: false })));
+                  }}
+                  disabled={attendanceLocked || sessionStatus === 'Scheduled'}
+                  style={{ padding: '4px 12px', fontSize: '0.85rem', color: '#ef4444', borderColor: '#ef4444' }}
+                >
+                  Vắng mặt tất cả
+                </button>
+              </div>
+              <table className="custom-table">
+                <thead>
+                  <tr>
+                    <th>Mã HS</th>
+                    <th>Họ và Tên</th>
+                    <th style={{ textAlign: 'center' }}>Điểm danh</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {attendances.map(a => (
+                    <tr key={a.id} onClick={() => toggleAttendance(a.studentId)} style={{ cursor: (attendanceLocked || sessionStatus === 'Scheduled') ? 'default' : 'pointer', opacity: (attendanceLocked || sessionStatus === 'Scheduled') ? 0.7 : 1 }}>
+                      <td style={{ color: 'var(--text-secondary)' }}>{a.student?.studentId}</td>
+                      <td style={{ fontWeight: 500 }}>{a.student?.lastName} {a.student?.firstName}</td>
+                      <td style={{ textAlign: 'center' }}>
+                        {a.isPresent ? (
+                          <CheckCircle size={24} style={{ color: 'var(--secondary)', margin: '0 auto' }} />
+                        ) : (
+                          <Circle size={24} style={{ color: 'var(--text-muted)', margin: '0 auto' }} />
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
           <button className="btn btn-outline" onClick={onClose} disabled={submitting}>Hủy</button>
-          {!session.attendanceLocked && session.status !== 'Scheduled' && (
+          {!attendanceLocked && sessionStatus !== 'Scheduled' && (
             <>
               <button className="btn btn-primary" onClick={saveAttendance} disabled={submitting} style={{ display: 'flex', gap: '8px', background: 'var(--accent)', borderColor: 'var(--accent)' }}>
                 <Save size={16} /> Lưu tạm
