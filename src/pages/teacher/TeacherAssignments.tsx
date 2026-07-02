@@ -156,40 +156,113 @@ const TeacherAssignments: React.FC = () => {
         </Form>
       </Modal>
 
-      <Modal title={selected?.title} open={!!selected} onCancel={() => setSelected(null)} footer={null} width={1050}>
+      <Modal title={selected?.title} open={!!selected} onCancel={() => setSelected(null)} footer={null} width={1100}>
         <Table dataSource={submissions} rowKey="id" scroll={{ x: 900 }} columns={[
           { title: 'Học sinh', render: (_, r: any) => `${r.studentCode} - ${r.studentName}` },
-          { title: 'Trạng thái', dataIndex: 'status', render: v => {
-              let color = 'gold';
-              if (v === 'submitted') color = 'blue';
-              if (v === 'late') color = 'volcano';
-              if (v === 'graded') color = 'green';
-              return <Tag color={color}>{v}</Tag>;
+          { title: 'Trạng thái', dataIndex: 'status', render: (v: string) => {
+              const map: Record<string, string> = { submitted: 'Đã nộp', late: 'Nộp muộn', graded: 'Đã chấm', not_submitted: 'Chưa nộp' };
+              const colorMap: Record<string, string> = { submitted: 'blue', late: 'volcano', graded: 'green', not_submitted: 'default' };
+              return <Tag color={colorMap[v] || 'default'}>{map[v] || v}</Tag>;
             }
           },
-          { title: 'Nộp lúc', dataIndex: 'submittedAt', render: v => v ? dayjs(v).format('DD/MM/YYYY HH:mm') : '-' },
-          { title: 'Nội dung', dataIndex: 'answerText', ellipsis: true, render: v => v || '-' },
+          { title: 'Nộp lúc', dataIndex: 'submittedAt', render: (v: string) => v ? dayjs(v).format('DD/MM/YYYY HH:mm') : '-' },
+          { title: 'Nội dung', dataIndex: 'answerText', ellipsis: true, render: (v: string) => v || <span style={{ color: 'var(--text-muted)' }}>Không có</span> },
           { 
-            title: 'File', 
+            title: 'File đính kèm', 
             dataIndex: 'attachments', 
             render: (items: any[]) => (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {items?.map(x => (
-                  <a key={x.id} href={x.url} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                    <FileText size={14} style={{ color: '#818cf8' }} />
+                  <a key={x.id} href={x.url} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#818cf8' }}>
+                    <FileText size={14} />
                     {x.fileName}
                   </a>
                 ))}
-                {(!items || items.length === 0) && '-'}
+                {(!items || items.length === 0) && <span style={{ color: 'var(--text-muted)' }}>—</span>}
               </div>
             )
           },
-          { title: 'Điểm', dataIndex: 'score', render: v => v ?? '-' },
-          { title: '', render: (_, r: any) => <Button disabled={r.status === 'not_submitted'} onClick={() => { setGradeTarget(r); gradeForm.setFieldsValue(r); }}>Chấm</Button> },
+          { title: 'Điểm', dataIndex: 'score', render: (v: number | null) => v !== null && v !== undefined ? <b style={{ color: '#34d399' }}>{v}</b> : <span style={{ color: 'var(--text-muted)' }}>—</span> },
+          { title: '', render: (_: any, r: any) => (
+            <Button
+              type={r.status === 'graded' ? 'default' : 'primary'}
+              disabled={r.status === 'not_submitted'}
+              onClick={() => { setGradeTarget(r); gradeForm.setFieldsValue({ score: r.score, feedback: r.feedback }); }}
+            >
+              {r.status === 'graded' ? 'Sửa điểm' : 'Chấm'}
+            </Button>
+          ) },
         ]} />
       </Modal>
-      <Modal title={`Chấm bài: ${gradeTarget?.studentName || ''}`} open={!!gradeTarget} onCancel={() => setGradeTarget(null)} onOk={grade}>
-        <Form form={gradeForm} layout="vertical"><Form.Item name="score" label="Điểm" rules={[{ required: true }]}><InputNumber min={0} max={selected?.maxScore || 10} style={{ width: '100%' }} /></Form.Item><Form.Item name="feedback" label="Nhận xét"><TextArea rows={4} /></Form.Item></Form>
+
+      {/* Grading modal — shows student submission content for teacher review */}
+      <Modal
+        title={
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <span style={{ fontSize: '1rem', fontWeight: 700 }}>Chấm bài: {gradeTarget?.studentName || ''}</span>
+            <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 400 }}>
+              {selected?.title} &nbsp;·&nbsp; Điểm tối đa: {selected?.maxScore ?? 10}
+            </span>
+          </div>
+        }
+        open={!!gradeTarget}
+        onCancel={() => { setGradeTarget(null); gradeForm.resetFields(); }}
+        onOk={grade}
+        okText="Lưu điểm"
+        cancelText="Hủy"
+        width={680}
+      >
+        {/* Student submission preview */}
+        {gradeTarget && (
+          <div style={{
+            marginBottom: 20,
+            padding: 16,
+            borderRadius: 10,
+            background: 'rgba(99,102,241,0.05)',
+            border: '1px solid rgba(99,102,241,0.15)',
+          }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
+              📄 Bài làm của học sinh
+            </div>
+            {gradeTarget.answerText ? (
+              <p style={{ whiteSpace: 'pre-wrap', color: 'var(--text-primary)', marginBottom: gradeTarget.attachments?.length ? 10 : 0, lineHeight: 1.6, fontSize: '0.92rem' }}>
+                {gradeTarget.answerText}
+              </p>
+            ) : (
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>Không có nội dung văn bản.</span>
+            )}
+            {gradeTarget.attachments?.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 2 }}>File đính kèm:</div>
+                {gradeTarget.attachments.map((att: any) => (
+                  <a
+                    key={att.id}
+                    href={att.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#818cf8', fontSize: '0.9rem', textDecoration: 'none' }}
+                  >
+                    <FileText size={15} />
+                    {att.fileName}
+                  </a>
+                ))}
+              </div>
+            )}
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: 10 }}>
+              Nộp lúc: {gradeTarget.submittedAt ? dayjs(gradeTarget.submittedAt).format('DD/MM/YYYY HH:mm') : '—'}
+              {gradeTarget.status === 'late' && <span style={{ color: '#f87171', marginLeft: 8 }}>(Nộp muộn)</span>}
+            </div>
+          </div>
+        )}
+
+        <Form form={gradeForm} layout="vertical">
+          <Form.Item name="score" label={`Điểm (0 – ${selected?.maxScore ?? 10})`} rules={[{ required: true, message: 'Vui lòng nhập điểm' }]}>
+            <InputNumber min={0} max={selected?.maxScore || 10} step={0.5} style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item name="feedback" label="Nhận xét / Phản hồi">
+            <TextArea rows={4} placeholder="Nhập nhận xét cho học sinh..." />
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );
