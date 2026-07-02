@@ -48,14 +48,7 @@ import NotificationLogs from './pages/admin/NotificationLogs';
 import HolidaySettings from './pages/admin/HolidaySettings';
 import ContactRequests from './pages/admin/ContactRequests';
 import FacebookLeads from './pages/admin/FacebookLeads';
-
-// Placeholder component
-const Placeholder = ({ title, desc }: { title: string; desc: string }) => (
-  <div style={{ color: '#fff' }}>
-    <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', marginBottom: '12px' }}>{title}</h2>
-    <p style={{ color: 'var(--text-secondary)' }}>{desc}</p>
-  </div>
-);
+import { StudyMaterials } from './pages/StudyMaterials';
 
 function App() {
   return (
@@ -123,9 +116,7 @@ function App() {
                     <Route path="leave-requests" element={<ManagedLeaveRequests />} />
                     <Route path="settings" element={<Settings />} />
                     <Route path="notifications" element={<Notifications />} />
-                    <Route path="materials" element={
-                      <Placeholder title="Tài liệu học tập" desc="Tải lên và quản lý tài liệu cho các lớp học." />
-                    } />
+                    <Route path="materials" element={<StudyMaterials />} />
                   </Routes>
                 </DashboardLayout>
               </RouteGuard>
@@ -147,6 +138,7 @@ function App() {
                     <Route path="leave-requests" element={<StudentLeaveRequests />} />
                     <Route path="settings" element={<Settings />} />
                     <Route path="notifications" element={<Notifications />} />
+                    <Route path="materials" element={<StudyMaterials />} />
                   </Routes>
                 </DashboardLayout>
               </RouteGuard>

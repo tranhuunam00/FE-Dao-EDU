@@ -95,6 +95,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
           { name: 'Bài tập', path: '/student/assignments', icon: <ClipboardList size={20} /> },
           { name: 'Đơn xin nghỉ', path: '/student/leave-requests', icon: <CalendarOff size={20} /> },
           { name: 'Học phí', path: '/student/tuition', icon: <DollarSign size={20} /> },
+          { name: 'Tài liệu học tập', path: '/student/materials', icon: <BookMarked size={20} /> },
         ];
       default:
         return [];
