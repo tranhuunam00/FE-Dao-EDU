@@ -157,10 +157,31 @@ const TeacherAssignments: React.FC = () => {
       <Modal title={selected?.title} open={!!selected} onCancel={() => setSelected(null)} footer={null} width={1050}>
         <Table dataSource={submissions} rowKey="id" scroll={{ x: 900 }} columns={[
           { title: 'Học sinh', render: (_, r: any) => `${r.studentCode} - ${r.studentName}` },
-          { title: 'Trạng thái', dataIndex: 'status', render: v => <Tag>{v}</Tag> },
+          { title: 'Trạng thái', dataIndex: 'status', render: v => {
+              let color = 'gold';
+              if (v === 'submitted') color = 'blue';
+              if (v === 'late') color = 'volcano';
+              if (v === 'graded') color = 'green';
+              return <Tag color={color}>{v}</Tag>;
+            }
+          },
           { title: 'Nộp lúc', dataIndex: 'submittedAt', render: v => v ? dayjs(v).format('DD/MM/YYYY HH:mm') : '-' },
           { title: 'Nội dung', dataIndex: 'answerText', ellipsis: true, render: v => v || '-' },
-          { title: 'File', dataIndex: 'attachments', render: (items: any[]) => items?.map(x => <a key={x.id} href={x.url} target="_blank">{x.fileName}</a>) },
+          { 
+            title: 'File', 
+            dataIndex: 'attachments', 
+            render: (items: any[]) => (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {items?.map(x => (
+                  <a key={x.id} href={x.url} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <FileText size={14} style={{ color: '#818cf8' }} />
+                    {x.fileName}
+                  </a>
+                ))}
+                {(!items || items.length === 0) && '-'}
+              </div>
+            )
+          },
           { title: 'Điểm', dataIndex: 'score', render: v => v ?? '-' },
           { title: '', render: (_, r: any) => <Button disabled={r.status === 'not_submitted'} onClick={() => { setGradeTarget(r); gradeForm.setFieldsValue(r); }}>Chấm</Button> },
         ]} />
