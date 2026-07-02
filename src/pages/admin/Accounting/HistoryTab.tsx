@@ -51,6 +51,11 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
   const [qrSending, setQrSending] = useState(false);
   const [qrAllSending, setQrAllSending] = useState(false);
 
+  const [periodsSearch, setPeriodsSearch] = useState('');
+  const [periodsTypeFilter, setPeriodsTypeFilter] = useState<'All' | 'tuition' | 'salary'>('All');
+  const [studentSearch, setStudentSearch] = useState('');
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>('All');
+
   const loadPeriods = async () => {
     setPeriodsLoading(true);
     try {
@@ -268,10 +273,44 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
   };
 
   if (!selectedPeriodId) {
+    const filteredPeriods = periods.filter((p: any) => {
+      if (periodsTypeFilter !== 'All' && p.type !== periodsTypeFilter) return false;
+      const query = periodsSearch.toLowerCase().trim();
+      if (!query) return true;
+      return (p.name || '').toLowerCase().includes(query) || (p.month || '').toLowerCase().includes(query);
+    });
+
     return (
-      <Card className="glass-panel" style={cardStyle} bodyStyle={{ padding: 0 }}>
+      <Card 
+        className="glass-panel" 
+        style={cardStyle}
+        title={
+          <span style={{ color: 'var(--text-primary)', fontFamily: 'Outfit' }}>Danh sách đợt thanh toán</span>
+        }
+        extra={
+          <Space>
+            <Input
+              placeholder="Tìm tên đợt, tháng..."
+              value={periodsSearch}
+              onChange={(e) => setPeriodsSearch(e.target.value)}
+              style={{ width: 220 }}
+              allowClear
+            />
+            <Select
+              value={periodsTypeFilter}
+              onChange={setPeriodsTypeFilter}
+              style={{ width: 160 }}
+              options={[
+                { value: 'All', label: 'Tất cả loại đợt' },
+                { value: 'tuition', label: 'Đợt thu học phí' },
+                { value: 'salary', label: 'Đợt chi trả lương' },
+              ]}
+            />
+          </Space>
+        }
+      >
         <Table
-          dataSource={periods}
+          dataSource={filteredPeriods}
           rowKey="id"
           loading={periodsLoading}
           pagination={{ pageSize: 15 }}
@@ -525,23 +564,64 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                 </div>
               }
               extra={
-                <Select
-                  value={ordersFilter}
-                  onChange={setOrdersFilter}
-                  style={{ width: 180 }}
-                  options={[
-                    { value: 'All', label: 'Tất cả đơn hàng' },
-                    { value: 'Paid', label: 'Đã hoàn tất' },
-                    { value: 'Unpaid', label: 'Chưa hoàn tất' },
-                  ]}
-                />
+                <Space>
+                  <Input
+                    placeholder="Tìm mã, tên..."
+                    value={studentSearch}
+                    onChange={(e) => setStudentSearch(e.target.value)}
+                    style={{ width: 180 }}
+                    allowClear
+                  />
+                  <Select
+                    value={ordersFilter}
+                    onChange={setOrdersFilter}
+                    style={{ width: 150 }}
+                    options={[
+                      { value: 'All', label: 'Tất cả trạng thái' },
+                      { value: 'Paid', label: 'Đã hoàn tất' },
+                      { value: 'Unpaid', label: 'Chưa hoàn tất' },
+                    ]}
+                  />
+                  {periodDetail.period.type === 'tuition' && (
+                    <Select
+                      value={paymentMethodFilter}
+                      onChange={setPaymentMethodFilter}
+                      style={{ width: 180 }}
+                      options={[
+                        { value: 'All', label: 'Tất cả phương thức' },
+                        { value: 'cash', label: 'Tiền mặt' },
+                        { value: 'bank_transfer', label: 'CK thủ công' },
+                        { value: 'auto_reconciled', label: 'Đối soát tự động' },
+                        { value: 'no_qr', label: 'Chưa lấy QR' },
+                      ]}
+                    />
+                  )}
+                </Space>
               }
             >
               <Table
                 dataSource={periodDetail.orders.filter((o: any) => {
-                  if (ordersFilter === 'Paid') return o.status === 'Paid';
-                  if (ordersFilter === 'Unpaid') return o.status === 'Unpaid';
-                  return true;
+                  // 1. Status Filter
+                  if (ordersFilter === 'Paid' && o.status !== 'Paid') return false;
+                  if (ordersFilter === 'Unpaid' && o.status !== 'Unpaid') return false;
+
+                  // 2. Method/QR Filter
+                  if (paymentMethodFilter !== 'All') {
+                    if (paymentMethodFilter === 'cash') {
+                      if (o.status !== 'Paid' || o.paymentMethod !== 'cash') return false;
+                    } else if (paymentMethodFilter === 'bank_transfer') {
+                      if (o.status !== 'Paid' || o.paymentMethod !== 'bank_transfer' || o.paymentRequest) return false;
+                    } else if (paymentMethodFilter === 'auto_reconciled') {
+                      if (o.status !== 'Paid' || !o.paymentRequest) return false;
+                    } else if (paymentMethodFilter === 'no_qr') {
+                      if (o.status === 'Paid' || o.paymentRequest) return false;
+                    }
+                  }
+
+                  // 3. Search query
+                  const query = studentSearch.toLowerCase().trim();
+                  if (!query) return true;
+                  return (o.code || '').toLowerCase().includes(query) || (o.name || '').toLowerCase().includes(query);
                 })}
                 rowKey="id"
                 pagination={{ pageSize: 15 }}
@@ -597,11 +677,30 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                     )
                   },
                   {
-                    title: 'Ngày giao dịch',
-                    dataIndex: 'paymentDate',
-                    key: 'paymentDate',
-                    width: 130,
-                    render: (v: string) => v ? dayjs(v).format('DD/MM/YYYY HH:mm') : <Text type="secondary">—</Text>
+                    title: 'Thời gian giao dịch',
+                    key: 'paymentTimestamps',
+                    width: 220,
+                    render: (_, r: any) => {
+                      const claimed = r.paymentRequest?.claimedAt;
+                      const paid = r.status === 'Paid' ? r.paymentDate : null;
+                      return (
+                        <div style={{ fontSize: '0.85rem', lineHeight: '1.4' }}>
+                          {claimed && (
+                            <div>
+                              <span style={{ color: 'var(--text-secondary)' }}>PH báo nộp: </span>
+                              <span style={{ color: '#fbbf24', fontWeight: 500 }}>{dayjs(claimed).format('DD/MM/YYYY HH:mm')}</span>
+                            </div>
+                          )}
+                          {paid && (
+                            <div>
+                              <span style={{ color: 'var(--text-secondary)' }}>Duyệt/Đối soát: </span>
+                              <span style={{ color: '#10b981', fontWeight: 600 }}>{dayjs(paid).format('DD/MM/YYYY HH:mm')}</span>
+                            </div>
+                          )}
+                          {!claimed && !paid && <span style={{ color: 'var(--text-muted)' }}>—</span>}
+                        </div>
+                      );
+                    }
                   },
                   {
                     title: 'Phiếu thu',
