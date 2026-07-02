@@ -136,6 +136,48 @@ const StudentAssignments: React.FC = () => {
                 ))}
               </div>
 
+              {item.submission && (
+                <div style={{ 
+                  padding: 12, 
+                  background: 'rgba(255,255,255,0.03)', 
+                  border: '1px solid rgba(255,255,255,0.08)', 
+                  borderRadius: 8, 
+                  marginBottom: 12 
+                }}>
+                  <div style={{ fontWeight: 600, marginBottom: 6, color: 'var(--text-primary)', fontSize: '0.9rem' }}>
+                    Bài làm của bạn:
+                  </div>
+                  {item.submission.answerText && (
+                    <p style={{ margin: '0 0 8px 0', whiteSpace: 'pre-wrap', color: 'var(--text-primary)', fontSize: '0.9rem' }}>
+                      {item.submission.answerText}
+                    </p>
+                  )}
+                  {item.submission.attachments && item.submission.attachments.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      {item.submission.attachments.map((att: any) => (
+                        <a 
+                          key={att.id} 
+                          href={att.url} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#818cf8', fontSize: '0.85rem' }}
+                        >
+                          <FileText size={14} /> {att.fileName}
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    !item.submission.answerText && <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Không có tệp đính kèm</span>
+                  )}
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: 8 }}>
+                    Nộp lúc: {dayjs(item.submission.submittedAt).format('DD/MM/YYYY HH:mm')}
+                    {item.submission.status === 'late' && (
+                      <span style={{ color: 'var(--danger)', marginLeft: 8 }}>(Nộp muộn)</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {item.submission?.status === 'graded' && (
                 <div style={{ padding: 12, background: 'rgba(52,211,153,.1)', borderRadius: 8, marginBottom: 12 }}>
                   <span style={{ color: 'var(--text-secondary)' }}>Điểm:</span> <b style={{ color: '#10b981' }}>{Number(item.submission.score)}/{Number(item.maxScore)}</b>
