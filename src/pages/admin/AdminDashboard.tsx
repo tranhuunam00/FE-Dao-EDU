@@ -20,6 +20,8 @@ interface SummaryData {
   totalCourses: number;
   totalCenters: number;
   systemStatus: string;
+  studentGrowth?: Array<{ month: string; students: number }>;
+  courseDistribution?: Array<{ name: string; value: number }>;
 }
 
 interface RevenueData {
@@ -515,7 +517,7 @@ const AdminDashboardInner: React.FC = () => {
           >
             <div style={{ width: '100%', height: 300 }}>
               <ResponsiveContainer>
-                <BarChart data={[
+                <BarChart data={summary?.studentGrowth && summary.studentGrowth.length > 0 ? summary.studentGrowth : [
                   { month: 'T1', students: 120 }, { month: 'T2', students: 135 }, { month: 'T3', students: 150 },
                   { month: 'T4', students: 180 }, { month: 'T5', students: 210 }, { month: 'T6', students: Math.max(summary?.totalStudents || 250, 250) }
                 ]}>
@@ -550,7 +552,7 @@ const AdminDashboardInner: React.FC = () => {
               <ResponsiveContainer>
                 <PieChart>
                   <Pie
-                    data={[
+                    data={summary?.courseDistribution && summary.courseDistribution.length > 0 ? summary.courseDistribution : [
                       { name: 'Khóa học Tiếng Anh', value: 400 },
                       { name: 'Toán Tư Duy', value: 300 },
                       { name: 'Kỹ Năng Sống', value: 200 },
