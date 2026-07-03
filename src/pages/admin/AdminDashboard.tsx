@@ -305,7 +305,7 @@ const AdminDashboardInner: React.FC = () => {
       <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
         {[
           ['Học sinh chưa xếp lớp', operations?.tasks.unassignedStudents || 0, '/admin/students', '#f59e0b'],
-          ['Buổi học chưa chốt điểm danh', operations?.tasks.unlockedPastSessions || 0, '/admin/classes', '#ef4444'],
+          ['Buổi học chưa chốt điểm danh', operations?.tasks.unlockedPastSessions || 0, '/admin/classes?tab=unlocked', '#ef4444'],
           ['Kỳ học phí/lương chưa chốt', operations?.tasks.openPaymentPeriods || 0, '/admin/accounting', '#6366f1'],
           ['Phiếu hủy thanh toán', operations?.tasks.cancelledReceipts || 0, '/admin/accounting?tab=anomalies', '#ec4899'],
         ].map(([label, value, path, color]) => (

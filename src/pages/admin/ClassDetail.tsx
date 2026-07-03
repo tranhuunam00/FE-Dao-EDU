@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   App, Tag, Button, Spin,
   Tabs, Modal, Form, Select, DatePicker, TimePicker, Switch, Input, Divider, Alert, Typography, Descriptions, Row, Col, Table, InputNumber
@@ -50,6 +50,8 @@ interface ClassSession {
 const ClassDetailInner: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const querySessionId = searchParams.get('sessionId');
   const { message, modal } = App.useApp();
   const { user } = useAuth();
   const isAdmin = user?.role === Role.ADMIN;
@@ -105,6 +107,17 @@ const ClassDetailInner: React.FC = () => {
     api.get('/teachers?page=1&limit=100').then(({ data }) => setTeachers(data.teachers || [])).catch(() => {});
     api.get('/students?page=1&limit=1000').then(({ data }) => setAllStudents(data.students || [])).catch(() => {});
   }, [id]);
+
+  useEffect(() => {
+    if (querySessionId && sessions.length > 0 && classData) {
+      const found = sessions.find(s => s.id === querySessionId);
+      if (found) {
+        if (!isSessionModalVisible || currentSession?.id !== querySessionId) {
+          openSessionDetail(found);
+        }
+      }
+    }
+  }, [querySessionId, sessions, classData]);
 
   const openEditClassModal = () => {
     if (!classData) return;
