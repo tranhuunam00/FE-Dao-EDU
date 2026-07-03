@@ -28,6 +28,7 @@ import CreateClass from './pages/admin/CreateClass';
 import ClassDetail from './pages/admin/ClassDetail';
 import Accounting from './pages/admin/Accounting';
 import AdminAssignments from './pages/admin/AdminAssignments';
+import Reports from './pages/admin/Reports';
 import ManagedLeaveRequests from './pages/teacher/ManagedLeaveRequests';
 
 // Pages — Teacher
@@ -89,6 +90,7 @@ function App() {
                     <Route path="classes/:id" element={<ClassDetail />} />
                     <Route path="accounting" element={<Accounting />} />
                     <Route path="assignments" element={<AdminAssignments />} />
+                    <Route path="reports" element={<Reports />} />
                     <Route path="leave-requests" element={<ManagedLeaveRequests />} />
                     <Route path="settings" element={<Settings />} />
                     <Route path="notifications" element={<Notifications />} />

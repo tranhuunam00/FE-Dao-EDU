@@ -16,7 +16,8 @@ import {
   CalendarOff,
   Settings,
   MessagesSquare,
-  Search
+  Search,
+  BarChart2,
 } from 'lucide-react';
 import { TeamOutlined as AntdTeamOutlined, BankOutlined as AntdBankOutlined } from '@ant-design/icons';
 import { Badge, Button, Dropdown, Empty } from 'antd';
@@ -75,6 +76,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
           { name: 'Theo dõi bài tập', path: '/admin/assignments', icon: <ClipboardList size={20} /> },
           { name: 'Đơn xin nghỉ', path: '/admin/leave-requests', icon: <CalendarOff size={20} /> },
           { name: 'Kế Toán', path: '/admin/accounting', icon: <DollarSign size={20} /> },
+          { name: 'Báo cáo', path: '/admin/reports', icon: <BarChart2 size={20} /> },
           { name: 'Nhật ký hệ thống', path: '/admin/logs', icon: <Shield size={20} /> },
           { name: 'Ngày nghỉ lễ', path: '/admin/holidays', icon: <CalendarOff size={20} /> },
           { name: 'Yêu cầu liên hệ', path: '/admin/contact-requests', icon: <MessagesSquare size={20} /> },
