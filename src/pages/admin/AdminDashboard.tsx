@@ -307,7 +307,7 @@ const AdminDashboardInner: React.FC = () => {
           ['Học sinh chưa xếp lớp', operations?.tasks.unassignedStudents || 0, '/admin/students', '#f59e0b'],
           ['Buổi học chưa chốt điểm danh', operations?.tasks.unlockedPastSessions || 0, '/admin/classes', '#ef4444'],
           ['Kỳ học phí/lương chưa chốt', operations?.tasks.openPaymentPeriods || 0, '/admin/accounting', '#6366f1'],
-          ['Phiếu hủy / giao dịch bất thường', (operations?.tasks.cancelledReceipts || 0) + (operations?.tasks.paymentAnomalies || 0), '/admin/accounting', '#ec4899'],
+          ['Phiếu hủy thanh toán', operations?.tasks.cancelledReceipts || 0, '/admin/accounting?tab=anomalies', '#ec4899'],
         ].map(([label, value, path, color]) => (
           <Col xs={24} sm={12} lg={6} key={String(label)}>
             <Card className="glass-panel" hoverable onClick={() => navigate(String(path))} bodyStyle={{ padding: 16 }}>

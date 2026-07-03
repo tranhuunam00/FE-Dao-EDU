@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   App, Card, DatePicker,
   Button, Table, Tabs, Typography, Space
@@ -6,13 +7,14 @@ import {
 import {
   SearchOutlined, UserOutlined,
   TeamOutlined, DownloadOutlined,
-  DollarOutlined, CalendarOutlined
+  DollarOutlined, CalendarOutlined, WarningOutlined
 } from '@ant-design/icons';
 import api from '../../services/api';
 
 import { TuitionTab } from './Accounting/TuitionTab';
 import { SalaryTab } from './Accounting/SalaryTab';
 import { HistoryTab } from './Accounting/HistoryTab';
+import { AnomaliesTab } from './Accounting/AnomaliesTab';
 
 const { Text } = Typography;
 
@@ -28,9 +30,17 @@ const exportCSV = (data: any[], filename: string, headers: string[], keys: strin
 
 const AccountingInner: React.FC = () => {
   const { message } = App.useApp();
+  const [searchParams] = useSearchParams();
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState('tuition-create');
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'tuition-create');
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   // Ad-hoc states for reports
   const [tuitionRange, setTuitionRange] = useState<[any, any]>([null, null]);
@@ -233,6 +243,11 @@ const AccountingInner: React.FC = () => {
                 )}
               </div>
             )
+          },
+          {
+            key: 'anomalies',
+            label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><WarningOutlined /> Phiếu hủy thanh toán</span>,
+            children: <AnomaliesTab isActive={activeTab === 'anomalies'} />
           }
         ]}
       />
