@@ -22,6 +22,9 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
             <Descriptions.Item label="Giáo viên chính">
               {classData.mainTeacher ? `${classData.mainTeacher.firstName} ${classData.mainTeacher.lastName}` : '-'}
             </Descriptions.Item>
+            <Descriptions.Item label="Trợ giảng (TA)">
+              {classData.assistant ? `${classData.assistant.firstName} ${classData.assistant.lastName}` : '-'}
+            </Descriptions.Item>
             <Descriptions.Item label="Khai giảng">{classData.startDate ? dayjs(classData.startDate).format('DD/MM/YYYY') : '-'}</Descriptions.Item>
             <Descriptions.Item label="Kết thúc dự kiến">{classData.finishDate ? dayjs(classData.finishDate).format('DD/MM/YYYY') : 'Chưa định'}</Descriptions.Item>
             <Descriptions.Item label="Sĩ số tối đa">{classData.maxSize || 'Không giới hạn'}</Descriptions.Item>

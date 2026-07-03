@@ -444,6 +444,17 @@ const CreateClassInner: React.FC = () => {
               </Form.Item>
             </Col>
             <Col xs={12} md={12}>
+              <Form.Item name="assistantId" label="Trợ giảng (TA)">
+                <Select placeholder="Chọn trợ giảng" allowClear showSearch optionFilterProp="children">
+                  {teachers.map(t => (
+                    <Option key={t.id} value={t.id}>
+                      {t.firstName} {t.lastName} {t.type === 'TeachingAssistant' ? ' (TA)' : ''}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col xs={12} md={12}>
               <Form.Item name="skipHolidays" label="Bỏ qua ngày lễ" valuePropName="checked">
                 <Switch checkedChildren="Bật" unCheckedChildren="Tắt" />
               </Form.Item>

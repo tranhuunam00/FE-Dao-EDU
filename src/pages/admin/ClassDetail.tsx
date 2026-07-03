@@ -129,6 +129,7 @@ const ClassDetailInner: React.FC = () => {
       finishDate: classData.finishDate ? dayjs(classData.finishDate) : null,
       maxSize: classData.maxSize,
       mainTeacherId: classData.mainTeacherId,
+      assistantId: classData.assistantId,
       skipHolidays: classData.skipHolidays,
       description: classData.description,
     });
@@ -147,6 +148,7 @@ const ClassDetailInner: React.FC = () => {
         finishDate: values.finishDate ? values.finishDate.format('YYYY-MM-DD') : null,
         maxSize: values.maxSize,
         mainTeacherId: values.mainTeacherId || null,
+        assistantId: values.assistantId || null,
         skipHolidays: values.skipHolidays,
         description: values.description || null,
       };
@@ -888,6 +890,17 @@ const ClassDetailInner: React.FC = () => {
                   {teachers.map(t => (
                     <Option key={t.id} value={t.id}>
                       {t.firstName} {t.lastName} ({t.email || t.mobile || 'GV'})
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="assistantId" label="Trợ giảng (TA)">
+                <Select placeholder="Chọn trợ giảng" allowClear showSearch optionFilterProp="children">
+                  {teachers.map(t => (
+                    <Option key={t.id} value={t.id}>
+                      {t.firstName} {t.lastName} {t.type === 'TeachingAssistant' ? ' (TA)' : ''}
                     </Option>
                   ))}
                 </Select>
