@@ -2,13 +2,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth, Role } from '../context/AuthContext';
-import { 
-  LayoutDashboard, 
-  Users, 
+import {
+  LayoutDashboard,
+  Users,
   BookOpen,
-  LogOut, 
+  LogOut,
   User as UserIcon,
-  Shield, 
+  Shield,
   Bell,
   ClipboardList,
   BookMarked,
@@ -246,8 +246,8 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
               <Settings size={16} />
               Cài đặt
             </button>
-            
-            <button 
+
+            <button
               onClick={handleLogout}
               className="btn btn-outline"
               style={{

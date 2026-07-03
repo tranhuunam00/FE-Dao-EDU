@@ -71,11 +71,11 @@ function App() {
                     <Route path="students" element={<StudentList />} />
                     <Route path="students/create" element={<CreateStudent />} />
                     <Route path="students/:id" element={<StudentDetail />} />
-                    
+
                     <Route path="teachers" element={<TeacherList />} />
                     <Route path="teachers/create" element={<CreateTeacher />} />
                     <Route path="teachers/:id" element={<TeacherDetail />} />
-                    
+
                     <Route path="centers" element={<CenterList />} />
                     <Route path="centers/create" element={<CreateCenter />} />
                     <Route path="centers/:id" element={<CenterDetail />} />
