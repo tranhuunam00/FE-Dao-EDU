@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect */
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
-import { Shield, Users, BookOpen, Layers, Activity, RefreshCw, AlertTriangle, ClipboardCheck, UserRoundSearch } from 'lucide-react';
+import { Shield, Users, BookOpen, Layers, Activity, RefreshCw, AlertTriangle, ClipboardCheck } from 'lucide-react';
 import { Card, Row, Col, Typography, Table, Spin, Button, message, App, Tag, Space } from 'antd';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
@@ -319,7 +319,7 @@ const AdminDashboardInner: React.FC = () => {
       </Row>
 
       <Row gutter={[20, 20]} style={{ marginBottom: 28 }}>
-        <Col xs={24} xl={13}>
+        <Col span={24}>
           <Card
             className="glass-panel"
             title={<Space><AlertTriangle size={19} color="#f59e0b" /><span>Cảnh báo nguy cơ nghỉ học</span></Space>}
@@ -346,40 +346,6 @@ const AdminDashboardInner: React.FC = () => {
                 {
                   title: 'Nguyên nhân',
                   render: (_, row) => <div>{row.reasons.map((reason) => <div key={reason}>{reason}</div>)}</div>,
-                },
-              ]}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} xl={11}>
-          <Card
-            className="glass-panel"
-            title={<Space><UserRoundSearch size={19} color="#818cf8" /><span>Đề xuất xếp lớp</span></Space>}
-          >
-            <Table
-              rowKey="studentId"
-              size="small"
-              pagination={{ pageSize: 5 }}
-              dataSource={operations?.classSuggestions || []}
-              columns={[
-                {
-                  title: 'Học sinh',
-                  render: (_, row) => (
-                    <Button type="link" style={{ padding: 0 }} onClick={() => navigate(`/admin/students/${row.studentId}`)}>
-                      {row.studentName}
-                    </Button>
-                  ),
-                },
-                {
-                  title: 'Lớp phù hợp',
-                  render: (_, row) => row.suggestions.length ? (
-                    <div>
-                      <strong>{row.suggestions[0].classCode} - {row.suggestions[0].className}</strong>
-                      <div style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
-                        {row.suggestions[0].courseName} · {row.suggestions[0].levelName} · {row.suggestions[0].score} điểm
-                      </div>
-                    </div>
-                  ) : <Text type="secondary">Chưa có lớp phù hợp</Text>,
                 },
               ]}
             />

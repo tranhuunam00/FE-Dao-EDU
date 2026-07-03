@@ -90,6 +90,7 @@ const StudentListInner: React.FC = () => {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<string | undefined>(undefined);
   const [province, setProvince] = useState<string | undefined>(undefined);
+  const [noClass, setNoClass] = useState<boolean | undefined>(undefined);
 
   const [colWidths, setColWidths] = useState<Record<string, number>>(() => {
     const saved = localStorage.getItem('student-list-columns-width');
@@ -125,6 +126,7 @@ const StudentListInner: React.FC = () => {
           search: search.trim() || undefined,
           status,
           province,
+          noClass: noClass || undefined,
         },
       });
       setStudents(response.data.students);
@@ -134,7 +136,7 @@ const StudentListInner: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, search, status, province, message]);
+  }, [page, limit, search, status, province, noClass, message]);
 
   useEffect(() => {
     fetchStudents();
@@ -145,6 +147,7 @@ const StudentListInner: React.FC = () => {
     setSearch('');
     setStatus(undefined);
     setProvince(undefined);
+    setNoClass(undefined);
     setPage(1);
   };
 
@@ -287,7 +290,7 @@ const StudentListInner: React.FC = () => {
       >
         <Row gutter={[12, 12]} align="middle">
           {/* Search Bar */}
-          <Col xs={24} md={8}>
+          <Col xs={24} md={6}>
             <Input
               placeholder="Tìm kiếm Họ tên, Mã HS, Điện thoại, Email..."
               prefix={<SearchOutlined style={{ color: '#6b7280' }} />}
@@ -314,6 +317,19 @@ const StudentListInner: React.FC = () => {
             </Select>
           </Col>
 
+          {/* Class Filter */}
+          <Col xs={12} md={4}>
+            <Select
+              style={{ width: '100%' }}
+              placeholder="Lọc lớp học"
+              value={noClass}
+              onChange={setNoClass}
+              allowClear
+            >
+              <Option value={true}>Chưa vào lớp</Option>
+            </Select>
+          </Col>
+
           {/* Province Filter */}
           <Col xs={12} md={4}>
             <Select
@@ -334,13 +350,13 @@ const StudentListInner: React.FC = () => {
           </Col>
 
           {/* Actions */}
-          <Col xs={24} md={8} style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+          <Col xs={24} md={6} style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
             <Button
               icon={<ReloadOutlined />}
               onClick={handleResetFilters}
               style={{ background: 'transparent' }}
             >
-              Reset bộ lọc
+              Reset
             </Button>
             <Button
               type="primary"
@@ -348,7 +364,7 @@ const StudentListInner: React.FC = () => {
               onClick={fetchStudents}
               style={{ background: 'var(--primary)', border: 'none' }}
             >
-              Tìm kiếm
+              Lọc
             </Button>
             <Button
               type="primary"
@@ -356,7 +372,7 @@ const StudentListInner: React.FC = () => {
               style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
               onClick={() => navigate('/admin/students/create')}
             >
-              Thêm mới
+              Thêm
             </Button>
           </Col>
         </Row>
