@@ -62,6 +62,7 @@ const ClassDetailInner: React.FC = () => {
   const [teachers, setTeachers] = useState<any[]>([]);
   const [rooms, setRooms] = useState<any[]>([]);
   const [allStudents, setAllStudents] = useState<any[]>([]);
+  const [levelPricing, setLevelPricing] = useState<any[]>([]);
 
   // Modals / Drawer Control
   const [isAddStudentVisible, setIsAddStudentVisible] = useState(false);
@@ -119,6 +120,17 @@ const ClassDetailInner: React.FC = () => {
     }
   }, [querySessionId, sessions, classData]);
 
+  useEffect(() => {
+    if (classData?.courseId) {
+      api.get(`/courses/${classData.courseId}`).then(({ data }) => {
+        const currentLevel = data.levels?.find((l: any) => l.id === classData.courseLevelId);
+        if (currentLevel) {
+          setLevelPricing(currentLevel.pricing || []);
+        }
+      }).catch(() => {});
+    }
+  }, [classData]);
+
   const openEditClassModal = () => {
     if (!classData) return;
     classForm.setFieldsValue({
@@ -136,9 +148,38 @@ const ClassDetailInner: React.FC = () => {
     setIsEditClassVisible(true);
   };
 
+  const checkTaWageConfiguredDetail = (): boolean => {
+    if (!levelPricing || levelPricing.length === 0) return false;
+    return levelPricing.some((p: any) => Number(p.taWagePerSession || 0) > 0);
+  };
+
   const handleEditClassSubmit = async () => {
     try {
       const values = await classForm.validateFields();
+
+      if (values.assistantId) {
+        const isTaWageConfigured = checkTaWageConfiguredDetail();
+        if (!isTaWageConfigured) {
+          let proceed = false;
+          await new Promise<void>((resolve) => {
+            Modal.confirm({
+              title: 'Cảnh báo đơn giá trợ giảng',
+              content: 'Chương trình học hiện tại của lớp chưa cấu hình đơn giá lương cho Trợ giảng (TA). Bạn có chắc chắn muốn tiếp tục lưu?',
+              okText: 'Tiếp tục',
+              cancelText: 'Hủy',
+              onOk: () => {
+                proceed = true;
+                resolve();
+              },
+              onCancel: () => {
+                resolve();
+              }
+            });
+          });
+          if (!proceed) return;
+        }
+      }
+
       setSavingClass(true);
       const payload = {
         className: values.className,
@@ -931,6 +972,26 @@ const ClassDetailInner: React.FC = () => {
                 <Input.TextArea rows={3} />
               </Form.Item>
             </Col>
+            <Form.Item shouldUpdate={(prev, curr) => prev.assistantId !== curr.assistantId} noStyle>
+              {({ getFieldValue }) => {
+                const assistantId = getFieldValue('assistantId');
+                if (assistantId) {
+                  const isTaWageConfigured = checkTaWageConfiguredDetail();
+                  if (!isTaWageConfigured) {
+                    return (
+                      <Col span={24} style={{ marginBottom: 16 }}>
+                        <Alert
+                          type="warning"
+                          showIcon
+                          message="Lưu ý: Cấp độ chương trình học hiện tại của lớp chưa được cài đặt tiền lương trợ giảng. Lương của trợ giảng cho các buổi học thuộc lớp này sẽ tạm tính là 0đ khi kết toán lương."
+                        />
+                      </Col>
+                    );
+                  }
+                }
+                return null;
+              }}
+            </Form.Item>
           </Row>
         </Form>
       </Modal>

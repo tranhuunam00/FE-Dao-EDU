@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Form, Input, Select, Button, Card, Typography, Row, Col, App,
-  DatePicker, InputNumber, Switch, Table, TimePicker, Modal
+  DatePicker, InputNumber, Switch, Table, TimePicker, Modal, Alert
 } from 'antd';
 import { ArrowLeftOutlined, SaveOutlined, PlusOutlined, DeleteOutlined, TeamOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -37,6 +37,12 @@ const CreateClassInner: React.FC = () => {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [selectedCenterId, setSelectedCenterId] = useState<string | null>(null);
   const [courseStartDate, setCourseStartDate] = useState<string | null>(null);
+
+  const checkTaWageConfigured = (levelId: string): boolean => {
+    const level = levels.find(l => l.id === levelId);
+    if (!level || !level.pricing || level.pricing.length === 0) return false;
+    return level.pricing.some((p: any) => Number(p.taWagePerSession || 0) > 0);
+  };
 
   // Quick Room modal states
   const [isAddRoomVisible, setIsAddRoomVisible] = useState(false);
@@ -181,6 +187,30 @@ const CreateClassInner: React.FC = () => {
         if (classStart.isBefore(courseStart)) {
           message.error(`Ngày khai giảng của lớp học không được trước ngày bắt đầu của chương trình học (${courseStart.format('DD/MM/YYYY')}).`);
           return;
+        }
+      }
+
+      // Warning check: Teaching Assistant (TA) wage configuration
+      if (values.assistantId && values.courseLevelId) {
+        const isTaWageConfigured = checkTaWageConfigured(values.courseLevelId);
+        if (!isTaWageConfigured) {
+          let proceed = false;
+          await new Promise<void>((resolve) => {
+            Modal.confirm({
+              title: 'Cảnh báo đơn giá trợ giảng',
+              content: 'Chương trình học hiện tại của lớp chưa cấu hình đơn giá lương cho Trợ giảng (TA). Bạn có chắc chắn muốn tiếp tục tạo lớp học này?',
+              okText: 'Tiếp tục',
+              cancelText: 'Hủy',
+              onOk: () => {
+                proceed = true;
+                resolve();
+              },
+              onCancel: () => {
+                resolve();
+              }
+            });
+          });
+          if (!proceed) return;
         }
       }
 
@@ -465,6 +495,27 @@ const CreateClassInner: React.FC = () => {
                 <TextArea rows={2} placeholder="Thông tin chi tiết về lớp học..." />
               </Form.Item>
             </Col>
+            <Form.Item shouldUpdate={(prev, curr) => prev.courseLevelId !== curr.courseLevelId || prev.assistantId !== curr.assistantId} noStyle>
+              {({ getFieldValue }) => {
+                const levelId = getFieldValue('courseLevelId');
+                const assistantId = getFieldValue('assistantId');
+                if (levelId && assistantId) {
+                  const isTaWageConfigured = checkTaWageConfigured(levelId);
+                  if (!isTaWageConfigured) {
+                    return (
+                      <Col span={24} style={{ marginBottom: 16 }}>
+                        <Alert
+                          type="warning"
+                          showIcon
+                          message="Lưu ý: Cấp độ chương trình học hiện tại của lớp chưa được cài đặt tiền lương trợ giảng. Lương của trợ giảng cho các buổi học thuộc lớp này sẽ tạm tính là 0đ khi kết toán lương."
+                        />
+                      </Col>
+                    );
+                  }
+                }
+                return null;
+              }}
+            </Form.Item>
           </Row>
         </Card>
 
