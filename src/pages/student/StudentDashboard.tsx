@@ -7,6 +7,8 @@ import { StudentCalendar } from './StudentCalendar';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 
+import { Modal } from 'antd';
+
 interface SessionData {
   id: string;
   className: string;
@@ -20,6 +22,9 @@ interface SessionData {
   attendanceColor: string; // 'blue' | 'green' | 'red'
   attendanceText: string;
   isPresent: boolean;
+  note?: string | null;
+  reason?: string | null;
+  hasAttendanceRecord?: boolean;
 }
 
 interface StudentDashData {
@@ -68,6 +73,8 @@ export const StudentDashboard: React.FC = () => {
   const [data, setData] = useState<StudentDashData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -85,6 +92,14 @@ export const StudentDashboard: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const monthSessions = data?.sessions.filter(s => {
+    if (!s.date) return false;
+    const parts = s.date.split('-');
+    if (parts.length < 2) return false;
+    const mY = `${parts[1]}/${parts[0]}`;
+    return mY === selectedMonth && s.status === 'Completed' && s.hasAttendanceRecord;
+  }) || [];
 
   if (loading) return <div style={{ color: 'var(--text-secondary)', padding: '40px' }}>Đang tải dữ liệu học tập...</div>;
 
@@ -190,7 +205,25 @@ export const StudentDashboard: React.FC = () => {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {data.stats.attendance.monthly.map((m, idx) => (
-                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
+                    <div 
+                      key={idx} 
+                      onClick={() => {
+                        setSelectedMonth(m.month);
+                        setIsModalVisible(true);
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center', 
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
+                        padding: '6px 8px',
+                        borderRadius: '6px',
+                        transition: 'background 0.2s',
+                      }}
+                    >
                       <span style={{ color: 'var(--text-muted)' }}>Tháng {m.month}</span>
                       <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
                         Đi học {m.present}/{m.completed} buổi <span style={{ color: m.rate >= 90 ? 'var(--secondary)' : m.rate >= 75 ? '#fbbf24' : 'var(--danger)', marginLeft: '4px' }}>({m.rate}%)</span>
@@ -300,6 +333,72 @@ export const StudentDashboard: React.FC = () => {
         <StudentCalendar embeddedSessions={data?.sessions || []} />
 
       </div>
+
+      <Modal
+        title={`Chi tiết điểm danh - Tháng ${selectedMonth}`}
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={null}
+        width={600}
+        styles={{
+          body: {
+            backgroundColor: 'var(--bg-primary)',
+            color: 'var(--text-primary)',
+          }
+        }}
+      >
+        <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {monthSessions.length > 0 ? (
+            monthSessions.map((s, idx) => (
+              <div key={idx} style={{
+                padding: '12px',
+                borderRadius: '8px',
+                background: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <div>
+                  <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.95rem' }}>
+                    {s.className} ({s.classCode})
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    Thời gian: {dayjs(s.date).format('DD/MM/YYYY')} · {s.startTime.slice(0, 5)} - {s.endTime.slice(0, 5)}
+                  </div>
+                  {s.note && (
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px', fontStyle: 'italic' }}>
+                      Ghi chú: {s.note}
+                    </div>
+                  )}
+                  {s.reason && (
+                    <div style={{ fontSize: '0.8rem', color: 'var(--danger)', marginTop: '4px' }}>
+                      Lý do vắng: {s.reason}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <span style={{
+                    padding: '4px 10px',
+                    borderRadius: '99px',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    backgroundColor: s.isPresent ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                    color: s.isPresent ? 'var(--secondary)' : 'var(--danger)',
+                    border: `1px solid ${s.isPresent ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
+                  }}>
+                    {s.isPresent ? 'Có mặt' : 'Vắng mặt'}
+                  </span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-secondary)' }}>
+              Không có dữ liệu chi tiết cho tháng này
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 };
