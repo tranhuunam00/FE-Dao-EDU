@@ -148,6 +148,10 @@ export const StudentCalendar: React.FC<{ embeddedSessions?: any[] }> = ({ embedd
                         bgColor = 'rgba(239, 68, 68, 0.15)';
                         textColor = 'var(--danger)';
                         border = '1px solid rgba(239, 68, 68, 0.3)';
+                      } else if (s.attendanceColor === 'gray') {
+                        bgColor = 'rgba(156, 163, 175, 0.15)';
+                        textColor = 'var(--text-muted)';
+                        border = '1px solid rgba(156, 163, 175, 0.3)';
                       }
 
                       return (
