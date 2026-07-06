@@ -29,7 +29,7 @@ const TeacherDetailInner: React.FC = () => {
   // Wages report state
   const [wagesReport, setWagesReport] = useState<any>(null);
   const [wagesLoading, setWagesLoading] = useState(false);
-  const [wagesDateRange, setWagesDateRange] = useState<[any, any]>([null, null]);
+  const [wagesYear, setWagesYear] = useState<any>(dayjs());
 
   const selectedProvince = Form.useWatch('province', form);
   const [districtOptions, setDistrictOptions] = useState<{label: string, value: string}[]>([]);
@@ -76,17 +76,18 @@ const TeacherDetailInner: React.FC = () => {
     }
   }, [selectedProvince]);
 
-  const fetchWagesReport = async () => {
+  const fetchWagesReport = async (yearVal?: any) => {
     if (!id) return;
-    const [start, end] = wagesDateRange;
-    if (!start || !end) {
-      message.warning('Vui lòng chọn khoảng thời gian cần tính.');
+    const yearToUse = yearVal || wagesYear;
+    if (!yearToUse) {
+      message.warning('Vui lòng chọn năm.');
       return;
     }
+    const yearStr = yearToUse.format('YYYY');
     setWagesLoading(true);
     try {
       const { data } = await api.get(`/teachers/${id}/wages-report`, {
-        params: { startDate: start.format('YYYY-MM-DD'), endDate: end.format('YYYY-MM-DD') },
+        params: { startDate: `${yearStr}-01-01`, endDate: `${yearStr}-12-31` },
       });
       setWagesReport(data);
     } catch (err: any) {
@@ -95,6 +96,12 @@ const TeacherDetailInner: React.FC = () => {
       setWagesLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (activeTab === 'wages' && wagesYear) {
+      fetchWagesReport(wagesYear);
+    }
+  }, [activeTab, wagesYear]);
 
   const handleAvatarChange = (info: any) => {
     const file = info.file.originFileObj || info.file;
@@ -408,32 +415,35 @@ const TeacherDetailInner: React.FC = () => {
             { key: 'login', label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><LockOutlined /> Tài khoản Đăng nhập</span>, children: renderLoginTab() },
             {
               key: 'wages',
-              label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><DollarOutlined /> Tính lương</span>,
+              label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><DollarOutlined /> Lịch sử nhận lương</span>,
               children: (
                 <div>
                   <Card
-                    title={<span style={{ fontFamily: 'Outfit' }}><DollarOutlined /> Tính lương theo khoảng thời gian</span>}
+                    title={<span style={{ fontFamily: 'Outfit' }}><DollarOutlined /> Lịch sử nhận lương theo năm</span>}
                     className="glass-panel"
                     style={{ border: 'none', background: 'var(--card-bg)', marginBottom: 16 }}
                   >
                     <Space size="middle" wrap>
                       <div>
-                        <span style={{ color: 'var(--text-secondary)', marginRight: 8, fontSize: '13px' }}>Khoảng thời gian:</span>
-                        <DatePicker.RangePicker
-                          value={wagesDateRange}
-                          onChange={(vals) => setWagesDateRange(vals as [any, any])}
-                          format="DD/MM/YYYY"
-                          placeholder={['Từ ngày', 'Đến ngày']}
+                        <span style={{ color: 'var(--text-secondary)', marginRight: 8, fontSize: '13px' }}>Chọn năm:</span>
+                        <DatePicker
+                          picker="year"
+                          value={wagesYear}
+                          onChange={(val) => setWagesYear(val)}
+                          format="YYYY"
+                          placeholder="Chọn năm"
+                          allowClear={false}
+                          style={{ width: 120 }}
                         />
                       </div>
                       <Button
                         type="primary"
                         icon={<SearchOutlined />}
-                        onClick={fetchWagesReport}
+                        onClick={() => fetchWagesReport(wagesYear)}
                         loading={wagesLoading}
                         style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
                       >
-                        Tính lương
+                        Xem lịch sử
                       </Button>
                     </Space>
                   </Card>
@@ -560,7 +570,7 @@ const TeacherDetailInner: React.FC = () => {
                       type="info"
                       showIcon
                       message="Hướng dẫn"
-                      description="Chọn khoảng thời gian và nhấn 'Tính lương' để xem báo cáo chi tiết lương giáo viên theo từng buổi dạy hoàn thành và mức lương hiệu lực tại thời điểm đó."
+                      description="Chọn năm và nhấn 'Xem lịch sử' để xem báo cáo chi tiết lương giáo viên theo từng buổi dạy hoàn thành và mức lương hiệu lực tại thời điểm đó."
                       style={{ background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.2)' }}
                     />
                   )}
