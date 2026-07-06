@@ -448,7 +448,7 @@ const TeacherDetailInner: React.FC = () => {
                     </Space>
                   </Card>
 
-                  {/* Render payment history list from teacher_monthly_wages instead of live calculation */}
+                  {/* Render payment history list from teacher_monthly_wages instead of live calculation - release v1.2.21 */}
                   {wagesReport && Array.isArray(wagesReport) && (
                     <>
                       <Row gutter={16} style={{ marginBottom: 16 }}>
