@@ -86,12 +86,12 @@ const TeacherDetailInner: React.FC = () => {
     const yearStr = yearToUse.format('YYYY');
     setWagesLoading(true);
     try {
-      const { data } = await api.get(`/teachers/${id}/wages-report`, {
-        params: { startDate: `${yearStr}-01-01`, endDate: `${yearStr}-12-31` },
+      const { data } = await api.get(`/teachers/${id}/wages-history`, {
+        params: { year: yearStr },
       });
       setWagesReport(data);
     } catch (err: any) {
-      message.error(err.response?.data?.message || 'Lỗi khi tải báo cáo lương');
+      message.error(err.response?.data?.message || 'Lỗi khi tải lịch sử nhận lương');
     } finally {
       setWagesLoading(false);
     }
