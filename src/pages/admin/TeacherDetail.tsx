@@ -448,124 +448,88 @@ const TeacherDetailInner: React.FC = () => {
                     </Space>
                   </Card>
 
-                  {wagesReport && (
+                  {wagesReport && Array.isArray(wagesReport) && (
                     <>
                       <Row gutter={16} style={{ marginBottom: 16 }}>
-                        <Col xs={12} md={8}>
+                        <Col xs={24} md={12}>
                           <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)', textAlign: 'center' }}>
-                            <div style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: 4 }}>Tổng buổi dạy</div>
-                            <div style={{ color: '#6366f1', fontSize: '24px', fontWeight: 700 }}>{wagesReport.totalSessions}</div>
-                          </Card>
-                        </Col>
-                        <Col xs={12} md={8}>
-                          <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)', textAlign: 'center' }}>
-                            <div style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: 4 }}>Tổng buổi tính lương</div>
-                            <div style={{ color: '#10b981', fontSize: '24px', fontWeight: 700 }}>{wagesReport.totalSessions}</div>
-                          </Card>
-                        </Col>
-                        <Col xs={12} md={8}>
-                          <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)', textAlign: 'center' }}>
-                            <div style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: 4 }}>Tổng lương</div>
-                            <div style={{ color: '#f59e0b', fontSize: '22px', fontWeight: 700 }}>
-                              {(wagesReport.totalAmount || 0).toLocaleString('vi-VN')}&nbsp;₫
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: 4 }}>Tổng lương đã nhận</div>
+                            <div style={{ color: '#10b981', fontSize: '24px', fontWeight: 700 }}>
+                              {wagesReport.reduce((sum, w) => sum + (w.paidAmount || 0), 0).toLocaleString('vi-VN')}&nbsp;₫
                             </div>
                           </Card>
                         </Col>
+                        <Col xs={24} md={12}>
+                          <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)', textAlign: 'center' }}>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: 4 }}>Số đợt nhận lương</div>
+                            <div style={{ color: '#6366f1', fontSize: '24px', fontWeight: 700 }}>{wagesReport.length}</div>
+                          </Card>
+                        </Col>
                       </Row>
+
                       <Card
-                        title={<span style={{ fontFamily: 'Outfit' }}><DollarOutlined /> Lịch sử đơn giá lương áp dụng trong kỳ</span>}
-                        className="glass-panel"
-                        style={{ border: 'none', background: 'var(--card-bg)', marginBottom: 16 }}
-                      >
-                        <Table
-                          dataSource={wagesReport.pricingHistory || []}
-                          rowKey="id"
-                          pagination={false}
-                          size="small"
-                          columns={[
-                            { title: 'Level', dataIndex: 'levelName', key: 'levelName' },
-                            {
-                              title: 'Lương giáo viên / buổi',
-                              dataIndex: 'teacherWagePerSession',
-                              render: (v: number) => <Text strong style={{ color: '#fbbf24' }}>{Number(v).toLocaleString()}đ</Text>,
-                            },
-                            {
-                              title: 'Từ ngày',
-                              dataIndex: 'effectiveFrom',
-                              render: (v: string) => dayjs(v).format('DD/MM/YYYY'),
-                            },
-                            {
-                              title: 'Đến ngày',
-                              dataIndex: 'effectiveTo',
-                              render: (v: string | null) => v ? dayjs(v).format('DD/MM/YYYY') : <Tag color="green">Hiện hành</Tag>,
-                            },
-                          ]}
-                        />
-                      </Card>
-                      <Card
-                        title={<span style={{ fontFamily: 'Outfit' }}>Chi tiết từng buổi dạy</span>}
+                        title={<span style={{ fontFamily: 'Outfit' }}><DollarOutlined /> Lịch sử thanh toán lương</span>}
                         className="glass-panel"
                         style={{ border: 'none', background: 'var(--card-bg)' }}
                       >
                         <Table
-                          dataSource={wagesReport.sessions || []}
+                          dataSource={wagesReport}
                           rowKey="id"
-                          pagination={{ pageSize: 15 }}
+                          pagination={{ pageSize: 10 }}
                           size="small"
+                          expandable={{
+                            expandedRowRender: (record) => (
+                              <Table
+                                dataSource={record.items || []}
+                                rowKey="id"
+                                pagination={false}
+                                size="small"
+                                style={{ margin: '8px 0', background: 'var(--bg-secondary)' }}
+                                columns={[
+                                  { title: 'Lớp học', dataIndex: 'className', key: 'className' },
+                                  { title: 'Chương trình', dataIndex: 'courseName', key: 'courseName' },
+                                  { title: 'Level', dataIndex: 'levelName', key: 'levelName' },
+                                  { title: 'Số buổi dạy', dataIndex: 'sessionsCount', key: 'sessionsCount', align: 'center', width: 110 },
+                                  {
+                                    title: 'Đơn giá', dataIndex: 'rate', key: 'rate', align: 'right', width: 140,
+                                    render: (v) => <Text style={{ color: '#a5b4fc' }}>{v.toLocaleString('vi-VN')}&nbsp;₫</Text>
+                                  },
+                                  {
+                                    title: 'Thành tiền', dataIndex: 'totalAmount', key: 'totalAmount', align: 'right', width: 150,
+                                    render: (v) => <Text strong style={{ color: '#f59e0b' }}>{v.toLocaleString('vi-VN')}&nbsp;₫</Text>
+                                  },
+                                ]}
+                              />
+                            ),
+                            rowExpandable: (record) => record.items && record.items.length > 0,
+                          }}
                           columns={[
-                            { title: 'Ngày', dataIndex: 'date', key: 'date', width: 120, render: (v: string) => dayjs(v).format('DD/MM/YYYY') },
-                            { title: 'Lớp học', dataIndex: 'className', key: 'className' },
                             {
-                              title: 'Chương trình & Level', key: 'course',
-                              render: (_: any, r: any) => (
-                                <div>
-                                  <Text strong style={{ color: 'var(--text-primary)' }}>{r.courseName || '-'}</Text>
-                                  <div style={{ fontSize: '11px', color: '#818cf8' }}>Level: {r.levelName || '-'}</div>
-                                </div>
-                              ),
+                              title: 'Tháng', dataIndex: 'month', key: 'month', width: 110,
+                              render: (v) => {
+                                const parts = v.split('-');
+                                return parts.length === 2 ? `${parts[1]}/${parts[0]}` : v;
+                              }
+                            },
+                            { title: 'Đợt thanh toán', dataIndex: 'periodName', key: 'periodName' },
+                            {
+                              title: 'Phương thức', dataIndex: 'paymentMethod', key: 'paymentMethod', width: 150,
+                              render: (v) => v === 'cash' ? 'Tiền mặt' : v === 'bank_transfer' ? 'Chuyển khoản' : v || '-'
                             },
                             {
-                              title: 'Vai trò', dataIndex: 'role', key: 'role', width: 110,
-                              render: (v: string) => <Tag color={v === 'teacher' ? 'purple' : 'cyan'}>
-                                {v === 'teacher' ? 'Giáo viên' : 'Trợ giảng'}
-                              </Tag>,
+                              title: 'Ngày chi', dataIndex: 'paymentDate', key: 'paymentDate', width: 160,
+                              render: (v) => v ? dayjs(v).format('DD/MM/YYYY HH:mm') : '-'
+                            },
+                            { title: 'Ghi chú', dataIndex: 'note', key: 'note', ellipsis: true },
+                            {
+                              title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 120,
+                              render: (v) => v === 'Paid' ? <Tag color="success">Đã chi</Tag> : <Tag color="warning">Chưa chi</Tag>
                             },
                             {
-                              title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 130,
-                              render: (v: string) => <Tag color={v === 'Completed' ? 'success' : v === 'Cancelled' ? 'error' : 'blue'}>
-                                {v === 'Completed' ? 'Hoàn thành' : v === 'Cancelled' ? 'Nghỉ' : 'Chưa dạy'}
-                              </Tag>,
-                            },
-                            {
-                              title: 'Lương/buổi', key: 'rate', width: 180,
-                              render: (_: any, r: any) => (
-                                <div>
-                                  <Text style={{ color: '#a5b4fc' }}>{(r.rate || 0).toLocaleString('vi-VN')}&nbsp;₫</Text>
-                                  {r.pricingEffectiveFrom && (
-                                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 2 }}>
-                                      {`Lương áp dụng: ${dayjs(r.pricingEffectiveFrom).format('DD/MM/YY')}${r.pricingEffectiveTo ? ` - ${dayjs(r.pricingEffectiveTo).format('DD/MM/YY')}` : ' +'}`}
-                                    </div>
-                                  )}
-                                </div>
-                              ),
-                            },
-                            {
-                              title: 'Thành tiền', dataIndex: 'amount', key: 'amount', width: 140,
-                              render: (v: number) => <Text strong style={{ color: '#f59e0b' }}>{(v || 0).toLocaleString('vi-VN')}&nbsp;₫</Text>,
+                              title: 'Thực nhận', dataIndex: 'paidAmount', key: 'paidAmount', width: 150, align: 'right',
+                              render: (v) => <Text strong style={{ color: '#f59e0b', fontSize: '14px' }}>{v.toLocaleString('vi-VN')}&nbsp;₫</Text>
                             },
                           ]}
-                          summary={() => (
-                            <Table.Summary.Row>
-                              <Table.Summary.Cell index={0} colSpan={5}>
-                                <Text strong style={{ color: 'var(--text-primary)' }}>Tổng cộng</Text>
-                              </Table.Summary.Cell>
-                              <Table.Summary.Cell index={1}>
-                                <Text strong style={{ color: '#f59e0b', fontSize: '16px' }}>
-                                  {(wagesReport.totalAmount || 0).toLocaleString('vi-VN')}&nbsp;₫
-                                </Text>
-                              </Table.Summary.Cell>
-                            </Table.Summary.Row>
-                          )}
                         />
                       </Card>
                     </>
@@ -576,7 +540,7 @@ const TeacherDetailInner: React.FC = () => {
                       type="info"
                       showIcon
                       message="Hướng dẫn"
-                      description="Chọn năm và nhấn 'Xem lịch sử' để xem báo cáo chi tiết lương giáo viên theo từng buổi dạy hoàn thành và mức lương hiệu lực tại thời điểm đó."
+                      description="Chọn năm và nhấn 'Xem lịch sử' để xem lịch sử nhận lương chi tiết của giáo viên theo các đợt thanh toán đã chốt và danh sách buổi dạy đi kèm."
                       style={{ background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.2)' }}
                     />
                   )}
