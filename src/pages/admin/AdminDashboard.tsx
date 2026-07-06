@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect */
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
-import { Shield, Users, BookOpen, Layers, Activity, RefreshCw, AlertTriangle, ClipboardCheck } from 'lucide-react';
+import { Shield, Users, BookOpen, Layers, Activity, RefreshCw, AlertTriangle, ClipboardCheck, Coins, Wallet, TrendingUp } from 'lucide-react';
 import { Card, Row, Col, Typography, Table, Spin, Button, message, App, Tag, Space } from 'antd';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
@@ -20,6 +20,8 @@ interface SummaryData {
   totalCourses: number;
   totalCenters: number;
   systemStatus: string;
+  totalPaidSalary?: number;
+  totalCollectedTuition?: number;
   studentGrowth?: Array<{ month: string; students: number }>;
   courseDistribution?: Array<{ name: string; value: number }>;
 }
@@ -291,6 +293,93 @@ const AdminDashboardInner: React.FC = () => {
                 <Text style={{ color: 'var(--text-secondary)', fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Chương Trình</Text>
                 <Title level={2} style={{ color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit', fontWeight: 700 }}>
                   {summary?.totalCourses?.toLocaleString('vi-VN') || 0}
+                </Title>
+              </div>
+            </div>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Financial Stats */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+        <Col xs={24} md={8}>
+          <Card 
+            bodyStyle={{ padding: '16px' }} 
+            style={cardStyle} 
+            className="hover-card-glow"
+            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.borderColor = 'rgba(16,185,129,0.5)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--card-border)'; }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+              <div style={{ 
+                width: 56, height: 56, borderRadius: 16, 
+                background: 'linear-gradient(135deg, rgba(16,185,129,0.2), rgba(5,150,105,0.1))', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                color: '#34d399', boxShadow: 'inset 0 0 20px rgba(16,185,129,0.2)'
+              }}>
+                <Coins size={28} />
+              </div>
+              <div>
+                <Text style={{ color: 'var(--text-secondary)', fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Tổng tiền đã thu</Text>
+                <Title level={2} style={{ color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit', fontWeight: 700 }}>
+                  {(summary?.totalCollectedTuition || 0).toLocaleString('vi-VN')}&nbsp;₫
+                </Title>
+              </div>
+            </div>
+          </Card>
+        </Col>
+
+        <Col xs={24} md={8}>
+          <Card 
+            bodyStyle={{ padding: '16px' }} 
+            style={cardStyle} 
+            className="hover-card-glow"
+            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.5)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--card-border)'; }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+              <div style={{ 
+                width: 56, height: 56, borderRadius: 16, 
+                background: 'linear-gradient(135deg, rgba(239,68,68,0.2), rgba(185,28,28,0.1))', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                color: '#f87171', boxShadow: 'inset 0 0 20px rgba(239,68,68,0.2)'
+              }}>
+                <Wallet size={28} />
+              </div>
+              <div>
+                <Text style={{ color: 'var(--text-secondary)', fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Tổng lương đã trả</Text>
+                <Title level={2} style={{ color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit', fontWeight: 700 }}>
+                  {(summary?.totalPaidSalary || 0).toLocaleString('vi-VN')}&nbsp;₫
+                </Title>
+              </div>
+            </div>
+          </Card>
+        </Col>
+
+        <Col xs={24} md={8}>
+          <Card 
+            bodyStyle={{ padding: '16px' }} 
+            style={cardStyle} 
+            className="hover-card-glow"
+            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.borderColor = 'rgba(59,130,246,0.5)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--card-border)'; }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+              <div style={{ 
+                width: 56, height: 56, borderRadius: 16, 
+                background: 'linear-gradient(135deg, rgba(59,130,246,0.2), rgba(29,78,216,0.1))', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                color: '#60a5fa', boxShadow: 'inset 0 0 20px rgba(59,130,246,0.2)'
+              }}>
+                <TrendingUp size={28} />
+              </div>
+              <div>
+                <Text style={{ color: 'var(--text-secondary)', fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Hiệu số thu - chi</Text>
+                <Title level={2} style={{ 
+                  color: ((summary?.totalCollectedTuition || 0) - (summary?.totalPaidSalary || 0)) >= 0 ? '#34d399' : '#f87171', 
+                  margin: 0, fontFamily: 'Outfit', fontWeight: 700 
+                }}>
+                  {((summary?.totalCollectedTuition || 0) - (summary?.totalPaidSalary || 0)).toLocaleString('vi-VN')}&nbsp;₫
                 </Title>
               </div>
             </div>
