@@ -106,7 +106,7 @@ export const StudentDashboard: React.FC = () => {
           <h2 style={{ fontSize: '2rem', color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
             Xin chào, {data?.studentInfo?.name || user?.name || 'Học sinh'} 👋
           </h2>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>Theo dõi thời khóa biểu, điểm danh và kết quả học tập của bạn</p>
+          <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>Theo dõi thời khóa biểu, chuyên cần và bài tập của bạn</p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={() => navigate('/student/assignments')} className="btn btn-primary">
