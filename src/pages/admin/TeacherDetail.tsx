@@ -525,6 +525,12 @@ const TeacherDetailInner: React.FC = () => {
                               ),
                             },
                             {
+                              title: 'Vai trò', dataIndex: 'role', key: 'role', width: 110,
+                              render: (v: string) => <Tag color={v === 'teacher' ? 'purple' : 'cyan'}>
+                                {v === 'teacher' ? 'Giáo viên' : 'Trợ giảng'}
+                              </Tag>,
+                            },
+                            {
                               title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 130,
                               render: (v: string) => <Tag color={v === 'Completed' ? 'success' : v === 'Cancelled' ? 'error' : 'blue'}>
                                 {v === 'Completed' ? 'Hoàn thành' : v === 'Cancelled' ? 'Nghỉ' : 'Chưa dạy'}
