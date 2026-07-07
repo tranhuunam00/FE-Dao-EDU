@@ -35,19 +35,21 @@ const fmtVND = (v: number) => `${fmt(v)} ₫`;
 interface FiltersProps {
   month: string | undefined;
   centerId: string | undefined;
-  classId: string | undefined;
+  classIds: string[] | undefined;
+  classStatus: string | undefined;
   centers: { id: string; name: string }[];
-  classes: { id: string; classCode: string; className: string }[];
+  classes: { id: string; classCode: string; className: string; status: string }[];
   onMonthChange: (v: string | undefined) => void;
   onCenterChange: (v: string | undefined) => void;
-  onClassChange: (v: string | undefined) => void;
+  onClassIdsChange: (v: string[] | undefined) => void;
+  onClassStatusChange: (v: string | undefined) => void;
   onSearch: () => void;
   loading: boolean;
   showClass?: boolean;
 }
 
 const ReportFilters: React.FC<FiltersProps> = ({
-  month, centerId, classId, centers, classes, onMonthChange, onCenterChange, onClassChange, onSearch, loading, showClass = true,
+  month, centerId, classIds, classStatus, centers, classes, onMonthChange, onCenterChange, onClassIdsChange, onClassStatusChange, onSearch, loading, showClass = true,
 }) => (
   <Card className="glass-panel" style={{ ...cardStyle, marginBottom: 20 }}>
     <Space size="middle" wrap align="center">
@@ -70,22 +72,43 @@ const ReportFilters: React.FC<FiltersProps> = ({
           onChange={onCenterChange}
           placeholder="Tất cả"
           allowClear
-          style={{ minWidth: 200 }}
+          style={{ minWidth: 180 }}
           options={centers.map(c => ({ label: c.name, value: c.id }))}
+        />
+      </div>
+      <div>
+        <Text style={{ color: 'var(--text-secondary)', marginRight: 8, fontSize: 13 }}>Trạng thái lớp:</Text>
+        <Select
+          value={classStatus}
+          onChange={onClassStatusChange}
+          placeholder="Tất cả"
+          allowClear
+          style={{ minWidth: 160 }}
+          options={[
+            { label: 'Lên kế hoạch', value: 'Planning' },
+            { label: 'Đang hoạt động', value: 'Active' },
+            { label: 'Đã hoàn thành', value: 'Completed' },
+            { label: 'Đã đóng', value: 'Closed' },
+          ]}
         />
       </div>
       {showClass && (
         <div>
           <Text style={{ color: 'var(--text-secondary)', marginRight: 8, fontSize: 13 }}>Lớp:</Text>
           <Select
-            value={classId}
-            onChange={onClassChange}
+            mode="multiple"
+            maxTagCount="responsive"
+            value={classIds}
+            onChange={onClassIdsChange}
             placeholder="Tất cả"
             allowClear
-            style={{ minWidth: 200 }}
+            style={{ minWidth: 240 }}
             showSearch
             optionFilterProp="label"
-            options={classes.map(c => ({ label: `${c.classCode} - ${c.className}`, value: c.id }))}
+            options={classes
+              .filter(c => !classStatus || c.status === classStatus)
+              .map(c => ({ label: `${c.classCode} - ${c.className}`, value: c.id }))
+            }
           />
         </div>
       )}
@@ -629,9 +652,10 @@ const ReportsInner: React.FC = () => {
   // Filters
   const [month, setMonth] = useState<string | undefined>(undefined);
   const [centerId, setCenterId] = useState<string | undefined>(undefined);
-  const [classId, setClassId] = useState<string | undefined>(undefined);
+  const [classIds, setClassIds] = useState<string[] | undefined>(undefined);
+  const [classStatus, setClassStatus] = useState<string | undefined>(undefined);
   const [centers, setCenters] = useState<{ id: string; name: string }[]>([]);
-  const [classes, setClasses] = useState<{ id: string; classCode: string; className: string }[]>([]);
+  const [classes, setClasses] = useState<{ id: string; classCode: string; className: string; status: string }[]>([]);
 
   // Data per tab
   const [revenueData, setRevenueData] = useState<any>(null);
@@ -674,9 +698,10 @@ const ReportsInner: React.FC = () => {
     const params: Record<string, string> = {};
     if (month) params.month = month;
     if (centerId) params.centerId = centerId;
-    if (classId) params.classId = classId;
+    if (classIds && classIds.length > 0) params.classIds = classIds.join(',');
+    if (classStatus) params.classStatus = classStatus;
     return { params };
-  }, [month, centerId, classId]);
+  }, [month, centerId, classIds, classStatus]);
 
   const fetchReport = useCallback(async () => {
     const config = buildParams();
@@ -793,9 +818,10 @@ const ReportsInner: React.FC = () => {
             children: (
               <>
                 <ReportFilters
-                  month={month} centerId={centerId} classId={classId}
+                  month={month} centerId={centerId} classIds={classIds} classStatus={classStatus}
                   centers={centers} classes={classes}
-                  onMonthChange={setMonth} onCenterChange={setCenterId} onClassChange={setClassId}
+                  onMonthChange={setMonth} onCenterChange={setCenterId}
+                  onClassIdsChange={setClassIds} onClassStatusChange={setClassStatus}
                   onSearch={fetchReport} loading={currentLoading}
                 />
                 <RevenueTab data={revenueData} loading={revenueLoading} />
@@ -808,9 +834,10 @@ const ReportsInner: React.FC = () => {
             children: (
               <>
                 <ReportFilters
-                  month={month} centerId={centerId} classId={classId}
+                  month={month} centerId={centerId} classIds={classIds} classStatus={classStatus}
                   centers={centers} classes={classes}
-                  onMonthChange={setMonth} onCenterChange={setCenterId} onClassChange={setClassId}
+                  onMonthChange={setMonth} onCenterChange={setCenterId}
+                  onClassIdsChange={setClassIds} onClassStatusChange={setClassStatus}
                   onSearch={fetchReport} loading={currentLoading} showClass={false}
                 />
                 <SalaryTab data={salaryData} loading={salaryLoading} />
@@ -823,9 +850,10 @@ const ReportsInner: React.FC = () => {
             children: (
               <>
                 <ReportFilters
-                  month={month} centerId={centerId} classId={classId}
+                  month={month} centerId={centerId} classIds={classIds} classStatus={classStatus}
                   centers={centers} classes={classes}
-                  onMonthChange={setMonth} onCenterChange={setCenterId} onClassChange={setClassId}
+                  onMonthChange={setMonth} onCenterChange={setCenterId}
+                  onClassIdsChange={setClassIds} onClassStatusChange={setClassStatus}
                   onSearch={fetchReport} loading={currentLoading}
                 />
                 <AttendanceTab data={attendanceData} loading={attendanceLoading} />
@@ -838,9 +866,10 @@ const ReportsInner: React.FC = () => {
             children: (
               <>
                 <ReportFilters
-                  month={month} centerId={centerId} classId={classId}
+                  month={month} centerId={centerId} classIds={classIds} classStatus={classStatus}
                   centers={centers} classes={classes}
-                  onMonthChange={setMonth} onCenterChange={setCenterId} onClassChange={setClassId}
+                  onMonthChange={setMonth} onCenterChange={setCenterId}
+                  onClassIdsChange={setClassIds} onClassStatusChange={setClassStatus}
                   onSearch={fetchReport} loading={currentLoading}
                 />
                 <AssignmentTab data={assignmentData} loading={assignmentLoading} />
@@ -853,9 +882,10 @@ const ReportsInner: React.FC = () => {
             children: (
               <>
                 <ReportFilters
-                  month={month} centerId={centerId} classId={classId}
+                  month={month} centerId={centerId} classIds={classIds} classStatus={classStatus}
                   centers={centers} classes={classes}
-                  onMonthChange={setMonth} onCenterChange={setCenterId} onClassChange={setClassId}
+                  onMonthChange={setMonth} onCenterChange={setCenterId}
+                  onClassIdsChange={setClassIds} onClassStatusChange={setClassStatus}
                   onSearch={fetchReport} loading={currentLoading}
                 />
                 <StudentsTab data={studentsData} loading={studentsLoading} />
@@ -868,9 +898,10 @@ const ReportsInner: React.FC = () => {
             children: (
               <>
                 <ReportFilters
-                  month={month} centerId={centerId} classId={classId}
+                  month={month} centerId={centerId} classIds={classIds} classStatus={classStatus}
                   centers={centers} classes={classes}
-                  onMonthChange={setMonth} onCenterChange={setCenterId} onClassChange={setClassId}
+                  onMonthChange={setMonth} onCenterChange={setCenterId}
+                  onClassIdsChange={setClassIds} onClassStatusChange={setClassStatus}
                   onSearch={fetchReport} loading={currentLoading} showClass={false}
                 />
                 <ClassStudentsStatsTab data={classStudentsStatsData} loading={classStudentsStatsLoading} />
@@ -883,9 +914,10 @@ const ReportsInner: React.FC = () => {
             children: (
               <>
                 <ReportFilters
-                  month={month} centerId={centerId} classId={classId}
+                  month={month} centerId={centerId} classIds={classIds} classStatus={classStatus}
                   centers={centers} classes={classes}
-                  onMonthChange={setMonth} onCenterChange={setCenterId} onClassChange={setClassId}
+                  onMonthChange={setMonth} onCenterChange={setCenterId}
+                  onClassIdsChange={setClassIds} onClassStatusChange={setClassStatus}
                   onSearch={fetchReport} loading={currentLoading}
                 />
                 <SaleOrdersTab data={saleOrdersData} loading={saleOrdersLoading} />
@@ -898,9 +930,10 @@ const ReportsInner: React.FC = () => {
             children: (
               <>
                 <ReportFilters
-                  month={month} centerId={centerId} classId={classId}
+                  month={month} centerId={centerId} classIds={classIds} classStatus={classStatus}
                   centers={centers} classes={classes}
-                  onMonthChange={setMonth} onCenterChange={setCenterId} onClassChange={setClassId}
+                  onMonthChange={setMonth} onCenterChange={setCenterId}
+                  onClassIdsChange={setClassIds} onClassStatusChange={setClassStatus}
                   onSearch={fetchReport} loading={currentLoading}
                 />
                 <ClassAttendanceTab data={classAttendanceData} loading={classAttendanceLoading} />
@@ -913,9 +946,10 @@ const ReportsInner: React.FC = () => {
             children: (
               <>
                 <ReportFilters
-                  month={month} centerId={centerId} classId={classId}
+                  month={month} centerId={centerId} classIds={classIds} classStatus={classStatus}
                   centers={centers} classes={classes}
-                  onMonthChange={setMonth} onCenterChange={setCenterId} onClassChange={setClassId}
+                  onMonthChange={setMonth} onCenterChange={setCenterId}
+                  onClassIdsChange={setClassIds} onClassStatusChange={setClassStatus}
                   onSearch={fetchReport} loading={currentLoading}
                 />
                 <StudentAttendanceTab data={studentAttendanceData} loading={studentAttendanceLoading} />
@@ -928,9 +962,10 @@ const ReportsInner: React.FC = () => {
             children: (
               <>
                 <ReportFilters
-                  month={month} centerId={centerId} classId={classId}
+                  month={month} centerId={centerId} classIds={classIds} classStatus={classStatus}
                   centers={centers} classes={classes}
-                  onMonthChange={setMonth} onCenterChange={setCenterId} onClassChange={setClassId}
+                  onMonthChange={setMonth} onCenterChange={setCenterId}
+                  onClassIdsChange={setClassIds} onClassStatusChange={setClassStatus}
                   onSearch={fetchReport} loading={currentLoading}
                 />
                 <StudentDebtsTab data={studentDebtsData} loading={studentDebtsLoading} />
