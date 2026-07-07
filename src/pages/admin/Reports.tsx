@@ -49,6 +49,13 @@ interface FiltersProps {
   showClass?: boolean;
 }
 
+const rangePresets = [
+  { label: 'Tháng này', value: [dayjs().startOf('month'), dayjs().endOf('month')] as [dayjs.Dayjs, dayjs.Dayjs] },
+  { label: 'Tháng trước', value: [dayjs().subtract(1, 'month').startOf('month'), dayjs().subtract(1, 'month').endOf('month')] as [dayjs.Dayjs, dayjs.Dayjs] },
+  { label: 'Năm này', value: [dayjs().startOf('year'), dayjs().endOf('year')] as [dayjs.Dayjs, dayjs.Dayjs] },
+  { label: 'Năm trước', value: [dayjs().subtract(1, 'year').startOf('year'), dayjs().subtract(1, 'year').endOf('year')] as [dayjs.Dayjs, dayjs.Dayjs] },
+];
+
 const ReportFilters: React.FC<FiltersProps> = ({
   startMonth, endMonth, centerId, classIds, classStatus, centers, classes, onMonthRangeChange, onCenterChange, onClassIdsChange, onClassStatusChange, onSearch, loading, showClass = true,
 }) => (
@@ -66,6 +73,7 @@ const ReportFilters: React.FC<FiltersProps> = ({
               onMonthRangeChange(undefined, undefined);
             }
           }}
+          presets={rangePresets}
           format="MM/YYYY"
           placeholder={['Từ tháng', 'Đến tháng']}
           allowClear
