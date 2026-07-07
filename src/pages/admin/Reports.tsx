@@ -6,6 +6,7 @@ import {
 import {
   DollarOutlined, TeamOutlined, CheckCircleOutlined, FileTextOutlined,
   DownloadOutlined, SearchOutlined, PercentageOutlined, WarningOutlined,
+  BookOutlined, ShoppingCartOutlined, ContactsOutlined, AuditOutlined,
 } from '@ant-design/icons';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
@@ -467,6 +468,135 @@ const StudentsTab: React.FC<{ data: any; loading: boolean }> = ({ data, loading 
   );
 };
 
+// ─── Class Students Stats Tab ──────────────────────────
+const ClassStudentsStatsTab: React.FC<{ data: any[]; loading: boolean }> = ({ data, loading }) => {
+  if (loading) return <Spin size="large" style={{ display: 'block', margin: '80px auto' }} />;
+  if (!data || data.length === 0) return <Text style={{ color: 'var(--text-muted)' }}>Bấm "Xem báo cáo" để hiển thị dữ liệu.</Text>;
+
+  return (
+    <Card className="glass-panel" title="Thống kê Học viên theo Lớp" style={cardStyle}
+      extra={<Button icon={<DownloadOutlined />} size="small" onClick={() => exportCSV(data, 'bc-hoc-vien-theo-lop.csv', ['Mã lớp', 'Tên lớp', 'Trung tâm', 'Đang học (Active)', 'Đã nghỉ (Dropped)', 'Tổng sĩ số'], ['classCode', 'className', 'centerName', 'activeCount', 'droppedCount', 'totalCount'])} style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}>Xuất CSV</Button>}
+    >
+      <Table
+        dataSource={data} rowKey="classId" pagination={{ pageSize: 15 }} size="small"
+        columns={[
+          { title: 'Mã lớp', dataIndex: 'classCode', key: 'classCode', width: 130 },
+          { title: 'Tên lớp', dataIndex: 'className', key: 'className' },
+          { title: 'Trung tâm', dataIndex: 'centerName', key: 'centerName', width: 180 },
+          { title: 'Đang học (Active)', dataIndex: 'activeCount', key: 'activeCount', width: 150, align: 'center', render: (v) => <Tag color="green">{v}</Tag> },
+          { title: 'Đã nghỉ (Dropped)', dataIndex: 'droppedCount', key: 'droppedCount', width: 150, align: 'center', render: (v) => v > 0 ? <Tag color="red">{v}</Tag> : '0' },
+          { title: 'Tổng sĩ số', dataIndex: 'totalCount', key: 'totalCount', width: 120, align: 'center', render: (v) => <b>{v}</b> },
+        ]}
+      />
+    </Card>
+  );
+};
+
+// ─── Sale Orders Tab ───────────────────────────────────
+const SaleOrdersTab: React.FC<{ data: any[]; loading: boolean }> = ({ data, loading }) => {
+  if (loading) return <Spin size="large" style={{ display: 'block', margin: '80px auto' }} />;
+  if (!data || data.length === 0) return <Text style={{ color: 'var(--text-muted)' }}>Bấm "Xem báo cáo" để hiển thị dữ liệu.</Text>;
+
+  return (
+    <Card className="glass-panel" title="Báo cáo SALE ORDER (Hóa đơn học phí)" style={cardStyle}
+      extra={<Button icon={<DownloadOutlined />} size="small" onClick={() => exportCSV(data, 'bc-sale-order.csv', ['Mã hóa đơn', 'Tháng', 'Mã HS', 'Tên HS', 'Lớp học', 'Phải đóng', 'Đã đóng', 'Trạng thái', 'Hình thức', 'Ngày đóng'], ['receiptCode', 'month', 'studentCode', 'studentName', 'className', 'totalAmount', 'paidAmount', 'status', 'paymentMethod', 'paymentDate'])} style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}>Xuất CSV</Button>}
+    >
+      <Table
+        dataSource={data} rowKey="billId" pagination={{ pageSize: 15 }} size="small"
+        columns={[
+          { title: 'Mã hóa đơn', dataIndex: 'receiptCode', key: 'receiptCode', width: 140, render: (v) => v || <Text type="secondary">—</Text> },
+          { title: 'Tháng', dataIndex: 'month', key: 'month', width: 90, align: 'center' },
+          { title: 'Mã HS', dataIndex: 'studentCode', key: 'studentCode', width: 100 },
+          { title: 'Tên học sinh', dataIndex: 'studentName', key: 'studentName', width: 180 },
+          { title: 'Lớp học', dataIndex: 'classCode', key: 'classCode', width: 120, render: (v, r) => v ? `${v} - ${r.className}` : '-' },
+          { title: 'Phải đóng', dataIndex: 'totalAmount', key: 'totalAmount', width: 130, align: 'right', render: (v) => fmtVND(Number(v)) },
+          { title: 'Đã đóng', dataIndex: 'paidAmount', key: 'paidAmount', width: 130, align: 'right', render: (v) => fmtVND(Number(v)) },
+          { title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 120, render: (v) => <Tag color={v === 'Paid' ? 'green' : v === 'Unpaid' ? 'red' : 'orange'}>{v === 'Paid' ? 'Đã thu' : v === 'Unpaid' ? 'Chưa thu' : 'Thu một phần'}</Tag> },
+          { title: 'Hình thức', dataIndex: 'paymentMethod', key: 'paymentMethod', width: 100, align: 'center', render: (v) => v ? <Tag color="blue">{v}</Tag> : <Text type="secondary">—</Text> },
+          { title: 'Ngày đóng', dataIndex: 'paymentDate', key: 'paymentDate', width: 150, render: (v) => v ? dayjs(v).format('DD/MM/YYYY HH:mm') : <Text type="secondary">—</Text> },
+        ]}
+      />
+    </Card>
+  );
+};
+
+// ─── Class Attendance Tab ──────────────────────────────
+const ClassAttendanceTab: React.FC<{ data: any[]; loading: boolean }> = ({ data, loading }) => {
+  if (loading) return <Spin size="large" style={{ display: 'block', margin: '80px auto' }} />;
+  if (!data || data.length === 0) return <Text style={{ color: 'var(--text-muted)' }}>Bấm "Xem báo cáo" để hiển thị dữ liệu.</Text>;
+
+  return (
+    <Card className="glass-panel" title="Báo cáo điểm danh theo Lớp" style={cardStyle}
+      extra={<Button icon={<DownloadOutlined />} size="small" onClick={() => exportCSV(data, 'bc-diem-danh-theo-lop.csv', ['Mã lớp', 'Tên lớp', 'Tổng số lượt', 'Có mặt', 'Vắng mặt', 'Tỉ lệ chuyên cần'], ['classCode', 'className', 'totalSessions', 'presentCount', 'absentCount', 'rate'])} style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}>Xuất CSV</Button>}
+    >
+      <Table
+        dataSource={data} rowKey="classId" pagination={{ pageSize: 15 }} size="small"
+        columns={[
+          { title: 'Mã lớp', dataIndex: 'classCode', key: 'classCode', width: 130 },
+          { title: 'Tên lớp', dataIndex: 'className', key: 'className' },
+          { title: 'Tổng lượt điểm danh', dataIndex: 'totalSessions', key: 'totalSessions', width: 150, align: 'center' },
+          { title: 'Có mặt', dataIndex: 'presentCount', key: 'presentCount', width: 110, align: 'center', render: (v) => <span style={{ color: '#10b981', fontWeight: 600 }}>{v}</span> },
+          { title: 'Vắng mặt', dataIndex: 'absentCount', key: 'absentCount', width: 110, align: 'center', render: (v) => v > 0 ? <span style={{ color: '#ef4444', fontWeight: 600 }}>{v}</span> : '0' },
+          { title: 'Tỉ lệ chuyên cần', dataIndex: 'rate', key: 'rate', width: 150, align: 'center', render: (v) => <Tag color={v >= 80 ? 'green' : v >= 50 ? 'orange' : 'red'}>{v}%</Tag> },
+        ]}
+      />
+    </Card>
+  );
+};
+
+// ─── Student Attendance Tab ────────────────────────────
+const StudentAttendanceTab: React.FC<{ data: any[]; loading: boolean }> = ({ data, loading }) => {
+  if (loading) return <Spin size="large" style={{ display: 'block', margin: '80px auto' }} />;
+  if (!data || data.length === 0) return <Text style={{ color: 'var(--text-muted)' }}>Bấm "Xem báo cáo" để hiển thị dữ liệu.</Text>;
+
+  return (
+    <Card className="glass-panel" title="Báo cáo điểm danh theo Học viên" style={cardStyle}
+      extra={<Button icon={<DownloadOutlined />} size="small" onClick={() => exportCSV(data, 'bc-diem-danh-hoc-vien.csv', ['Mã HS', 'Tên học sinh', 'Mã lớp', 'Tên lớp', 'Tổng số buổi', 'Có mặt', 'Vắng mặt', 'Tỉ lệ có mặt'], ['studentCode', 'studentName', 'classCode', 'className', 'totalSessions', 'presentCount', 'absentCount', 'rate'])} style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}>Xuất CSV</Button>}
+    >
+      <Table
+        dataSource={data} rowKey={(r) => `${r.studentId}-${r.classCode}`} pagination={{ pageSize: 15 }} size="small"
+        columns={[
+          { title: 'Mã HS', dataIndex: 'studentCode', key: 'studentCode', width: 120 },
+          { title: 'Tên học sinh', dataIndex: 'studentName', key: 'studentName', width: 180 },
+          { title: 'Lớp học', dataIndex: 'classCode', key: 'classCode', width: 220, render: (v, r) => `${v} - ${r.className}` },
+          { title: 'Tổng số buổi', dataIndex: 'totalSessions', key: 'totalSessions', width: 110, align: 'center' },
+          { title: 'Có mặt', dataIndex: 'presentCount', key: 'presentCount', width: 100, align: 'center', render: (v) => <span style={{ color: '#10b981', fontWeight: 600 }}>{v}</span> },
+          { title: 'Vắng mặt', dataIndex: 'absentCount', key: 'absentCount', width: 100, align: 'center', render: (v) => v > 0 ? <span style={{ color: '#ef4444', fontWeight: 600 }}>{v}</span> : '0' },
+          { title: 'Tỉ lệ có mặt', key: 'rate', width: 130, align: 'center', render: (_, r) => {
+              const rate = r.totalSessions > 0 ? ((r.presentCount / r.totalSessions) * 100).toFixed(1) : '0.0';
+              return <Tag color={Number(rate) >= 80 ? 'green' : Number(rate) >= 50 ? 'orange' : 'red'}>{rate}%</Tag>;
+            }
+          },
+        ]}
+      />
+    </Card>
+  );
+};
+
+// ─── Student Debts Tab ─────────────────────────────────
+const StudentDebtsTab: React.FC<{ data: any[]; loading: boolean }> = ({ data, loading }) => {
+  if (loading) return <Spin size="large" style={{ display: 'block', margin: '80px auto' }} />;
+  if (!data || data.length === 0) return <Text style={{ color: 'var(--text-muted)' }}>Bấm "Xem báo cáo" để hiển thị dữ liệu.</Text>;
+
+  return (
+    <Card className="glass-panel" title="Báo cáo theo dõi công nợ học viên" style={cardStyle}
+      extra={<Button icon={<DownloadOutlined />} size="small" onClick={() => exportCSV(data, 'bc-cong-no-hoc-vien.csv', ['Mã HS', 'Tên học sinh', 'Lớp học', 'Phát sinh nợ', 'Đã đóng', 'Còn nợ (Công nợ)'], ['studentCode', 'studentName', 'classCode', 'totalExpected', 'totalPaid', 'debtAmount'])} style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}>Xuất CSV</Button>}
+    >
+      <Table
+        dataSource={data} rowKey={(r) => `${r.studentId}-${r.classCode}`} pagination={{ pageSize: 15 }} size="small"
+        columns={[
+          { title: 'Mã HS', dataIndex: 'studentCode', key: 'studentCode', width: 120 },
+          { title: 'Tên học sinh', dataIndex: 'studentName', key: 'studentName', width: 180 },
+          { title: 'Lớp học', dataIndex: 'classCode', key: 'classCode', width: 180, render: (v, r) => v ? `${v} - ${r.className}` : '-' },
+          { title: 'Phát sinh nợ', dataIndex: 'totalExpected', key: 'totalExpected', width: 150, align: 'right', render: (v) => fmtVND(Number(v)) },
+          { title: 'Đã đóng', dataIndex: 'totalPaid', key: 'totalPaid', width: 150, align: 'right', render: (v) => fmtVND(Number(v)) },
+          { title: 'Còn nợ (Công nợ)', dataIndex: 'debtAmount', key: 'debtAmount', width: 160, align: 'right', render: (v) => <span style={{ color: Number(v) > 0 ? '#ef4444' : '#10b981', fontWeight: 600 }}>{fmtVND(Number(v))}</span> },
+        ]}
+      />
+    </Card>
+  );
+};
+
 // ─── Main Reports Page ────────────────────────────────
 const ReportsInner: React.FC = () => {
   const { message } = App.useApp();
@@ -490,6 +620,18 @@ const ReportsInner: React.FC = () => {
   const [assignmentLoading, setAssignmentLoading] = useState(false);
   const [studentsData, setStudentsData] = useState<any>(null);
   const [studentsLoading, setStudentsLoading] = useState(false);
+
+  // New reports states
+  const [classStudentsStatsData, setClassStudentsStatsData] = useState<any[]>([]);
+  const [classStudentsStatsLoading, setClassStudentsStatsLoading] = useState(false);
+  const [saleOrdersData, setSaleOrdersData] = useState<any[]>([]);
+  const [saleOrdersLoading, setSaleOrdersLoading] = useState(false);
+  const [classAttendanceData, setClassAttendanceData] = useState<any[]>([]);
+  const [classAttendanceLoading, setClassAttendanceLoading] = useState(false);
+  const [studentAttendanceData, setStudentAttendanceData] = useState<any[]>([]);
+  const [studentAttendanceLoading, setStudentAttendanceLoading] = useState(false);
+  const [studentDebtsData, setStudentDebtsData] = useState<any[]>([]);
+  const [studentDebtsLoading, setStudentDebtsLoading] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -551,6 +693,41 @@ const ReportsInner: React.FC = () => {
           setStudentsLoading(false);
           break;
         }
+        case 'class-students-stats': {
+          setClassStudentsStatsLoading(true);
+          const { data } = await api.get('/reports/class-students-stats', config);
+          setClassStudentsStatsData(data);
+          setClassStudentsStatsLoading(false);
+          break;
+        }
+        case 'sale-orders': {
+          setSaleOrdersLoading(true);
+          const { data } = await api.get('/reports/sale-orders', config);
+          setSaleOrdersData(data);
+          setSaleOrdersLoading(false);
+          break;
+        }
+        case 'class-attendance': {
+          setClassAttendanceLoading(true);
+          const { data } = await api.get('/reports/class-attendance', config);
+          setClassAttendanceData(data);
+          setClassAttendanceLoading(false);
+          break;
+        }
+        case 'student-attendance': {
+          setStudentAttendanceLoading(true);
+          const { data } = await api.get('/reports/student-attendance', config);
+          setStudentAttendanceData(data);
+          setStudentAttendanceLoading(false);
+          break;
+        }
+        case 'student-debts': {
+          setStudentDebtsLoading(true);
+          const { data } = await api.get('/reports/student-debts', config);
+          setStudentDebtsData(data);
+          setStudentDebtsLoading(false);
+          break;
+        }
       }
     } catch (err: any) {
       message.error(err.response?.data?.message || 'Lỗi khi tải báo cáo');
@@ -559,6 +736,11 @@ const ReportsInner: React.FC = () => {
       setAttendanceLoading(false);
       setAssignmentLoading(false);
       setStudentsLoading(false);
+      setClassStudentsStatsLoading(false);
+      setSaleOrdersLoading(false);
+      setClassAttendanceLoading(false);
+      setStudentAttendanceLoading(false);
+      setStudentDebtsLoading(false);
     }
   }, [activeTab, buildParams, message]);
 
@@ -566,7 +748,12 @@ const ReportsInner: React.FC = () => {
     : activeTab === 'salary' ? salaryLoading
     : activeTab === 'attendance' ? attendanceLoading
     : activeTab === 'assignments' ? assignmentLoading
-    : studentsLoading;
+    : activeTab === 'students' ? studentsLoading
+    : activeTab === 'class-students-stats' ? classStudentsStatsLoading
+    : activeTab === 'sale-orders' ? saleOrdersLoading
+    : activeTab === 'class-attendance' ? classAttendanceLoading
+    : activeTab === 'student-attendance' ? studentAttendanceLoading
+    : studentDebtsLoading;
 
   return (
     <div style={{ fontFamily: 'Inter, sans-serif' }}>
@@ -648,6 +835,81 @@ const ReportsInner: React.FC = () => {
                   onSearch={fetchReport} loading={currentLoading}
                 />
                 <StudentsTab data={studentsData} loading={studentsLoading} />
+              </>
+            ),
+          },
+          {
+            key: 'class-students-stats',
+            label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><BookOutlined /> Học viên theo Lớp</span>,
+            children: (
+              <>
+                <ReportFilters
+                  month={month} centerId={centerId} classId={classId}
+                  centers={centers} classes={classes}
+                  onMonthChange={setMonth} onCenterChange={setCenterId} onClassChange={setClassId}
+                  onSearch={fetchReport} loading={currentLoading} showClass={false}
+                />
+                <ClassStudentsStatsTab data={classStudentsStatsData} loading={classStudentsStatsLoading} />
+              </>
+            ),
+          },
+          {
+            key: 'sale-orders',
+            label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><ShoppingCartOutlined /> SALE ORDER</span>,
+            children: (
+              <>
+                <ReportFilters
+                  month={month} centerId={centerId} classId={classId}
+                  centers={centers} classes={classes}
+                  onMonthChange={setMonth} onCenterChange={setCenterId} onClassChange={setClassId}
+                  onSearch={fetchReport} loading={currentLoading}
+                />
+                <SaleOrdersTab data={saleOrdersData} loading={saleOrdersLoading} />
+              </>
+            ),
+          },
+          {
+            key: 'class-attendance',
+            label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><ContactsOutlined /> Điểm danh theo lớp</span>,
+            children: (
+              <>
+                <ReportFilters
+                  month={month} centerId={centerId} classId={classId}
+                  centers={centers} classes={classes}
+                  onMonthChange={setMonth} onCenterChange={setCenterId} onClassChange={setClassId}
+                  onSearch={fetchReport} loading={currentLoading}
+                />
+                <ClassAttendanceTab data={classAttendanceData} loading={classAttendanceLoading} />
+              </>
+            ),
+          },
+          {
+            key: 'student-attendance',
+            label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><AuditOutlined /> Điểm danh theo học viên</span>,
+            children: (
+              <>
+                <ReportFilters
+                  month={month} centerId={centerId} classId={classId}
+                  centers={centers} classes={classes}
+                  onMonthChange={setMonth} onCenterChange={setCenterId} onClassChange={setClassId}
+                  onSearch={fetchReport} loading={currentLoading}
+                />
+                <StudentAttendanceTab data={studentAttendanceData} loading={studentAttendanceLoading} />
+              </>
+            ),
+          },
+          {
+            key: 'student-debts',
+            label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><DollarOutlined /> Công nợ học viên</span>,
+            children: (
+              <>
+                <ReportFilters
+                  month={month} centerId={centerId} classId={classId}
+                  centers={centers} classes={classes}
+                  onMonthChange={setMonth} onCenterChange={setCenterId} onClassChange={setClassId}
+                  onSearch={fetchReport} loading={currentLoading}
+                />
+                <StudentDebtsTab data={studentDebtsData} loading={studentDebtsLoading} />
               </>
             ),
           },
