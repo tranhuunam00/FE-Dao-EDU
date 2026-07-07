@@ -33,13 +33,14 @@ const fmtVND = (v: number) => `${fmt(v)} ₫`;
 
 // ─── Filters component ────────────────────────────────
 interface FiltersProps {
-  month: string | undefined;
+  startMonth: string | undefined;
+  endMonth: string | undefined;
   centerId: string | undefined;
   classIds: string[] | undefined;
   classStatus: string | undefined;
   centers: { id: string; name: string }[];
   classes: { id: string; classCode: string; className: string; status: string }[];
-  onMonthChange: (v: string | undefined) => void;
+  onMonthRangeChange: (start: string | undefined, end: string | undefined) => void;
   onCenterChange: (v: string | undefined) => void;
   onClassIdsChange: (v: string[] | undefined) => void;
   onClassStatusChange: (v: string | undefined) => void;
@@ -49,20 +50,26 @@ interface FiltersProps {
 }
 
 const ReportFilters: React.FC<FiltersProps> = ({
-  month, centerId, classIds, classStatus, centers, classes, onMonthChange, onCenterChange, onClassIdsChange, onClassStatusChange, onSearch, loading, showClass = true,
+  startMonth, endMonth, centerId, classIds, classStatus, centers, classes, onMonthRangeChange, onCenterChange, onClassIdsChange, onClassStatusChange, onSearch, loading, showClass = true,
 }) => (
   <Card className="glass-panel" style={{ ...cardStyle, marginBottom: 20 }}>
     <Space size="middle" wrap align="center">
       <div>
-        <Text style={{ color: 'var(--text-secondary)', marginRight: 8, fontSize: 13 }}>Tháng:</Text>
-        <DatePicker
+        <Text style={{ color: 'var(--text-secondary)', marginRight: 8, fontSize: 13 }}>Thời gian:</Text>
+        <DatePicker.RangePicker
           picker="month"
-          value={month ? dayjs(month, 'YYYY-MM') : null}
-          onChange={(d) => onMonthChange(d ? d.format('YYYY-MM') : undefined)}
+          value={startMonth && endMonth ? [dayjs(startMonth, 'YYYY-MM'), dayjs(endMonth, 'YYYY-MM')] : null}
+          onChange={(dates) => {
+            if (dates && dates[0] && dates[1]) {
+              onMonthRangeChange(dates[0].format('YYYY-MM'), dates[1].format('YYYY-MM'));
+            } else {
+              onMonthRangeChange(undefined, undefined);
+            }
+          }}
           format="MM/YYYY"
-          placeholder="Tất cả"
+          placeholder={['Từ tháng', 'Đến tháng']}
           allowClear
-          style={{ minWidth: 140 }}
+          style={{ minWidth: 220 }}
         />
       </div>
       <div>
@@ -496,9 +503,49 @@ const ClassStudentsStatsTab: React.FC<{ data: any[]; loading: boolean }> = ({ da
   if (loading) return <Spin size="large" style={{ display: 'block', margin: '80px auto' }} />;
   if (!data || data.length === 0) return <Text style={{ color: 'var(--text-muted)' }}>Bấm "Xem báo cáo" để hiển thị dữ liệu.</Text>;
 
+  const handleExportCSV = () => {
+    const exportData: any[] = [];
+    data.forEach(cls => {
+      if (cls.students && cls.students.length > 0) {
+        cls.students.forEach((s: any) => {
+          exportData.push({
+            classCode: cls.classCode,
+            className: cls.className,
+            centerName: cls.centerName,
+            studentCode: s.studentCode,
+            studentName: s.studentName,
+            mobile: s.mobile || '—',
+            birthdate: s.birthdate ? dayjs(s.birthdate).format('DD/MM/YYYY') : '—',
+            status: s.status === 'Active' ? 'Đang học' : 'Đã nghỉ',
+            joinedDate: s.joinedDate ? dayjs(s.joinedDate).format('DD/MM/YYYY') : '—',
+          });
+        });
+      } else {
+        exportData.push({
+          classCode: cls.classCode,
+          className: cls.className,
+          centerName: cls.centerName,
+          studentCode: '—',
+          studentName: '—',
+          mobile: '—',
+          birthdate: '—',
+          status: '—',
+          joinedDate: '—',
+        });
+      }
+    });
+
+    exportCSV(
+      exportData,
+      'bc-hoc-vien-theo-lop.csv',
+      ['Mã lớp', 'Tên lớp', 'Trung tâm', 'Mã HS', 'Họ tên', 'Số điện thoại', 'Ngày sinh', 'Trạng thái học tại lớp', 'Ngày vào lớp'],
+      ['classCode', 'className', 'centerName', 'studentCode', 'studentName', 'mobile', 'birthdate', 'status', 'joinedDate']
+    );
+  };
+
   return (
     <Card className="glass-panel" title="Thống kê Học viên theo Lớp" style={cardStyle}
-      extra={<Button icon={<DownloadOutlined />} size="small" onClick={() => exportCSV(data, 'bc-hoc-vien-theo-lop.csv', ['Mã lớp', 'Tên lớp', 'Trung tâm', 'Đang học (Active)', 'Đã nghỉ (Dropped)', 'Tổng sĩ số'], ['classCode', 'className', 'centerName', 'activeCount', 'droppedCount', 'totalCount'])} style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}>Xuất CSV</Button>}
+      extra={<Button icon={<DownloadOutlined />} size="small" onClick={handleExportCSV} style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}>Xuất CSV</Button>}
     >
       <Table
         dataSource={data} rowKey="classId" pagination={{ pageSize: 15 }} size="small"
@@ -523,10 +570,12 @@ const ClassStudentsStatsTab: React.FC<{ data: any[]; loading: boolean }> = ({ da
                   pagination={false}
                   size="small"
                   columns={[
-                    { title: 'Mã HS', dataIndex: 'studentCode', key: 'studentCode', width: 120 },
-                    { title: 'Họ tên', dataIndex: 'studentName', key: 'studentName' },
+                    { title: 'Mã HS', dataIndex: 'studentCode', key: 'studentCode', width: 100 },
+                    { title: 'Họ tên', dataIndex: 'studentName', key: 'studentName', width: 180 },
+                    { title: 'Số điện thoại', dataIndex: 'mobile', key: 'mobile', width: 120, render: (v) => v || '—' },
+                    { title: 'Ngày sinh', dataIndex: 'birthdate', key: 'birthdate', width: 110, render: (v) => v ? dayjs(v).format('DD/MM/YYYY') : '—' },
                     { title: 'Trạng thái học', dataIndex: 'status', key: 'status', width: 130, render: (v) => <Tag color={v === 'Active' ? 'green' : 'red'}>{v === 'Active' ? 'Đang học' : 'Đã nghỉ'}</Tag> },
-                    { title: 'Ngày vào lớp', dataIndex: 'joinedDate', key: 'joinedDate', width: 130, render: (v) => v ? dayjs(v).format('DD/MM/YYYY') : '—' },
+                    { title: 'Ngày vào lớp', dataIndex: 'joinedDate', key: 'joinedDate', width: 110, render: (v) => v ? dayjs(v).format('DD/MM/YYYY') : '—' },
                   ]}
                 />
               )}
@@ -650,7 +699,8 @@ const ReportsInner: React.FC = () => {
   const [activeTab, setActiveTab] = useState('revenue');
 
   // Filters
-  const [month, setMonth] = useState<string | undefined>(undefined);
+  const [startMonth, setStartMonth] = useState<string | undefined>(undefined);
+  const [endMonth, setEndMonth] = useState<string | undefined>(undefined);
   const [centerId, setCenterId] = useState<string | undefined>(undefined);
   const [classIds, setClassIds] = useState<string[] | undefined>(undefined);
   const [classStatus, setClassStatus] = useState<string | undefined>(undefined);
@@ -696,12 +746,14 @@ const ReportsInner: React.FC = () => {
 
   const buildParams = useCallback(() => {
     const params: Record<string, string> = {};
-    if (month) params.month = month;
+    if (startMonth) params.startMonth = startMonth;
+    if (endMonth) params.endMonth = endMonth;
+    if (endMonth) params.month = endMonth; // single-month fallback
     if (centerId) params.centerId = centerId;
     if (classIds && classIds.length > 0) params.classIds = classIds.join(',');
     if (classStatus) params.classStatus = classStatus;
     return { params };
-  }, [month, centerId, classIds, classStatus]);
+  }, [startMonth, endMonth, centerId, classIds, classStatus]);
 
   const fetchReport = useCallback(async () => {
     const config = buildParams();
@@ -818,9 +870,9 @@ const ReportsInner: React.FC = () => {
             children: (
               <>
                 <ReportFilters
-                  month={month} centerId={centerId} classIds={classIds} classStatus={classStatus}
+                  startMonth={startMonth} endMonth={endMonth} centerId={centerId} classIds={classIds} classStatus={classStatus}
                   centers={centers} classes={classes}
-                  onMonthChange={setMonth} onCenterChange={setCenterId}
+                  onMonthRangeChange={(start, end) => { setStartMonth(start); setEndMonth(end); }} onCenterChange={setCenterId}
                   onClassIdsChange={setClassIds} onClassStatusChange={setClassStatus}
                   onSearch={fetchReport} loading={currentLoading}
                 />
@@ -834,9 +886,9 @@ const ReportsInner: React.FC = () => {
             children: (
               <>
                 <ReportFilters
-                  month={month} centerId={centerId} classIds={classIds} classStatus={classStatus}
+                  startMonth={startMonth} endMonth={endMonth} centerId={centerId} classIds={classIds} classStatus={classStatus}
                   centers={centers} classes={classes}
-                  onMonthChange={setMonth} onCenterChange={setCenterId}
+                  onMonthRangeChange={(start, end) => { setStartMonth(start); setEndMonth(end); }} onCenterChange={setCenterId}
                   onClassIdsChange={setClassIds} onClassStatusChange={setClassStatus}
                   onSearch={fetchReport} loading={currentLoading} showClass={false}
                 />
@@ -850,9 +902,9 @@ const ReportsInner: React.FC = () => {
             children: (
               <>
                 <ReportFilters
-                  month={month} centerId={centerId} classIds={classIds} classStatus={classStatus}
+                  startMonth={startMonth} endMonth={endMonth} centerId={centerId} classIds={classIds} classStatus={classStatus}
                   centers={centers} classes={classes}
-                  onMonthChange={setMonth} onCenterChange={setCenterId}
+                  onMonthRangeChange={(start, end) => { setStartMonth(start); setEndMonth(end); }} onCenterChange={setCenterId}
                   onClassIdsChange={setClassIds} onClassStatusChange={setClassStatus}
                   onSearch={fetchReport} loading={currentLoading}
                 />
@@ -866,9 +918,9 @@ const ReportsInner: React.FC = () => {
             children: (
               <>
                 <ReportFilters
-                  month={month} centerId={centerId} classIds={classIds} classStatus={classStatus}
+                  startMonth={startMonth} endMonth={endMonth} centerId={centerId} classIds={classIds} classStatus={classStatus}
                   centers={centers} classes={classes}
-                  onMonthChange={setMonth} onCenterChange={setCenterId}
+                  onMonthRangeChange={(start, end) => { setStartMonth(start); setEndMonth(end); }} onCenterChange={setCenterId}
                   onClassIdsChange={setClassIds} onClassStatusChange={setClassStatus}
                   onSearch={fetchReport} loading={currentLoading}
                 />
@@ -882,9 +934,9 @@ const ReportsInner: React.FC = () => {
             children: (
               <>
                 <ReportFilters
-                  month={month} centerId={centerId} classIds={classIds} classStatus={classStatus}
+                  startMonth={startMonth} endMonth={endMonth} centerId={centerId} classIds={classIds} classStatus={classStatus}
                   centers={centers} classes={classes}
-                  onMonthChange={setMonth} onCenterChange={setCenterId}
+                  onMonthRangeChange={(start, end) => { setStartMonth(start); setEndMonth(end); }} onCenterChange={setCenterId}
                   onClassIdsChange={setClassIds} onClassStatusChange={setClassStatus}
                   onSearch={fetchReport} loading={currentLoading}
                 />
@@ -898,9 +950,9 @@ const ReportsInner: React.FC = () => {
             children: (
               <>
                 <ReportFilters
-                  month={month} centerId={centerId} classIds={classIds} classStatus={classStatus}
+                  startMonth={startMonth} endMonth={endMonth} centerId={centerId} classIds={classIds} classStatus={classStatus}
                   centers={centers} classes={classes}
-                  onMonthChange={setMonth} onCenterChange={setCenterId}
+                  onMonthRangeChange={(start, end) => { setStartMonth(start); setEndMonth(end); }} onCenterChange={setCenterId}
                   onClassIdsChange={setClassIds} onClassStatusChange={setClassStatus}
                   onSearch={fetchReport} loading={currentLoading} showClass={false}
                 />
@@ -914,9 +966,9 @@ const ReportsInner: React.FC = () => {
             children: (
               <>
                 <ReportFilters
-                  month={month} centerId={centerId} classIds={classIds} classStatus={classStatus}
+                  startMonth={startMonth} endMonth={endMonth} centerId={centerId} classIds={classIds} classStatus={classStatus}
                   centers={centers} classes={classes}
-                  onMonthChange={setMonth} onCenterChange={setCenterId}
+                  onMonthRangeChange={(start, end) => { setStartMonth(start); setEndMonth(end); }} onCenterChange={setCenterId}
                   onClassIdsChange={setClassIds} onClassStatusChange={setClassStatus}
                   onSearch={fetchReport} loading={currentLoading}
                 />
@@ -930,9 +982,9 @@ const ReportsInner: React.FC = () => {
             children: (
               <>
                 <ReportFilters
-                  month={month} centerId={centerId} classIds={classIds} classStatus={classStatus}
+                  startMonth={startMonth} endMonth={endMonth} centerId={centerId} classIds={classIds} classStatus={classStatus}
                   centers={centers} classes={classes}
-                  onMonthChange={setMonth} onCenterChange={setCenterId}
+                  onMonthRangeChange={(start, end) => { setStartMonth(start); setEndMonth(end); }} onCenterChange={setCenterId}
                   onClassIdsChange={setClassIds} onClassStatusChange={setClassStatus}
                   onSearch={fetchReport} loading={currentLoading}
                 />
@@ -946,9 +998,9 @@ const ReportsInner: React.FC = () => {
             children: (
               <>
                 <ReportFilters
-                  month={month} centerId={centerId} classIds={classIds} classStatus={classStatus}
+                  startMonth={startMonth} endMonth={endMonth} centerId={centerId} classIds={classIds} classStatus={classStatus}
                   centers={centers} classes={classes}
-                  onMonthChange={setMonth} onCenterChange={setCenterId}
+                  onMonthRangeChange={(start, end) => { setStartMonth(start); setEndMonth(end); }} onCenterChange={setCenterId}
                   onClassIdsChange={setClassIds} onClassStatusChange={setClassStatus}
                   onSearch={fetchReport} loading={currentLoading}
                 />
@@ -962,9 +1014,9 @@ const ReportsInner: React.FC = () => {
             children: (
               <>
                 <ReportFilters
-                  month={month} centerId={centerId} classIds={classIds} classStatus={classStatus}
+                  startMonth={startMonth} endMonth={endMonth} centerId={centerId} classIds={classIds} classStatus={classStatus}
                   centers={centers} classes={classes}
-                  onMonthChange={setMonth} onCenterChange={setCenterId}
+                  onMonthRangeChange={(start, end) => { setStartMonth(start); setEndMonth(end); }} onCenterChange={setCenterId}
                   onClassIdsChange={setClassIds} onClassStatusChange={setClassStatus}
                   onSearch={fetchReport} loading={currentLoading}
                 />
