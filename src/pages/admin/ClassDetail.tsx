@@ -83,6 +83,15 @@ const ClassDetailInner: React.FC = () => {
   const [classForm] = Form.useForm();
   const [savingClass, setSavingClass] = useState(false);
 
+  // Clone Students from other class states
+  const [isCloneVisible, setIsCloneVisible] = useState(false);
+  const [allClasses, setAllClasses] = useState<any[]>([]);
+  const [selectedSourceClassId, setSelectedSourceClassId] = useState<string | null>(null);
+  const [cloneStudentIds, setCloneStudentIds] = useState<string[]>([]);
+  const [sourceStudents, setSourceStudents] = useState<any[]>([]);
+  const [loadingSourceStudents, setLoadingSourceStudents] = useState(false);
+  const [cloning, setCloning] = useState(false);
+
   const loadAllData = async () => {
     if (!id) return;
     try {
@@ -215,6 +224,93 @@ const ClassDetailInner: React.FC = () => {
       loadAllData();
     } catch (err: any) {
       message.error(err.response?.data?.message || 'Lỗi khi thêm học sinh');
+    }
+  };
+
+  const openCloneModal = async () => {
+    setIsCloneVisible(true);
+    setSelectedSourceClassId(null);
+    setSourceStudents([]);
+    setCloneStudentIds([]);
+    try {
+      const { data } = await api.get('/classes?page=1&limit=1000');
+      setAllClasses((data.classes || []).filter((c: any) => c.id !== id));
+    } catch (err) {
+      message.error('Không thể tải danh sách lớp học');
+    }
+  };
+
+  const handleSourceClassChange = async (val: string) => {
+    setSelectedSourceClassId(val);
+    setCloneStudentIds([]);
+    setSourceStudents([]);
+    if (!val) return;
+    setLoadingSourceStudents(true);
+    try {
+      const { data } = await api.get(`/classes/${val}`);
+      const activeStudents = (data.students || [])
+        .filter((cs: any) => cs.status === 'Active')
+        .map((cs: any) => cs.student);
+      setSourceStudents(activeStudents);
+      
+      // Mặc định chọn tất cả học sinh từ lớp nguồn
+      const allSourceStudentIds = activeStudents.map((s: any) => s.id);
+      setCloneStudentIds(allSourceStudentIds);
+    } catch (err) {
+      message.error('Không thể tải danh sách học sinh của lớp đã chọn');
+    } finally {
+      setLoadingSourceStudents(false);
+    }
+  };
+
+  const handleCloneStudents = async () => {
+    if (cloneStudentIds.length === 0 || !id) {
+      message.warning('Vui lòng chọn ít nhất một học sinh để sao chép.');
+      return;
+    }
+
+    // Lọc ra các học sinh chưa có trong lớp hiện tại
+    const targetActiveStudentIds = (classData?.students || [])
+      .filter((cs: any) => cs.status === 'Active')
+      .map((cs: any) => cs.studentId);
+      
+    const newStudentIds = cloneStudentIds.filter(sid => !targetActiveStudentIds.includes(sid));
+    const duplicateStudentIds = cloneStudentIds.filter(sid => targetActiveStudentIds.includes(sid));
+    
+    const duplicateStudentsInfo = sourceStudents.filter(s => duplicateStudentIds.includes(s.id));
+    const duplicateNames = duplicateStudentsInfo.map(s => `${s.lastName} ${s.firstName}`).join(', ');
+
+    if (newStudentIds.length === 0) {
+      modal.warning({
+        title: 'Học sinh đã tồn tại',
+        content: `Tất cả học sinh bạn chọn (${duplicateNames}) đều đã có sẵn trong lớp hiện tại rồi.`,
+      });
+      setIsCloneVisible(false);
+      return;
+    }
+
+    setCloning(true);
+    try {
+      await api.post(`/classes/${id}/students`, { studentIds: newStudentIds });
+      
+      if (duplicateStudentIds.length > 0) {
+        modal.warning({
+          title: 'Sao chép học sinh hoàn tất với cảnh báo',
+          content: `Đã thêm thành công ${newStudentIds.length} học sinh mới vào lớp. Lưu ý: có ${duplicateStudentIds.length} học sinh (${duplicateNames}) không được thêm vì đã có sẵn trong lớp hiện tại rồi.`,
+        });
+      } else {
+        message.success(`Đã sao chép thành công ${newStudentIds.length} học sinh vào lớp!`);
+      }
+      
+      setIsCloneVisible(false);
+      setSelectedSourceClassId(null);
+      setSourceStudents([]);
+      setCloneStudentIds([]);
+      loadAllData();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi sao chép học sinh');
+    } finally {
+      setCloning(false);
     }
   };
 
@@ -541,7 +637,15 @@ const ClassDetailInner: React.FC = () => {
           {
             key: 'students',
             label: `Học sinh (${classData.students.filter((s:any) => s.status === 'Active').length})`,
-            children: <StudentsTab classData={classData} setIsAddStudentVisible={setIsAddStudentVisible} handleKickStudent={handleKickStudent} handleReAddStudent={handleReAddStudent} />
+            children: (
+              <StudentsTab
+                classData={classData}
+                setIsAddStudentVisible={setIsAddStudentVisible}
+                handleKickStudent={handleKickStudent}
+                handleReAddStudent={handleReAddStudent}
+                openCloneModal={openCloneModal}
+              />
+            )
           },
           {
             key: 'sessions',
@@ -596,6 +700,112 @@ const ClassDetailInner: React.FC = () => {
               })
             }
           </Select>
+        </div>
+      </Modal>
+
+      {/* Modal Sao Chép Học Sinh Từ Lớp Khác */}
+      <Modal
+        title="Sao chép Học sinh từ Lớp khác"
+        open={isCloneVisible}
+        onOk={handleCloneStudents}
+        onCancel={() => {
+          setIsCloneVisible(false);
+          setSelectedSourceClassId(null);
+          setSourceStudents([]);
+          setCloneStudentIds([]);
+        }}
+        confirmLoading={cloning}
+        okText="Sao chép vào lớp"
+        cancelText="Hủy"
+        width={700}
+      >
+        <div style={{ padding: '12px 0' }}>
+          <div style={{ marginBottom: 16 }}>
+            <Text style={{ display: 'block', marginBottom: 8 }}>Chọn lớp học nguồn:</Text>
+            <Select
+              placeholder="Chọn lớp học để lấy danh sách học sinh..."
+              style={{ width: '100%' }}
+              showSearch
+              optionFilterProp="children"
+              onChange={handleSourceClassChange}
+              value={selectedSourceClassId}
+              allowClear
+            >
+              {allClasses.map(c => (
+                <Option key={c.id} value={c.id}>
+                  {c.className} ({c.classCode})
+                </Option>
+              ))}
+            </Select>
+          </div>
+
+          {selectedSourceClassId && (
+            <div>
+              <Divider style={{ margin: '16px 0' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <Text strong>Danh sách học sinh có thể sao chép:</Text>
+                {sourceStudents.length > 0 && (
+                  <Text type="secondary" style={{ fontSize: '13px' }}>
+                    Đã chọn {cloneStudentIds.length}/{sourceStudents.length} học sinh
+                  </Text>
+                )}
+              </div>
+
+              <Table
+                dataSource={sourceStudents}
+                rowKey="id"
+                loading={loadingSourceStudents}
+                pagination={false}
+                size="small"
+                rowSelection={{
+                  selectedRowKeys: cloneStudentIds,
+                  onChange: (keys: React.Key[]) => {
+                    setCloneStudentIds(keys as string[]);
+                  },
+                  getCheckboxProps: (record: any) => {
+                    return {
+                      name: record.firstName,
+                    };
+                  },
+                }}
+                columns={[
+                  {
+                    title: 'Học sinh',
+                    key: 'name',
+                    render: (_: any, record: any) => {
+                      const fullName = `${record.lastName} ${record.firstName}`;
+                      const isAlreadyInTarget = classData?.students?.some(
+                        (cs: any) => cs.studentId === record.id && cs.status === 'Active'
+                      );
+                      return (
+                        <div>
+                          <Text strong style={{ color: 'var(--text-primary)' }}>{fullName}</Text>
+                          {isAlreadyInTarget && (
+                            <Tag color="warning" style={{ marginLeft: 8 }}>⚠️ Đã có trong lớp này rồi</Tag>
+                          )}
+                        </div>
+                      );
+                    }
+                  },
+                  {
+                    title: 'Số điện thoại',
+                    dataIndex: 'mobile',
+                    key: 'mobile',
+                    render: (v: string) => v || '-',
+                  },
+                  {
+                    title: 'Email',
+                    dataIndex: 'email',
+                    key: 'email',
+                    render: (v: string) => v || '-',
+                  }
+                ]}
+                locale={{
+                  emptyText: 'Lớp học này chưa có học sinh nào hoặc tất cả học sinh đã có trong lớp hiện tại.'
+                }}
+              />
+            </div>
+          )}
         </div>
       </Modal>
 

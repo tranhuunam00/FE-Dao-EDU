@@ -455,9 +455,12 @@ const CreateClassInner: React.FC = () => {
               </Form.Item>
             </Col>
             <Col xs={12} md={6}>
-              <Form.Item name="status" label="Trạng thái">
-                <Select disabled>
+              <Form.Item name="status" label="Trạng thái" rules={[{ required: true, message: 'Bắt buộc' }]}>
+                <Select>
                   <Option value="Planning">Lên kế hoạch</Option>
+                  <Option value="Active">Hoạt động</Option>
+                  <Option value="Completed">Đã kết thúc</Option>
+                  <Option value="Closed">Đã đóng</Option>
                 </Select>
               </Form.Item>
             </Col>

@@ -10,9 +10,16 @@ interface StudentsTabProps {
   setIsAddStudentVisible: (v: boolean) => void;
   handleKickStudent: (id: string, name: string) => void;
   handleReAddStudent: (id: string) => void;
+  openCloneModal: () => void;
 }
 
-export const StudentsTab: React.FC<StudentsTabProps> = ({ classData, setIsAddStudentVisible, handleKickStudent, handleReAddStudent }) => {
+export const StudentsTab: React.FC<StudentsTabProps> = ({
+  classData,
+  setIsAddStudentVisible,
+  handleKickStudent,
+  handleReAddStudent,
+  openCloneModal,
+}) => {
   const studentColumns = [
     {
       title: 'Học sinh',
@@ -89,14 +96,24 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({ classData, setIsAddStu
     <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Title level={5} style={{ color: 'var(--text-primary)', margin: 0 }}>Danh sách Học sinh trong lớp</Title>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setIsAddStudentVisible(true)}
-          style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
-        >
-          Thêm Học sinh vào lớp
-        </Button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <Button
+            type="default"
+            icon={<PlusOutlined />}
+            onClick={openCloneModal}
+            style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--card-border)', color: 'var(--text-primary)' }}
+          >
+            Sao chép từ lớp khác
+          </Button>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setIsAddStudentVisible(true)}
+            style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
+          >
+            Thêm Học sinh vào lớp
+          </Button>
+        </div>
       </div>
       <Table
         columns={studentColumns}
