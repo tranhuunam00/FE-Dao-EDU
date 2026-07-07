@@ -84,7 +84,7 @@ const ReportFilters: React.FC<FiltersProps> = ({
         <Text style={{ color: 'var(--text-secondary)', marginRight: 8, fontSize: 13 }}>Trung tâm:</Text>
         <Select
           value={centerId}
-          onChange={onCenterChange}
+          onChange={(v) => onCenterChange(v || undefined)}
           placeholder="Tất cả"
           allowClear
           style={{ minWidth: 180 }}
@@ -95,7 +95,10 @@ const ReportFilters: React.FC<FiltersProps> = ({
         <Text style={{ color: 'var(--text-secondary)', marginRight: 8, fontSize: 13 }}>Trạng thái lớp:</Text>
         <Select
           value={classStatus}
-          onChange={onClassStatusChange}
+          onChange={(v) => {
+            onClassStatusChange(v || undefined);
+            if (!v) onClassIdsChange(undefined);
+          }}
           placeholder="Tất cả"
           allowClear
           style={{ minWidth: 160 }}
@@ -113,8 +116,8 @@ const ReportFilters: React.FC<FiltersProps> = ({
           <Select
             mode="multiple"
             maxTagCount="responsive"
-            value={classIds}
-            onChange={onClassIdsChange}
+            value={classIds && classIds.length > 0 ? classIds : undefined}
+            onChange={(v) => onClassIdsChange(v && v.length > 0 ? v : undefined)}
             placeholder="Tất cả"
             allowClear
             style={{ minWidth: 240 }}
@@ -137,6 +140,20 @@ const ReportFilters: React.FC<FiltersProps> = ({
       >
         Xem báo cáo
       </Button>
+      {(startMonth || endMonth || centerId || classStatus || (classIds && classIds.length > 0)) && (
+        <Button
+          size="large"
+          onClick={() => {
+            onMonthRangeChange(undefined, undefined);
+            onCenterChange(undefined);
+            onClassStatusChange(undefined);
+            onClassIdsChange(undefined);
+          }}
+          style={{ color: 'var(--text-secondary)' }}
+        >
+          Xóa bộ lọc
+        </Button>
+      )}
     </Space>
   </Card>
 );
