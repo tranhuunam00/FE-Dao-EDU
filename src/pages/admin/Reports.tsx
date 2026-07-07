@@ -487,6 +487,30 @@ const ClassStudentsStatsTab: React.FC<{ data: any[]; loading: boolean }> = ({ da
           { title: 'Đã nghỉ (Dropped)', dataIndex: 'droppedCount', key: 'droppedCount', width: 150, align: 'center', render: (v) => v > 0 ? <Tag color="red">{v}</Tag> : '0' },
           { title: 'Tổng sĩ số', dataIndex: 'totalCount', key: 'totalCount', width: 120, align: 'center', render: (v) => <b>{v}</b> },
         ]}
+        expandable={{
+          expandedRowRender: (record: any) => (
+            <div style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.01)', borderRadius: 8, border: '1px solid var(--card-border)' }}>
+              <h4 style={{ marginBottom: 12, fontSize: 13, color: 'var(--text-secondary)' }}>Danh sách học viên lớp {record.className}</h4>
+              {(!record.students || record.students.length === 0) ? (
+                <Text type="secondary" style={{ fontSize: 13 }}>Không có học viên nào trong lớp này theo bộ lọc.</Text>
+              ) : (
+                <Table
+                  dataSource={record.students}
+                  rowKey="studentId"
+                  pagination={false}
+                  size="small"
+                  columns={[
+                    { title: 'Mã HS', dataIndex: 'studentCode', key: 'studentCode', width: 120 },
+                    { title: 'Họ tên', dataIndex: 'studentName', key: 'studentName' },
+                    { title: 'Trạng thái học', dataIndex: 'status', key: 'status', width: 130, render: (v) => <Tag color={v === 'Active' ? 'green' : 'red'}>{v === 'Active' ? 'Đang học' : 'Đã nghỉ'}</Tag> },
+                    { title: 'Ngày vào lớp', dataIndex: 'joinedDate', key: 'joinedDate', width: 130, render: (v) => v ? dayjs(v).format('DD/MM/YYYY') : '—' },
+                  ]}
+                />
+              )}
+            </div>
+          ),
+          rowExpandable: (record: any) => record.students && record.students.length > 0,
+        }}
       />
     </Card>
   );

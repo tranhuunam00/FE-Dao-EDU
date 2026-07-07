@@ -646,3 +646,41 @@ button[disabled],
   }
 }
 
+/* Antd DatePicker Dropdown Theme Overrides */
+.ant-picker-dropdown .ant-picker-panel-container {
+  background-color: var(--bg-secondary) !important;
+  border: 1px solid var(--card-border) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4) !important;
+}
+.ant-picker-dropdown .ant-picker-header {
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--card-border) !important;
+}
+.ant-picker-dropdown .ant-picker-header button {
+  color: var(--text-secondary) !important;
+}
+.ant-picker-dropdown .ant-picker-header button:hover {
+  color: var(--primary) !important;
+}
+.ant-picker-dropdown .ant-picker-content th {
+  color: var(--text-secondary) !important;
+}
+.ant-picker-dropdown .ant-picker-cell {
+  color: var(--text-muted) !important;
+}
+.ant-picker-dropdown .ant-picker-cell-in-view {
+  color: var(--text-primary) !important;
+}
+.ant-picker-dropdown .ant-picker-cell-inner {
+  color: inherit !important;
+}
+.ant-picker-dropdown .ant-picker-cell-inner:hover {
+  background: var(--bg-tertiary) !important;
+}
+.ant-picker-dropdown .ant-picker-cell-selected .ant-picker-cell-inner {
+  background: var(--primary) !important;
+  color: #ffffff !important;
+}
+.ant-picker-dropdown .ant-picker-cell-today .ant-picker-cell-inner::before {
+  border-color: var(--primary) !important;
+}
