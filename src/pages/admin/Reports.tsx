@@ -506,10 +506,10 @@ const StudentsTab: React.FC<{ data: any; loading: boolean }> = ({ data, loading 
   );
 };
 
-// ─── Class Students Stats Tab ──────────────────────────
-const ClassStudentsStatsTab: React.FC<{ data: any[]; loading: boolean }> = ({ data, loading }) => {
+const ClassStudentsStatsTab: React.FC<{ data: any[] | null; loading: boolean }> = ({ data, loading }) => {
   if (loading) return <Spin size="large" style={{ display: 'block', margin: '80px auto' }} />;
-  if (!data || data.length === 0) return <Text style={{ color: 'var(--text-muted)' }}>Bấm "Xem báo cáo" để hiển thị dữ liệu.</Text>;
+  if (data === null) return <Text style={{ color: 'var(--text-muted)' }}>Bấm "Xem báo cáo" để hiển thị dữ liệu.</Text>;
+  if (data.length === 0) return <Text style={{ color: 'var(--text-muted)' }}>Không tìm thấy dữ liệu báo cáo phù hợp với bộ lọc.</Text>;
 
   const handleExportCSV = () => {
     const exportData: any[] = [];
@@ -597,9 +597,10 @@ const ClassStudentsStatsTab: React.FC<{ data: any[]; loading: boolean }> = ({ da
 };
 
 // ─── Sale Orders Tab ───────────────────────────────────
-const SaleOrdersTab: React.FC<{ data: any[]; loading: boolean }> = ({ data, loading }) => {
+const SaleOrdersTab: React.FC<{ data: any[] | null; loading: boolean }> = ({ data, loading }) => {
   if (loading) return <Spin size="large" style={{ display: 'block', margin: '80px auto' }} />;
-  if (!data || data.length === 0) return <Text style={{ color: 'var(--text-muted)' }}>Bấm "Xem báo cáo" để hiển thị dữ liệu.</Text>;
+  if (data === null) return <Text style={{ color: 'var(--text-muted)' }}>Bấm "Xem báo cáo" để hiển thị dữ liệu.</Text>;
+  if (data.length === 0) return <Text style={{ color: 'var(--text-muted)' }}>Không tìm thấy dữ liệu báo cáo phù hợp với bộ lọc.</Text>;
 
   return (
     <Card className="glass-panel" title="Báo cáo SALE ORDER (Hóa đơn học phí)" style={cardStyle}
@@ -625,13 +626,87 @@ const SaleOrdersTab: React.FC<{ data: any[]; loading: boolean }> = ({ data, load
 };
 
 // ─── Class Attendance Tab ──────────────────────────────
-const ClassAttendanceTab: React.FC<{ data: any[]; loading: boolean }> = ({ data, loading }) => {
+const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = ({ data, loading }) => {
   if (loading) return <Spin size="large" style={{ display: 'block', margin: '80px auto' }} />;
-  if (!data || data.length === 0) return <Text style={{ color: 'var(--text-muted)' }}>Bấm "Xem báo cáo" để hiển thị dữ liệu.</Text>;
+  if (data === null) return <Text style={{ color: 'var(--text-muted)' }}>Bấm "Xem báo cáo" để hiển thị dữ liệu.</Text>;
+  if (data.length === 0) return <Text style={{ color: 'var(--text-muted)' }}>Không tìm thấy dữ liệu báo cáo phù hợp với bộ lọc.</Text>;
+
+  const handleExportCSV = () => {
+    const exportData: any[] = [];
+    data.forEach(cls => {
+      if (cls.students && cls.students.length > 0) {
+        cls.students.forEach((s: any) => {
+          const row: any = {
+            classCode: cls.classCode,
+            className: cls.className,
+            studentCode: s.studentCode,
+            studentName: s.studentName,
+            mobile: s.mobile || '—',
+          };
+          
+          (cls.sessions || []).forEach((sess: any) => {
+            const dateStr = dayjs(sess.date).format('DD/MM/YYYY');
+            const isPresent = s.attendance[sess.sessionId];
+            row[dateStr] = isPresent === undefined ? '—' : (isPresent ? '1' : '0');
+          });
+          
+          row.presentCount = s.presentCount;
+          row.pricePerSession = s.pricePerSession;
+          row.totalTuition = s.totalTuition;
+          row.paymentStatus = s.paymentStatus === 'Paid' ? 'Đã thu' : s.paymentStatus === 'Unpaid' ? 'Chưa thu' : s.paymentStatus === 'Partially_Paid' ? 'Thu một phần' : '—';
+          
+          exportData.push(row);
+        });
+      } else {
+        exportData.push({
+          classCode: cls.classCode,
+          className: cls.className,
+          studentCode: '—',
+          studentName: '—',
+          mobile: '—',
+          presentCount: 0,
+          pricePerSession: 0,
+          totalTuition: 0,
+          paymentStatus: '—',
+        });
+      }
+    });
+
+    const sessionHeaders: string[] = [];
+    data.forEach(cls => {
+      (cls.sessions || []).forEach((sess: any) => {
+        const dateStr = dayjs(sess.date).format('DD/MM/YYYY');
+        if (!sessionHeaders.includes(dateStr)) {
+          sessionHeaders.push(dateStr);
+        }
+      });
+    });
+
+    sessionHeaders.sort((a, b) => {
+      const parseDate = (str: string) => {
+        const parts = str.split('/');
+        return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0])).getTime();
+      };
+      return parseDate(a) - parseDate(b);
+    });
+
+    const headers = [
+      'Mã lớp', 'Tên lớp', 'Mã HS', 'Họ tên', 'SĐT liên hệ',
+      ...sessionHeaders,
+      'Tổng số buổi', 'Đơn giá/buổi', 'Tổng học phí', 'Trạng thái TT'
+    ];
+    const dataKeys = [
+      'classCode', 'className', 'studentCode', 'studentName', 'mobile',
+      ...sessionHeaders,
+      'presentCount', 'pricePerSession', 'totalTuition', 'paymentStatus'
+    ];
+
+    exportCSV(exportData, 'bc-diem-danh-theo-lop.csv', headers, dataKeys);
+  };
 
   return (
     <Card className="glass-panel" title="Báo cáo điểm danh theo Lớp" style={cardStyle}
-      extra={<Button icon={<DownloadOutlined />} size="small" onClick={() => exportCSV(data, 'bc-diem-danh-theo-lop.csv', ['Mã lớp', 'Tên lớp', 'Tổng số lượt', 'Có mặt', 'Vắng mặt', 'Tỉ lệ chuyên cần'], ['classCode', 'className', 'totalSessions', 'presentCount', 'absentCount', 'rate'])} style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}>Xuất CSV</Button>}
+      extra={<Button icon={<DownloadOutlined />} size="small" onClick={handleExportCSV} style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}>Xuất CSV</Button>}
     >
       <Table
         dataSource={data} rowKey="classId" pagination={{ pageSize: 15 }} size="small"
@@ -643,15 +718,71 @@ const ClassAttendanceTab: React.FC<{ data: any[]; loading: boolean }> = ({ data,
           { title: 'Vắng mặt', dataIndex: 'absentCount', key: 'absentCount', width: 110, align: 'center', render: (v) => v > 0 ? <span style={{ color: '#ef4444', fontWeight: 600 }}>{v}</span> : '0' },
           { title: 'Tỉ lệ chuyên cần', dataIndex: 'rate', key: 'rate', width: 150, align: 'center', render: (v) => <Tag color={v >= 80 ? 'green' : v >= 50 ? 'orange' : 'red'}>{v}%</Tag> },
         ]}
+        expandable={{
+          expandedRowRender: (record: any) => {
+            const sessionColumns = (record.sessions || []).map((sess: any) => ({
+              title: dayjs(sess.date).format('DD/MM'),
+              dataIndex: ['attendance', sess.sessionId],
+              key: sess.sessionId,
+              width: 70,
+              align: 'center' as const,
+              render: (isPresent: any) => {
+                if (isPresent === undefined) return '—';
+                return isPresent ? (
+                  <span style={{ color: '#10b981', fontWeight: 600 }}>1</span>
+                ) : (
+                  <span style={{ color: '#ef4444', fontWeight: 600 }}>0</span>
+                );
+              }
+            }));
+
+            const studentColumns = [
+              { title: 'STT', key: 'stt', width: 50, render: (_: any, __: any, index: number) => index + 1 },
+              { title: 'Mã HS', dataIndex: 'studentCode', key: 'studentCode', width: 100 },
+              { title: 'Họ tên', dataIndex: 'studentName', key: 'studentName', width: 180 },
+              { title: 'SĐT liên hệ', dataIndex: 'mobile', key: 'mobile', width: 120 },
+              ...sessionColumns,
+              { title: 'Tổng số buổi', dataIndex: 'presentCount', key: 'presentCount', width: 110, align: 'center' as const, render: (v: number) => <b>{v}</b> },
+              { title: 'Đơn giá/buổi', dataIndex: 'pricePerSession', key: 'pricePerSession', width: 110, align: 'right' as const, render: (v: number) => fmtVND(v) },
+              { title: 'Tổng học phí', dataIndex: 'totalTuition', key: 'totalTuition', width: 120, align: 'right' as const, render: (v: number) => <b>{fmtVND(v)}</b> },
+              { title: 'Trạng thái TT', dataIndex: 'paymentStatus', key: 'paymentStatus', width: 130, render: (v: string) => {
+                  if (v === 'Paid') return <Tag color="green">Đã thu</Tag>;
+                  if (v === 'Unpaid') return <Tag color="red">Chưa thu</Tag>;
+                  if (v === 'Partially_Paid' || v === 'Partially Paid') return <Tag color="orange">Thu một phần</Tag>;
+                  return <Tag color="default">—</Tag>;
+                }
+              },
+            ];
+
+            return (
+              <div style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.01)', borderRadius: 8, border: '1px solid var(--card-border)', overflowX: 'auto' }}>
+                <h4 style={{ marginBottom: 12, fontSize: 13, color: 'var(--text-secondary)' }}>Danh sách điểm danh lớp {record.className}</h4>
+                {(!record.students || record.students.length === 0) ? (
+                  <Text type="secondary" style={{ fontSize: 13 }}>Không có học viên nào.</Text>
+                ) : (
+                  <Table
+                    dataSource={record.students}
+                    rowKey="studentId"
+                    pagination={false}
+                    size="small"
+                    columns={studentColumns}
+                  />
+                )}
+              </div>
+            );
+          },
+          rowExpandable: (record: any) => record.students && record.students.length > 0,
+        }}
       />
     </Card>
   );
 };
 
 // ─── Student Attendance Tab ────────────────────────────
-const StudentAttendanceTab: React.FC<{ data: any[]; loading: boolean }> = ({ data, loading }) => {
+const StudentAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = ({ data, loading }) => {
   if (loading) return <Spin size="large" style={{ display: 'block', margin: '80px auto' }} />;
-  if (!data || data.length === 0) return <Text style={{ color: 'var(--text-muted)' }}>Bấm "Xem báo cáo" để hiển thị dữ liệu.</Text>;
+  if (data === null) return <Text style={{ color: 'var(--text-muted)' }}>Bấm "Xem báo cáo" để hiển thị dữ liệu.</Text>;
+  if (data.length === 0) return <Text style={{ color: 'var(--text-muted)' }}>Không tìm thấy dữ liệu báo cáo phù hợp với bộ lọc.</Text>;
 
   return (
     <Card className="glass-panel" title="Báo cáo điểm danh theo Học viên" style={cardStyle}
@@ -678,9 +809,10 @@ const StudentAttendanceTab: React.FC<{ data: any[]; loading: boolean }> = ({ dat
 };
 
 // ─── Student Debts Tab ─────────────────────────────────
-const StudentDebtsTab: React.FC<{ data: any[]; loading: boolean }> = ({ data, loading }) => {
+const StudentDebtsTab: React.FC<{ data: any[] | null; loading: boolean }> = ({ data, loading }) => {
   if (loading) return <Spin size="large" style={{ display: 'block', margin: '80px auto' }} />;
-  if (!data || data.length === 0) return <Text style={{ color: 'var(--text-muted)' }}>Bấm "Xem báo cáo" để hiển thị dữ liệu.</Text>;
+  if (data === null) return <Text style={{ color: 'var(--text-muted)' }}>Bấm "Xem báo cáo" để hiển thị dữ liệu.</Text>;
+  if (data.length === 0) return <Text style={{ color: 'var(--text-muted)' }}>Không tìm thấy dữ liệu báo cáo phù hợp với bộ lọc.</Text>;
 
   return (
     <Card className="glass-panel" title="Báo cáo theo dõi công nợ học viên" style={cardStyle}
@@ -728,15 +860,15 @@ const ReportsInner: React.FC = () => {
   const [studentsLoading, setStudentsLoading] = useState(false);
 
   // New reports states
-  const [classStudentsStatsData, setClassStudentsStatsData] = useState<any[]>([]);
+  const [classStudentsStatsData, setClassStudentsStatsData] = useState<any[] | null>(null);
   const [classStudentsStatsLoading, setClassStudentsStatsLoading] = useState(false);
-  const [saleOrdersData, setSaleOrdersData] = useState<any[]>([]);
+  const [saleOrdersData, setSaleOrdersData] = useState<any[] | null>(null);
   const [saleOrdersLoading, setSaleOrdersLoading] = useState(false);
-  const [classAttendanceData, setClassAttendanceData] = useState<any[]>([]);
+  const [classAttendanceData, setClassAttendanceData] = useState<any[] | null>(null);
   const [classAttendanceLoading, setClassAttendanceLoading] = useState(false);
-  const [studentAttendanceData, setStudentAttendanceData] = useState<any[]>([]);
+  const [studentAttendanceData, setStudentAttendanceData] = useState<any[] | null>(null);
   const [studentAttendanceLoading, setStudentAttendanceLoading] = useState(false);
-  const [studentDebtsData, setStudentDebtsData] = useState<any[]>([]);
+  const [studentDebtsData, setStudentDebtsData] = useState<any[] | null>(null);
   const [studentDebtsLoading, setStudentDebtsLoading] = useState(false);
 
   useEffect(() => {
