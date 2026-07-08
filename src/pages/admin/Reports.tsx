@@ -663,8 +663,8 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
           
           (cls.sessions || []).forEach((sess: any) => {
             const dateStr = dayjs(sess.date).format('DD/MM/YYYY');
-            const isPresent = s.attendance[sess.sessionId];
-            row[dateStr] = isPresent === undefined ? '—' : (isPresent ? '1' : '0');
+            const sessionData = s.attendance[sess.sessionId];
+            row[dateStr] = !sessionData ? '—' : (sessionData.isPresent ? sessionData.rate : 0);
           });
           
           row.presentCount = s.presentCount;
@@ -743,12 +743,12 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
               key: sess.sessionId,
               width: 70,
               align: 'center' as const,
-              render: (isPresent: any) => {
-                if (isPresent === undefined) return '—';
-                return isPresent ? (
-                  <span style={{ color: '#10b981', fontWeight: 600 }}>1</span>
+              render: (sessionData: any) => {
+                if (!sessionData) return '—';
+                return sessionData.isPresent ? (
+                  <span style={{ color: '#10b981', fontWeight: 600 }}>{fmtVND(sessionData.rate)}</span>
                 ) : (
-                  <span style={{ color: '#ef4444', fontWeight: 600 }}>0</span>
+                  <span style={{ color: '#ef4444', fontWeight: 600 }}>0 ₫</span>
                 );
               }
             }));
