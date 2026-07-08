@@ -35,3 +35,8 @@ description: Implement typed React 19 pages and routes in the DAO EDU frontend. 
 - Run `npm run build` after TypeScript or route changes.
 - Run `npm run lint` when edits touch hooks, component structure, or shared code.
 - Open the affected route and verify both desktop and narrow layouts after significant UI changes.
+
+## Coding Standards
+
+- **Tiêu chuẩn code**: Một file code nguồn không được vượt quá 500 dòng.
+

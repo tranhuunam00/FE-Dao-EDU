@@ -13,6 +13,7 @@ import {
   ResponsiveContainer, Legend, PieChart, Pie, Cell, AreaChart, Area,
 } from 'recharts';
 import dayjs from 'dayjs';
+import * as XLSX from 'xlsx';
 import api from '../../services/api';
 
 const { Text } = Typography;
@@ -648,82 +649,66 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
   if (data === null) return <Text style={{ color: 'var(--text-muted)' }}>Bấm "Xem báo cáo" để hiển thị dữ liệu.</Text>;
   if (data.length === 0) return <Text style={{ color: 'var(--text-muted)' }}>Không tìm thấy dữ liệu báo cáo phù hợp với bộ lọc.</Text>;
 
-  const handleExportCSV = () => {
-    const exportData: any[] = [];
+  const handleExportExcel = () => {
+    const wb = XLSX.utils.book_new();
+
     data.forEach(cls => {
+      const sheetData: any[][] = [];
+      
+      // Title
+      sheetData.push([`Báo cáo điểm danh lớp ${cls.className} (${cls.classCode})`]);
+      sheetData.push([]); // blank row
+
+      // Dynamic session date headers
+      const sessionDates = (cls.sessions || []).map((sess: any) => dayjs(sess.date).format('DD/MM/YYYY'));
+      const headers = [
+        'STT', 'Mã HS', 'Họ tên', 'SĐT liên hệ',
+        ...sessionDates,
+        'Tổng số buổi', 'Đơn giá/buổi', 'Tổng học phí', 'Trạng thái TT'
+      ];
+      sheetData.push(headers);
+
+      // Student rows
       if (cls.students && cls.students.length > 0) {
-        cls.students.forEach((s: any) => {
-          const row: any = {
-            classCode: cls.classCode,
-            className: cls.className,
-            studentCode: s.studentCode,
-            studentName: s.studentName,
-            mobile: s.mobile || '—',
-          };
-          
+        cls.students.forEach((s: any, idx: number) => {
+          const row: any[] = [
+            idx + 1,
+            s.studentCode,
+            s.studentName,
+            s.mobile || '—',
+          ];
+
           (cls.sessions || []).forEach((sess: any) => {
-            const dateStr = dayjs(sess.date).format('DD/MM/YYYY');
             const sessionData = s.attendance[sess.sessionId];
-            row[dateStr] = !sessionData ? '—' : (sessionData.isPresent ? sessionData.rate : 0);
+            row.push(!sessionData ? '—' : (sessionData.isPresent ? sessionData.rate : 0));
           });
-          
-          row.presentCount = s.presentCount;
-          row.pricePerSession = s.pricePerSession;
-          row.totalTuition = s.totalTuition;
-          row.paymentStatus = s.paymentStatus === 'Paid' ? 'Đã thu' : s.paymentStatus === 'Unpaid' ? 'Chưa thu' : s.paymentStatus === 'Partially_Paid' ? 'Thu một phần' : '—';
-          
-          exportData.push(row);
+
+          row.push(
+            s.presentCount,
+            s.pricePerSession,
+            s.totalTuition,
+            s.paymentStatus === 'Paid' ? 'Đã thu' : s.paymentStatus === 'Unpaid' ? 'Chưa thu' : (s.paymentStatus === 'Partially_Paid' || s.paymentStatus === 'Partially Paid') ? 'Thu một phần' : '—'
+          );
+
+          sheetData.push(row);
         });
       } else {
-        exportData.push({
-          classCode: cls.classCode,
-          className: cls.className,
-          studentCode: '—',
-          studentName: '—',
-          mobile: '—',
-          presentCount: 0,
-          pricePerSession: 0,
-          totalTuition: 0,
-          paymentStatus: '—',
-        });
+        sheetData.push(['Không có học viên nào trong lớp này']);
       }
+
+      const ws = XLSX.utils.aoa_to_sheet(sheetData);
+
+      // Clean sheet name: max 30 chars, no special chars
+      const safeSheetName = cls.classCode.substring(0, 30).replace(/[\\\/\?\*\:\[\]]/g, '');
+      XLSX.utils.book_append_sheet(wb, ws, safeSheetName || `Sheet ${cls.classId.substring(0, 5)}`);
     });
 
-    const sessionHeaders: string[] = [];
-    data.forEach(cls => {
-      (cls.sessions || []).forEach((sess: any) => {
-        const dateStr = dayjs(sess.date).format('DD/MM/YYYY');
-        if (!sessionHeaders.includes(dateStr)) {
-          sessionHeaders.push(dateStr);
-        }
-      });
-    });
-
-    sessionHeaders.sort((a, b) => {
-      const parseDate = (str: string) => {
-        const parts = str.split('/');
-        return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0])).getTime();
-      };
-      return parseDate(a) - parseDate(b);
-    });
-
-    const headers = [
-      'Mã lớp', 'Tên lớp', 'Mã HS', 'Họ tên', 'SĐT liên hệ',
-      ...sessionHeaders,
-      'Tổng số buổi', 'Đơn giá/buổi', 'Tổng học phí', 'Trạng thái TT'
-    ];
-    const dataKeys = [
-      'classCode', 'className', 'studentCode', 'studentName', 'mobile',
-      ...sessionHeaders,
-      'presentCount', 'pricePerSession', 'totalTuition', 'paymentStatus'
-    ];
-
-    exportCSV(exportData, 'bc-diem-danh-theo-lop.csv', headers, dataKeys);
+    XLSX.writeFile(wb, 'bc-diem-danh-theo-lop.xlsx');
   };
 
   return (
     <Card className="glass-panel" title="Báo cáo điểm danh theo Lớp" style={cardStyle}
-      extra={<Button icon={<DownloadOutlined />} size="small" onClick={handleExportCSV} style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}>Xuất CSV</Button>}
+      extra={<Button icon={<DownloadOutlined />} size="small" onClick={handleExportExcel} style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}>Xuất Excel</Button>}
     >
       <Table
         dataSource={data} rowKey="classId" pagination={{ pageSize: 15 }} size="small"
