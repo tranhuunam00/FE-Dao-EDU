@@ -626,7 +626,7 @@ const SaleOrdersTab: React.FC<{ data: any[] | null; loading: boolean }> = ({ dat
     'Sale Order Status', 'Submit Date', 'Student ID',
     'Product Item Name', 'Receipt Amount', 'Net Amount',
     'Net Price', 'Date Created', 'Paid Amount', 'Quantity',
-    'Service Duration Value',
+    'Service Duration Value', 'Transfer Content', 'Payment Request Status',
   ];
   const csvFields = [
     'billId', 'billStatus', 'fullName', 'saleOrderId', 'receiptCode',
@@ -634,7 +634,7 @@ const SaleOrdersTab: React.FC<{ data: any[] | null; loading: boolean }> = ({ dat
     'saleOrderStatus', 'submitDate', 'studentCode',
     'productItemName', 'receiptAmount', 'netAmount',
     'netPrice', 'dateCreated', 'paidAmount', 'quantity',
-    'serviceDurationValue',
+    'serviceDurationValue', 'transferContent', 'paymentRequestStatus',
   ];
 
   return (
@@ -661,6 +661,8 @@ const SaleOrdersTab: React.FC<{ data: any[] | null; loading: boolean }> = ({ dat
           { title: 'Ngày đóng', dataIndex: 'receiptDate', key: 'receiptDate', width: 150, render: (v) => v ? dayjs(v).format('DD/MM/YYYY HH:mm') : <Text type="secondary">—</Text> },
           { title: 'Hạn đóng', dataIndex: 'dueDate', key: 'dueDate', width: 120, render: (v) => v ? dayjs(v).format('DD/MM/YYYY') : <Text type="secondary">—</Text> },
           { title: 'Ngày tạo', dataIndex: 'dateCreated', key: 'dateCreated', width: 150, render: (v) => v ? dayjs(v).format('DD/MM/YYYY HH:mm') : <Text type="secondary">—</Text> },
+          { title: 'Nội dung CK', dataIndex: 'transferContent', key: 'transferContent', width: 180, render: (v) => v || <Text type="secondary">—</Text> },
+          { title: 'TT thanh toán', dataIndex: 'paymentRequestStatus', key: 'paymentRequestStatus', width: 130, render: (v) => v ? <Tag color={v === 'reconciled' ? 'green' : v === 'pending' ? 'gold' : v === 'processing' ? 'blue' : 'default'}>{v}</Tag> : <Text type="secondary">—</Text> },
         ]}
       />
     </Card>
