@@ -626,7 +626,7 @@ const SaleOrdersTab: React.FC<{ data: any[] | null; loading: boolean }> = ({ dat
     'Sale Order Status', 'Submit Date', 'Student ID',
     'Product Item Name', 'Receipt Amount', 'Net Amount',
     'Net Price', 'Date Created', 'Paid Amount', 'Quantity',
-    'Service Duration Value', 'Transfer Content', 'Payment Request Status',
+    'Transfer Content', 'Payment Request Status',
   ];
   const csvFields = [
     'billId', 'billStatus', 'fullName', 'saleOrderId', 'receiptCode',
@@ -634,7 +634,7 @@ const SaleOrdersTab: React.FC<{ data: any[] | null; loading: boolean }> = ({ dat
     'saleOrderStatus', 'submitDate', 'studentCode',
     'productItemName', 'receiptAmount', 'netAmount',
     'netPrice', 'dateCreated', 'paidAmount', 'quantity',
-    'serviceDurationValue', 'transferContent', 'paymentRequestStatus',
+    'transferContent', 'paymentRequestStatus',
   ];
 
   return (
