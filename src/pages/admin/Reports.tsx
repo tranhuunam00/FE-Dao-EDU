@@ -22,7 +22,16 @@ const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'
 const cardStyle = { border: 'none', background: 'var(--card-bg)' };
 
 const exportCSV = (data: any[], filename: string, headers: string[], keys: string[]) => {
-  const rows = [headers.join(','), ...data.map(r => keys.map(k => `"${r[k] ?? ''}"`).join(','))];
+  const rows = [
+    headers.join(','),
+    ...data.map(r =>
+      keys.map(k => {
+        const val = r[k];
+        const displayVal = val === null || val === undefined || val === '' ? '—' : val;
+        return `"${displayVal}"`;
+      }).join(',')
+    )
+  ];
   const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
