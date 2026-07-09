@@ -41,8 +41,8 @@ git -C "${REPOSITORY_ROOT}" checkout "${BRANCH}"
 git -C "${REPOSITORY_ROOT}" merge --ff-only "origin/${BRANCH}"
 
 cd "${REPOSITORY_ROOT}"
-[[ -f .env.production ]] || {
-  echo "Missing frontend environment file: ${REPOSITORY_ROOT}/.env.production"
+[[ -f .env ]] || {
+  echo "Missing frontend environment file: ${REPOSITORY_ROOT}/.env"
   exit 1
 }
 
