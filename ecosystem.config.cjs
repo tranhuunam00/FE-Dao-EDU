@@ -3,7 +3,7 @@ const path = require('node:path');
 module.exports = {
   apps: [
     {
-      name: 'dao-edu-web',
+      name: 'dao-edu-production-web',
       cwd: __dirname,
       script: 'serve',
       exec_mode: 'fork',

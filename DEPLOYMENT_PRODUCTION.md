@@ -57,9 +57,29 @@ Hệ thống cơ sở dữ liệu và lưu trữ file được đóng gói sẵn
    ```
 
 ### Thiết lập ban đầu trên MinIO:
-1. Truy cập vào giao diện quản trị Web của MinIO qua trình duyệt: `http://<IP_SERVER>:9006`.
+
+Bạn có thể cấu hình bằng một trong hai cách dưới đây:
+
+#### CÁCH A: Thiết lập nhanh qua dòng lệnh (CLI)
+Chạy trực tiếp các lệnh sau trên Server (các lệnh này chạy trình khách `mc` tích hợp sẵn trong container MinIO):
+```bash
+# 1. Đăng nhập/Liên kết client mc (Lưu ý bao bọc mật khẩu trong dấu nháy đơn '' nếu có ký tự đặc biệt như !)
+docker exec -it dao-edu-infra_production-minio mc alias set myminio http://localhost:9000 <MINIO_ROOT_USER> '<MINIO_ROOT_PASSWORD>'
+
+# 2. Tạo bucket tên là "edu"
+docker exec -it dao-edu-infra_production-minio mc mb myminio/edu
+
+# 3. Cấp quyền tải/đọc công khai (download) cho bucket "edu" để hiển thị tệp trên web/app
+docker exec -it dao-edu-infra_production-minio mc anonymous set download myminio/edu
+```
+*(Nếu bạn đổi tên project docker compose khác, hãy kiểm tra lại tên container chạy thực tế bằng `docker ps` để thay thế cho chính xác).*
+
+#### CÁCH B: Thiết lập qua giao diện Web (Web UI)
+1. Truy cập vào giao diện quản trị Web của MinIO qua trình duyệt: `http://<IP_SERVER>:9009` (hoặc cổng cấu hình của bạn).
 2. Đăng nhập bằng `MINIO_ROOT_USER` (mặc định: `minio_admin`) và mật khẩu `MINIO_ROOT_PASSWORD` bạn vừa cấu hình.
-3. Tạo một bucket tên là: **`edu`** (bắt buộc đúng tên này để khớp cấu hình Backend).
+3. Vào mục **Buckets** -> chọn **Create Bucket**.
+4. Tạo một bucket tên là: **`edu`** (bắt buộc đúng tên này).
+5. Sau khi tạo xong, vào phần cấu hình của Bucket đó, đặt **Access Policy** từ `private` thành `public` hoặc `custom` (cho phép tải công khai).
 
 ---
 
@@ -126,7 +146,7 @@ Hệ thống cơ sở dữ liệu và lưu trữ file được đóng gói sẵn
    ```
 8. Kiểm tra logs để đảm bảo Backend chạy không lỗi:
    ```bash
-   pm2 logs dao-edu-api
+   pm2 logs dao-edu-production-api
    ```
 
 ---
@@ -157,14 +177,14 @@ Hệ thống cơ sở dữ liệu và lưu trữ file được đóng gói sẵn
 5. Sử dụng PM2 để phục vụ ứng dụng Frontend (Single Page Application - SPA):
    ```bash
    # Triển khai trực tiếp file tĩnh qua PM2 serve ở cổng 5001
-   pm2 serve dist 5001 --name dao-edu-web --spa
+   pm2 serve dist 5001 --name dao-edu-production-web --spa
    pm2 save
    ```
 6. Kiểm tra trạng thái các service qua PM2:
    ```bash
    pm2 status
    ```
-   *Bạn sẽ thấy hai dịch vụ: `dao-edu-api` (BE) chạy cổng 5000 và `dao-edu-web` (FE) chạy cổng 5001.*
+   *Bạn sẽ thấy hai dịch vụ: `dao-edu-production-api` (BE) chạy cổng 5000 và `dao-edu-production-web` (FE) chạy cổng 5001.*
 
 ---
 
@@ -248,8 +268,8 @@ sudo ufw reload
     ```
 *   **Xem logs thời gian thực của ứng dụng**:
     ```bash
-    pm2 logs dao-edu-api   # Backend
-    pm2 logs dao-edu-web   # Frontend
+    pm2 logs dao-edu-production-api   # Backend
+    pm2 logs dao-edu-production-web   # Frontend
     ```
 *   **Khởi động lại/Dừng ứng dụng**:
     ```bash

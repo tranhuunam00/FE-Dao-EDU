@@ -49,5 +49,5 @@ hay restart backend.
 
 ```bash
 pm2 status
-pm2 logs dao-edu-web
+pm2 logs dao-edu-production-web
 ```

@@ -4,7 +4,7 @@ set -Eeuo pipefail
 BRANCH="${1:-master}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPOSITORY_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-LOCK_FILE="${TMPDIR:-/tmp}/dao-edu-web-deploy.lock"
+LOCK_FILE="${TMPDIR:-/tmp}/dao-edu-production-web-deploy.lock"
 
 export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 if [[ -s "${NVM_DIR}/nvm.sh" ]]; then
@@ -51,9 +51,9 @@ npm ci
 npm run build
 
 echo "Reloading frontend with PM2..."
-pm2 delete dao-edu-web >/dev/null 2>&1 || true
+pm2 delete dao-edu-production-web >/dev/null 2>&1 || true
 pm2 serve "${REPOSITORY_ROOT}/dist" 5001 \
-  --name dao-edu-web \
+  --name dao-edu-production-web \
   --spa
 pm2 save
 
