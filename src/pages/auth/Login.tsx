@@ -247,6 +247,9 @@ const LoginInner: React.FC = () => {
                   </Button>
                 </Form.Item>
               </Form>
+              <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                Phiên bản {import.meta.env.VITE_APP_VERSION || 'v1.0.0'}
+              </div>
             </Card>
           </Col>
 
