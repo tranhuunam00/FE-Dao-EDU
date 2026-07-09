@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import { Shield, Users, BookOpen, Layers, Activity, RefreshCw, AlertTriangle, ClipboardCheck, Coins, Wallet, TrendingUp } from 'lucide-react';
-import { Card, Row, Col, Typography, Table, Spin, Button, message, App, Tag, Space } from 'antd';
+import { Card, Row, Col, Typography, Table, Spin, Button, message, App, Tag, Space, Empty } from 'antd';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
   ResponsiveContainer, Legend, BarChart, Bar, PieChart, Pie, Cell 
@@ -570,22 +570,23 @@ const AdminDashboardInner: React.FC = () => {
             style={cardStyle} 
             headStyle={{ borderBottom: '1px solid var(--card-border)' }}
           >
-            <div style={{ width: '100%', height: 300 }}>
-              <ResponsiveContainer>
-                <BarChart data={summary?.studentGrowth && summary.studentGrowth.length > 0 ? summary.studentGrowth : [
-                  { month: 'T1', students: 120 }, { month: 'T2', students: 135 }, { month: 'T3', students: 150 },
-                  { month: 'T4', students: 180 }, { month: 'T5', students: 210 }, { month: 'T6', students: Math.max(summary?.totalStudents || 250, 250) }
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} vertical={false} />
-                  <XAxis dataKey="month" stroke={chartText} tick={{ fill: chartText }} />
-                  <YAxis stroke={chartText} tick={{ fill: chartText }} />
-                  <RechartsTooltip 
-                    contentStyle={{ backgroundColor: tooltipBackground, borderColor: 'var(--card-border)', borderRadius: 8, color: tooltipText }}
-                    itemStyle={{ color: tooltipText }}
-                  />
-                  <Bar dataKey="students" name="Số học sinh" fill="url(#colorExpected)" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+            <div style={{ width: '100%', height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {summary?.studentGrowth && summary.studentGrowth.length > 0 ? (
+                <ResponsiveContainer>
+                  <BarChart data={summary.studentGrowth}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} vertical={false} />
+                    <XAxis dataKey="month" stroke={chartText} tick={{ fill: chartText }} />
+                    <YAxis stroke={chartText} tick={{ fill: chartText }} />
+                    <RechartsTooltip 
+                      contentStyle={{ backgroundColor: tooltipBackground, borderColor: 'var(--card-border)', borderRadius: 8, color: tooltipText }}
+                      itemStyle={{ color: tooltipText }}
+                    />
+                    <Bar dataKey="students" name="Số học sinh" fill="url(#colorExpected)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <Empty description="Chưa có dữ liệu tăng trưởng" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              )}
             </div>
           </Card>
         </Col>
@@ -603,35 +604,34 @@ const AdminDashboardInner: React.FC = () => {
             style={cardStyle} 
             headStyle={{ borderBottom: '1px solid var(--card-border)' }}
           >
-            <div style={{ width: '100%', height: 300 }}>
-              <ResponsiveContainer>
-                <PieChart>
-                  <Pie
-                    data={summary?.courseDistribution && summary.courseDistribution.length > 0 ? summary.courseDistribution : [
-                      { name: 'Khóa học Tiếng Anh', value: 400 },
-                      { name: 'Toán Tư Duy', value: 300 },
-                      { name: 'Kỹ Năng Sống', value: 200 },
-                      { name: 'Nghệ Thuật', value: 100 }
-                    ]}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={5}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
-                    labelLine={false}
-                  >
-                    {[ '#6366f1', '#34d399', '#f59e0b', '#ec4899' ].map((color, index) => (
-                      <Cell key={`cell-${index}`} fill={color} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip 
-                    contentStyle={{ backgroundColor: tooltipBackground, borderColor: 'var(--card-border)', borderRadius: 8, color: tooltipText }}
-                    itemStyle={{ color: tooltipText }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+            <div style={{ width: '100%', height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {summary?.courseDistribution && summary.courseDistribution.length > 0 ? (
+                <ResponsiveContainer>
+                  <PieChart>
+                    <Pie
+                      data={summary.courseDistribution}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={5}
+                      dataKey="value"
+                      label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                      labelLine={false}
+                    >
+                      {[ '#6366f1', '#34d399', '#f59e0b', '#ec4899' ].map((color, index) => (
+                        <Cell key={`cell-${index}`} fill={color} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip 
+                      contentStyle={{ backgroundColor: tooltipBackground, borderColor: 'var(--card-border)', borderRadius: 8, color: tooltipText }}
+                      itemStyle={{ color: tooltipText }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <Empty description="Chưa có dữ liệu phân bố" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              )}
             </div>
           </Card>
         </Col>
