@@ -18,29 +18,9 @@ import {
   LockOutlined,
   ArrowRightOutlined,
   BookOutlined,
-  SafetyOutlined,
-  UserOutlined,
 } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
-
-const quickDevAccounts = {
-  [Role.ADMIN]: {
-    email: 'admin@dao.edu.vn',
-    password: '123456',
-    label: 'Quản trị viên (Admin)',
-  },
-  [Role.TEACHER]: {
-    email: 'linh.nguyen@dao.edu.vn',
-    password: '123456',
-    label: 'Giáo viên (Teacher)',
-  },
-  [Role.STUDENT]: {
-    email: 'an.nguyen@student.dao.edu.vn',
-    password: '123456',
-    label: 'Học viên (Student)',
-  },
-};
 
 const LoginInner: React.FC = () => {
   const [form] = Form.useForm();
@@ -70,21 +50,6 @@ const LoginInner: React.FC = () => {
       .then(() => setSubmittable(true))
       .catch(() => setSubmittable(false));
   }, [form, values]);
-
-  const handleQuickLogin = async (role: Role) => {
-    setLoading(true);
-    const account = quickDevAccounts[role];
-
-    try {
-      const user = await login(account.email, account.password);
-      message.success(`Đăng nhập nhanh thành công!`);
-      redirectUser(user.role);
-    } catch (err: any) {
-      message.error(err.message || 'Lỗi đăng nhập nhanh');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const redirectUser = (role: Role) => {
     switch (role) {
@@ -141,11 +106,11 @@ const LoginInner: React.FC = () => {
       </Link>
 
       <div style={{
-        maxWidth: '980px', width: '100%', zIndex: 1
+        maxWidth: '480px', width: '100%', zIndex: 1
       }}>
         <Row gutter={[32, 32]} justify="center" align="stretch">
           {/* Main Login Card */}
-          <Col xs={24} md={13} style={{ display: 'flex' }}>
+          <Col span={24} style={{ display: 'flex' }}>
             <Card
               className="glass-panel"
               style={{
@@ -252,115 +217,9 @@ const LoginInner: React.FC = () => {
               </div>
             </Card>
           </Col>
-
-            {/* Developer Sandbox Panel */}
-            <Col xs={24} md={11} style={{ display: 'flex' }}>
-              <Card
-                className="glass-panel"
-                style={{
-                  width: '100%',
-                  border: 'none',
-                  background: 'rgba(99, 102, 241, 0.06)',
-                  borderColor: 'rgba(99, 102, 241, 0.12)',
-                  boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)',
-                  padding: '16px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', color: 'var(--primary)' }}>
-                  <SafetyOutlined style={{ fontSize: '22px' }} />
-                  <Title level={4} style={{ margin: 0, color: 'var(--primary)', fontFamily: 'Outfit', fontWeight: 700 }}>Quick Dev Access</Title>
-                </div>
-                <Text style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: '1.6', display: 'block', marginBottom: '24px' }}>
-                  Bấm để tự động đăng nhập nhanh với từng vai trò trong hệ thống DAO EDU.
-                </Text>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {/* Admin */}
-                  <Button
-                    id="quick-login-admin"
-                    onClick={() => handleQuickLogin(Role.ADMIN)}
-                    disabled={loading}
-                    style={{
-                      height: '56px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'flex-start',
-                      borderRadius: '8px',
-                      borderColor: 'rgba(168, 85, 247, 0.3)',
-                      background: 'rgba(168, 85, 247, 0.05)',
-                      color: '#fff',
-                      padding: '0 16px'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(168, 85, 247, 0.15)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(168, 85, 247, 0.05)'}
-                  >
-                    <UserOutlined style={{ color: 'var(--accent)', fontSize: '18px', marginRight: '12px' }} />
-                    <div style={{ textAlign: 'left' }}>
-                      <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>1. Quản trị viên (Admin)</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{quickDevAccounts[Role.ADMIN].email} / 123456</div>
-                    </div>
-                  </Button>
-
-                  {/* Teacher */}
-                  <Button
-                    id="quick-login-teacher"
-                    onClick={() => handleQuickLogin(Role.TEACHER)}
-                    disabled={loading}
-                    style={{
-                      height: '56px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'flex-start',
-                      borderRadius: '8px',
-                      borderColor: 'rgba(16, 185, 129, 0.3)',
-                      background: 'rgba(16, 185, 129, 0.05)',
-                      color: '#fff',
-                      padding: '0 16px'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(16, 185, 129, 0.15)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(16, 185, 129, 0.05)'}
-                  >
-                    <UserOutlined style={{ color: 'var(--secondary)', fontSize: '18px', marginRight: '12px' }} />
-                    <div style={{ textAlign: 'left' }}>
-                      <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>2. Giáo viên (Teacher)</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{quickDevAccounts[Role.TEACHER].email} / 123456</div>
-                    </div>
-                  </Button>
-
-                  {/* Student */}
-                  <Button
-                    id="quick-login-student"
-                    onClick={() => handleQuickLogin(Role.STUDENT)}
-                    disabled={loading}
-                    style={{
-                      height: '56px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'flex-start',
-                      borderRadius: '8px',
-                      borderColor: 'rgba(99, 102, 241, 0.3)',
-                      background: 'rgba(99, 102, 241, 0.05)',
-                      color: '#fff',
-                      padding: '0 16px'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.15)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.05)'}
-                  >
-                    <UserOutlined style={{ color: 'var(--primary)', fontSize: '18px', marginRight: '12px' }} />
-                    <div style={{ textAlign: 'left' }}>
-                      <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>3. Học sinh (Student)</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{quickDevAccounts[Role.STUDENT].email} / 123456</div>
-                    </div>
-                  </Button>
-                </div>
-              </Card>
-            </Col>
-          </Row>
-        </div>
+        </Row>
       </div>
+    </div>
   );
 };
 
