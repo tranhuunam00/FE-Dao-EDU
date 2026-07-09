@@ -1,10 +1,10 @@
 # Frontend PM2 release deployment
 
-Workflow chỉ chạy khi push lên `main` và commit mới nhất chứa `release v`.
+Workflow chỉ chạy khi push lên `master` và commit mới nhất chứa `release v`.
 
 ```bash
 git commit -m "release v1.0.0"
-git push origin main
+git push origin master
 ```
 
 ## Chuẩn bị server
@@ -26,7 +26,7 @@ Chạy lần đầu:
 
 ```bash
 cd /var/www/dao-edu/FE-Dao-EDU
-bash scripts/deploy-pm2.sh main
+bash scripts/deploy-pm2.sh master
 pm2 startup
 pm2 save
 ```
