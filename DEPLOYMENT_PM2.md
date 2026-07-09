@@ -35,17 +35,23 @@ Nên đặt Nginx/Caddy chuyển website tới `127.0.0.1:4173`.
 
 ## GitHub Actions secrets
 
-Thêm vào repository frontend:
+Cấu hình các Secret trên GitHub Repository để chạy CI/CD tự động:
 
-- `SSH_HOST`
-- `SSH_PORT`
-- `SSH_USER`
-- `SSH_PRIVATE_KEY`
-- `SSH_KNOWN_HOSTS`
-- `DEPLOY_PATH`: `/var/www/dao-edu/FE-Dao-EDU`
+1. **Repository Secrets (Dùng chung cho cả 2 môi trường)**:
+   Vào *Settings ➡️ Secrets and variables ➡️ Actions*, thêm các Repository secrets sau:
+   - `SSH_HOST`: IP hoặc hostname server.
+   - `SSH_PORT`: cổng SSH, thường là `22`.
+   - `SSH_USER`: user deploy.
+   - `SSH_PRIVATE_KEY`: private key của user deploy.
+   - `SSH_KNOWN_HOSTS`: kết quả `ssh-keyscan -H server.example.com`.
 
-Pipeline frontend hoàn toàn độc lập với backend. Push frontend không pull, build
-hay restart backend.
+2. **Environment Secrets (Tách biệt cho Dev và Production)**:
+   Để tránh việc merge nhánh làm ghi đè thư mục deploy, chúng ta cấu hình `DEPLOY_PATH` theo từng Môi trường (Environment):
+   - Vào *Settings ➡️ Environments*, tạo 2 môi trường: **`development`** và **`production`**.
+   - Trong môi trường **`development`**: Thêm biến `DEPLOY_PATH` là đường dẫn của Dev (ví dụ: `/var/www/dao-edu/FE-Dao-EDU`).
+   - Trong môi trường **`production`**: Thêm biến `DEPLOY_PATH` là đường dẫn của Production (ví dụ: `/root/master/FE-Dao-EDU` hoặc tương ứng).
+
+Pipeline frontend hoàn toàn độc lập với backend. Push frontend không pull, build hay restart backend.
 
 ```bash
 pm2 status
