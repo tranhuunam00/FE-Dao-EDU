@@ -1,10 +1,20 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-BRANCH="${1:-main}"
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
+BRANCH="${1:-$CURRENT_BRANCH}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPOSITORY_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-LOCK_FILE="${TMPDIR:-/tmp}/dao-edu-web-deploy.lock"
+
+if [[ "$BRANCH" == "master" ]]; then
+  LOCK_FILE="${TMPDIR:-/tmp}/dao-edu-production-web-deploy.lock"
+  WEB_PORT="5006"
+  APP_NAME="dao-edu-production-web"
+else
+  LOCK_FILE="${TMPDIR:-/tmp}/dao-edu-web-deploy.lock"
+  WEB_PORT="5001"
+  APP_NAME="dao-edu-web"
+fi
 
 export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 if [[ -s "${NVM_DIR}/nvm.sh" ]]; then
@@ -51,13 +61,13 @@ npm ci
 npm run build
 
 echo "Reloading frontend with PM2..."
-pm2 delete dao-edu-web >/dev/null 2>&1 || true
-pm2 serve "${REPOSITORY_ROOT}/dist" 5001 \
-  --name dao-edu-web \
+pm2 delete "${APP_NAME}" >/dev/null 2>&1 || true
+pm2 serve "${REPOSITORY_ROOT}/dist" "${WEB_PORT}" \
+  --name "${APP_NAME}" \
   --spa
 pm2 save
 
-WEB_HEALTH_URL="${WEB_HEALTH_URL:-http://127.0.0.1:5001}"
+WEB_HEALTH_URL="${WEB_HEALTH_URL:-http://127.0.0.1:${WEB_PORT}}"
 
 echo "Checking frontend health..."
 curl --fail --silent --show-error \
