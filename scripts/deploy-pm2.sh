@@ -52,12 +52,12 @@ npm run build
 
 echo "Reloading frontend with PM2..."
 pm2 delete dao-edu-production-web >/dev/null 2>&1 || true
-pm2 serve "${REPOSITORY_ROOT}/dist" 5001 \
+pm2 serve "${REPOSITORY_ROOT}/dist" 5006 \
   --name dao-edu-production-web \
   --spa
 pm2 save
 
-WEB_HEALTH_URL="${WEB_HEALTH_URL:-http://127.0.0.1:5001}"
+WEB_HEALTH_URL="${WEB_HEALTH_URL:-http://127.0.0.1:5006}"
 
 echo "Checking frontend health..."
 curl --fail --silent --show-error \
