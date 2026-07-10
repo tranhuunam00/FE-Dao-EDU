@@ -6,7 +6,8 @@ import {
 } from 'antd';
 import {
   ArrowLeftOutlined, TeamOutlined, CalendarOutlined,
-  CheckCircleOutlined, StopOutlined, EditOutlined, SaveOutlined
+  CheckCircleOutlined, StopOutlined, EditOutlined, SaveOutlined,
+  PlusOutlined, DeleteOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../services/api';
@@ -82,6 +83,7 @@ const ClassDetailInner: React.FC = () => {
   const [isEditClassVisible, setIsEditClassVisible] = useState(false);
   const [classForm] = Form.useForm();
   const [savingClass, setSavingClass] = useState(false);
+  const [editSchedules, setEditSchedules] = useState<any[]>([]);
 
   // Clone Students from other class states
   const [isCloneVisible, setIsCloneVisible] = useState(false);
@@ -154,7 +156,36 @@ const ClassDetailInner: React.FC = () => {
       skipHolidays: classData.skipHolidays,
       description: classData.description,
     });
+    const schedulesList = classData.schedules?.map((s: any) => ({
+      key: s.id || `temp-${Math.random()}`,
+      weekday: s.weekday,
+      startTime: s.startTime ? dayjs(s.startTime, 'HH:mm:ss') : null,
+      endTime: s.endTime ? dayjs(s.endTime, 'HH:mm:ss') : null,
+      roomId: s.roomId || null,
+    })) || [];
+    setEditSchedules(schedulesList);
     setIsEditClassVisible(true);
+  };
+
+  const addEditSchedule = () => {
+    setEditSchedules(prev => [
+      ...prev,
+      {
+        key: `temp-${Math.random()}`,
+        weekday: 'Mon',
+        startTime: null,
+        endTime: null,
+        roomId: null,
+      }
+    ]);
+  };
+
+  const removeEditSchedule = (key: string) => {
+    setEditSchedules(prev => prev.filter(s => s.key !== key));
+  };
+
+  const updateEditSchedule = (key: string, field: string, value: any) => {
+    setEditSchedules(prev => prev.map(s => s.key === key ? { ...s, [field]: value } : s));
   };
 
   const checkTaWageConfiguredDetail = (): boolean => {
@@ -189,6 +220,36 @@ const ClassDetailInner: React.FC = () => {
         }
       }
 
+      // Validate schedules
+      for (const s of editSchedules) {
+        if (!s.startTime || !s.endTime) {
+          message.error('Vui lòng điền đầy đủ thời gian bắt đầu và kết thúc cho lịch học.');
+          return;
+        }
+        if (s.startTime.isAfter(s.endTime) || s.startTime.isSame(s.endTime)) {
+          message.error('Thời gian bắt đầu lịch học phải trước thời gian kết thúc.');
+          return;
+        }
+      }
+
+      // Validate overlapping schedules
+      for (let i = 0; i < editSchedules.length; i++) {
+        for (let j = i + 1; j < editSchedules.length; j++) {
+          const a = editSchedules[i];
+          const b = editSchedules[j];
+          if (a.weekday === b.weekday && a.startTime && a.endTime && b.startTime && b.endTime) {
+            const aStart = a.startTime.format('HH:mm');
+            const aEnd = a.endTime.format('HH:mm');
+            const bStart = b.startTime.format('HH:mm');
+            const bEnd = b.endTime.format('HH:mm');
+            if (aStart < bEnd && bStart < aEnd) {
+              message.error(`Lịch học định kỳ bị trùng thời gian vào thứ ${a.weekday} (${aStart}-${aEnd} và ${bStart}-${bEnd}).`);
+              return;
+            }
+          }
+        }
+      }
+
       setSavingClass(true);
       const payload = {
         className: values.className,
@@ -201,6 +262,13 @@ const ClassDetailInner: React.FC = () => {
         assistantId: values.assistantId || null,
         skipHolidays: values.skipHolidays,
         description: values.description || null,
+        schedules: editSchedules.map(s => ({
+          weekday: s.weekday,
+          startTime: s.startTime ? s.startTime.format('HH:mm') : '00:00',
+          endTime: s.endTime ? s.endTime.format('HH:mm') : '00:00',
+          roomId: s.roomId,
+          durationMins: s.startTime && s.endTime ? s.endTime.diff(s.startTime, 'minute') : 90,
+        })),
       };
 
       await api.put(`/classes/${id}`, payload);
@@ -1137,7 +1205,7 @@ const ClassDetailInner: React.FC = () => {
         confirmLoading={savingClass}
         okText="Lưu thay đổi"
         cancelText="Hủy"
-        width={650}
+        width={850}
       >
         <Form form={classForm} layout="vertical" style={{ padding: '12px 0' }}>
           <Row gutter={16}>
@@ -1229,6 +1297,110 @@ const ClassDetailInner: React.FC = () => {
               }}
             </Form.Item>
           </Row>
+
+          <Divider style={{ margin: '16px 0', borderColor: 'var(--card-border)' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div>
+              <Title level={5} style={{ color: 'var(--text-primary)', margin: 0 }}>Cấu hình Lịch học định kỳ</Title>
+              <Text type="secondary" style={{ fontSize: '13px' }}>
+                Lịch học dùng để tự động sinh danh sách các buổi học khi lớp được kích hoạt hoạt động.
+              </Text>
+            </div>
+            <Button
+              icon={<PlusOutlined />}
+              onClick={addEditSchedule}
+              style={{
+                background: 'rgba(99,102,241,0.2)',
+                border: '1px solid rgba(99,102,241,0.4)',
+                color: 'var(--primary)',
+              }}
+            >
+              Thêm giờ học
+            </Button>
+          </div>
+          {editSchedules.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-muted)' }}>
+              Chưa có giờ học nào. Bấm "Thêm giờ học" để lập lịch.
+            </div>
+          ) : (
+            <Table
+              columns={[
+                {
+                  title: 'Thứ',
+                  dataIndex: 'weekday',
+                  key: 'weekday',
+                  width: 150,
+                  render: (_: any, record: any) => (
+                    <Select value={record.weekday} onChange={v => updateEditSchedule(record.key, 'weekday', v)} style={{ width: '100%' }}>
+                      <Option value="Mon">Thứ 2 (Mon)</Option>
+                      <Option value="Tue">Thứ 3 (Tue)</Option>
+                      <Option value="Wed">Thứ 4 (Wed)</Option>
+                      <Option value="Thu">Thứ 5 (Thu)</Option>
+                      <Option value="Fri">Thứ 6 (Fri)</Option>
+                      <Option value="Sat">Thứ 7 (Sat)</Option>
+                      <Option value="Sun">Chủ Nhật (Sun)</Option>
+                    </Select>
+                  ),
+                },
+                {
+                  title: 'Bắt đầu',
+                  dataIndex: 'startTime',
+                  key: 'startTime',
+                  width: 140,
+                  render: (_: any, record: any) => (
+                    <TimePicker
+                      format="HH:mm"
+                      value={record.startTime}
+                      onChange={v => updateEditSchedule(record.key, 'startTime', v)}
+                      style={{ width: '100%' }}
+                    />
+                  ),
+                },
+                {
+                  title: 'Kết thúc',
+                  dataIndex: 'endTime',
+                  key: 'endTime',
+                  width: 140,
+                  render: (_: any, record: any) => (
+                    <TimePicker
+                      format="HH:mm"
+                      value={record.endTime}
+                      onChange={v => updateEditSchedule(record.key, 'endTime', v)}
+                      style={{ width: '100%' }}
+                    />
+                  ),
+                },
+                {
+                  title: 'Phòng học cố định',
+                  dataIndex: 'roomId',
+                  key: 'roomId',
+                  render: (_: any, record: any) => (
+                    <Select
+                      placeholder="Chọn phòng học"
+                      value={record.roomId}
+                      onChange={v => updateEditSchedule(record.key, 'roomId', v)}
+                      style={{ width: '100%' }}
+                      allowClear
+                    >
+                      {rooms.map(r => <Option key={r.id} value={r.id}>{r.name} ({r.capacity} chỗ)</Option>)}
+                    </Select>
+                  ),
+                },
+                {
+                  title: '',
+                  key: 'action',
+                  width: 50,
+                  render: (_: any, record: any) => (
+                    <Button danger type="text" icon={<DeleteOutlined />} onClick={() => removeEditSchedule(record.key)} />
+                  ),
+                },
+              ]}
+              dataSource={editSchedules}
+              rowKey="key"
+              pagination={false}
+              size="small"
+            />
+          )}
         </Form>
       </Modal>
     </div>
