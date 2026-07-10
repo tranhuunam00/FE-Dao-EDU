@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Card, Typography, Row, Col, App, Tag, Table, Button, Spin, Descriptions,
-  Modal, Form, InputNumber, DatePicker, Input, Checkbox
+  Modal, Form, InputNumber, DatePicker, Input, Checkbox, Space
 } from 'antd';
-import { ArrowLeftOutlined, BookOutlined, DollarOutlined, PlusOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, BookOutlined, DollarOutlined, PlusOutlined, EditOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../services/api';
 
@@ -73,6 +73,11 @@ const CourseDetailInner: React.FC = () => {
   const [levelModalVisible, setLevelModalVisible] = useState(false);
   const [submittingLevel, setSubmittingLevel] = useState(false);
   const [levelForm] = Form.useForm();
+
+  // Modal states for editing level
+  const [editLevelModalVisible, setEditLevelModalVisible] = useState(false);
+  const [submittingEditLevel, setSubmittingEditLevel] = useState(false);
+  const [editLevelForm] = Form.useForm();
 
   const fetchCourse = async () => {
     try {
@@ -170,6 +175,42 @@ const CourseDetailInner: React.FC = () => {
     }
   };
 
+  const handleOpenEditLevelModal = (level: LevelData) => {
+    setSelectedLevel(level);
+    editLevelForm.setFieldsValue({
+      levelName: level.levelName,
+      levelCode: level.levelCode,
+      totalHours: level.totalHours,
+      isFixedHour: level.isFixedHour,
+      canUpgrade: level.canUpgrade,
+      gradebookSetting: level.gradebookSetting,
+    });
+    setEditLevelModalVisible(true);
+  };
+
+  const handleEditLevelSubmit = async (values: any) => {
+    if (!selectedLevel) return;
+    setSubmittingEditLevel(true);
+    try {
+      const payload = {
+        levelName: values.levelName,
+        levelCode: values.levelCode.trim(),
+        totalHours: Number(values.totalHours),
+        isFixedHour: !!values.isFixedHour,
+        canUpgrade: !!values.canUpgrade,
+        gradebookSetting: values.gradebookSetting || undefined,
+      };
+      await api.put(`/courses/levels/${selectedLevel.id}`, payload);
+      message.success('Cập nhật Level thành công!');
+      setEditLevelModalVisible(false);
+      fetchCourse();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Không thể cập nhật thông tin Level.');
+    } finally {
+      setSubmittingEditLevel(false);
+    }
+  };
+
   const levelColumns = [
     {
       title: 'Level',
@@ -217,17 +258,26 @@ const CourseDetailInner: React.FC = () => {
     {
       title: 'Hành động',
       key: 'action',
-      width: 140,
+      width: 260,
       render: (_: any, record: LevelData) => (
-        <Button
-          type="primary"
-          size="small"
-          icon={<PlusOutlined />}
-          onClick={() => handleOpenPricingModal(record)}
-          style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)', border: 'none' }}
-        >
-          Cấu hình giá
-        </Button>
+        <Space size="small">
+          <Button
+            type="primary"
+            size="small"
+            icon={<PlusOutlined />}
+            onClick={() => handleOpenPricingModal(record)}
+            style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)', border: 'none' }}
+          >
+            Cấu hình giá
+          </Button>
+          <Button
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => handleOpenEditLevelModal(record)}
+          >
+            Sửa Level
+          </Button>
+        </Space>
       ),
     },
   ];
@@ -548,6 +598,80 @@ const CourseDetailInner: React.FC = () => {
           >
             <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
           </Form.Item>
+
+          <Form.Item
+            name="gradebookSetting"
+            label="Thiết lập đầu điểm (Không bắt buộc)"
+          >
+            <Input.TextArea placeholder="Ví dụ: Quiz 30%, Project 30%, Final 40%" rows={3} />
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="isFixedHour"
+                valuePropName="checked"
+              >
+                <Checkbox>Giờ học cố định</Checkbox>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="canUpgrade"
+                valuePropName="checked"
+              >
+                <Checkbox>Cho phép nâng cấp</Checkbox>
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </Modal>
+
+      {/* Edit Level Modal */}
+      <Modal
+        title="Sửa thông tin Level"
+        open={editLevelModalVisible}
+        onCancel={() => setEditLevelModalVisible(false)}
+        onOk={() => editLevelForm.submit()}
+        confirmLoading={submittingEditLevel}
+        okText="Lưu thay đổi"
+        cancelText="Hủy"
+        destroyOnClose
+      >
+        <Form
+          form={editLevelForm}
+          layout="vertical"
+          onFinish={handleEditLevelSubmit}
+          style={{ marginTop: 16 }}
+        >
+          <Form.Item
+            name="levelName"
+            label="Tên Level"
+            rules={[{ required: true, message: 'Vui lòng nhập tên Level!' }]}
+          >
+            <Input placeholder="Ví dụ: Toán 6" />
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="levelCode"
+                label="Mã Level"
+                rules={[{ required: true, message: 'Vui lòng nhập mã Level!' }]}
+              >
+                <Input placeholder="Ví dụ: TOAN6" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="totalHours"
+                label="Tổng số giờ"
+                rules={[{ required: true, message: 'Vui lòng nhập tổng số giờ!' }]}
+              >
+                <InputNumber style={{ width: '100%' }} min={1} placeholder="Ví dụ: 200" />
+              </Form.Item>
+            </Col>
+          </Row>
 
           <Form.Item
             name="gradebookSetting"
