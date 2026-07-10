@@ -124,12 +124,12 @@ const CreateTeacherInner: React.FC = () => {
         <Col xs={24} md={16}>
           <Row gutter={16}>
             <Col xs={24} md={12}>
-              <Form.Item label="Họ và tên đệm" name="firstName" rules={[{ required: true }]}>
+              <Form.Item label="Họ và tên đệm" name="lastName" rules={[{ required: true }]}>
                 <Input placeholder="VD: Nguyễn Văn" size="large" />
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>
-              <Form.Item label="Tên" name="lastName" rules={[{ required: true }]}>
+              <Form.Item label="Tên" name="firstName" rules={[{ required: true }]}>
                 <Input placeholder="VD: A" size="large" />
               </Form.Item>
             </Col>

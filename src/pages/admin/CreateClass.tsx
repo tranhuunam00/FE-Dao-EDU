@@ -470,7 +470,7 @@ const CreateClassInner: React.FC = () => {
                 <Select placeholder="Chọn giáo viên" allowClear showSearch optionFilterProp="children">
                   {teachers.map(t => (
                     <Option key={t.id} value={t.id}>
-                      {t.firstName} {t.lastName} ({t.email || t.mobile || 'GV'})
+                      {t.lastName} {t.firstName} ({t.email || t.mobile || 'GV'})
                     </Option>
                   ))}
                 </Select>
@@ -481,7 +481,7 @@ const CreateClassInner: React.FC = () => {
                 <Select placeholder="Chọn trợ giảng" allowClear showSearch optionFilterProp="children">
                   {teachers.map(t => (
                     <Option key={t.id} value={t.id}>
-                      {t.firstName} {t.lastName} {t.type === 'TeachingAssistant' ? ' (TA)' : ''}
+                      {t.lastName} {t.firstName} {t.type === 'TeachingAssistant' ? ' (TA)' : ''}
                     </Option>
                   ))}
                 </Select>

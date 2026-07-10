@@ -55,12 +55,12 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({ sessions, handleGenera
           <div>
             <div>
               {record.teacher
-                ? `${record.teacher.firstName} ${record.teacher.lastName}`
+                ? `${record.teacher.lastName} ${record.teacher.firstName}`
                 : <Text type="secondary">Chưa xếp gv</Text>}
             </div>
             {record.assistant && (
               <div style={{ fontSize: '11px', opacity: 0.7 }}>
-                TA: {record.assistant.firstName} {record.assistant.lastName}
+                TA: {record.assistant.lastName} {record.assistant.firstName}
               </div>
             )}
           </div>
