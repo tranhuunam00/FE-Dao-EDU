@@ -73,7 +73,7 @@ const CreateClassInner: React.FC = () => {
 
   // Fetch rooms when center changes
   const fetchRooms = (centerId: string) => {
-    api.get(`/rooms?centerId=${centerId}`).then(({ data }) => {
+    api.get(`/rooms?centerId=${centerId}&status=Active`).then(({ data }) => {
       setRooms(data || []);
     }).catch(() => {});
   };

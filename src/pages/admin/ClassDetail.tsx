@@ -103,7 +103,7 @@ const ClassDetailInner: React.FC = () => {
       setSessions(sessionsRes.data);
 
       if (classRes.data.center?.id) {
-        api.get(`/rooms?centerId=${classRes.data.center.id}`).then(({ data }) => setRooms(data)).catch(() => {});
+        api.get(`/rooms?centerId=${classRes.data.center.id}&status=Active`).then(({ data }) => setRooms(data)).catch(() => {});
       }
     } catch (err: any) {
       message.error(err.response?.data?.message || 'Không thể tải thông tin chi tiết lớp học');
