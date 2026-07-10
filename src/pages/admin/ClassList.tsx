@@ -264,7 +264,7 @@ const ClassListInner: React.FC = () => {
       width: colWidths.teacherName,
       render: (_: any, record: ClassData) => {
         return record.mainTeacher
-          ? `${record.mainTeacher.firstName} ${record.mainTeacher.lastName}`
+          ? `${record.mainTeacher.lastName} ${record.mainTeacher.firstName}`
           : <Text type="secondary">Chưa gán</Text>;
       },
     },

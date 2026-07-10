@@ -832,10 +832,10 @@ const ClassDetailInner: React.FC = () => {
                 {currentSession.status === 'Cancelled' && <Tag color="red">Nghỉ học</Tag>}
               </Descriptions.Item>
               <Descriptions.Item label="Giáo viên">
-                {currentSession.teacher ? `${currentSession.teacher.firstName} ${currentSession.teacher.lastName}` : <span style={{ color: 'var(--text-muted)' }}>Chưa phân công</span>}
+                {currentSession.teacher ? `${currentSession.teacher.lastName} ${currentSession.teacher.firstName}` : <span style={{ color: 'var(--text-muted)' }}>Chưa phân công</span>}
               </Descriptions.Item>
               <Descriptions.Item label="Trợ giảng (TA)">
-                {currentSession.assistant ? `${currentSession.assistant.firstName} ${currentSession.assistant.lastName}` : <span style={{ color: 'var(--text-muted)' }}>Chưa phân công</span>}
+                {currentSession.assistant ? `${currentSession.assistant.lastName} ${currentSession.assistant.firstName}` : <span style={{ color: 'var(--text-muted)' }}>Chưa phân công</span>}
               </Descriptions.Item>
             </Descriptions>
 
@@ -1087,12 +1087,12 @@ const ClassDetailInner: React.FC = () => {
                   </Form.Item>
                   <Form.Item name="teacherId" label="Giáo viên đứng lớp">
                     <Select placeholder="Chọn giáo viên" allowClear showSearch optionFilterProp="children">
-                      {teachers.map(t => <Option key={t.id} value={t.id}>{t.firstName} {t.lastName}</Option>)}
+                      {teachers.map(t => <Option key={t.id} value={t.id}>{t.lastName} {t.firstName}</Option>)}
                     </Select>
                   </Form.Item>
                   <Form.Item name="assistantId" label="Trợ giảng (TA)">
                     <Select placeholder="Chọn trợ giảng" allowClear showSearch optionFilterProp="children">
-                      {teachers.map(t => <Option key={t.id} value={t.id}>{t.firstName} {t.lastName}{t.type === 'TeachingAssistant' ? ' (TA)' : ''}</Option>)}
+                      {teachers.map(t => <Option key={t.id} value={t.id}>{t.lastName} {t.firstName}{t.type === 'TeachingAssistant' ? ' (TA)' : ''}</Option>)}
                     </Select>
                   </Form.Item>
                 </>
@@ -1140,7 +1140,7 @@ const ClassDetailInner: React.FC = () => {
                 <Select placeholder="Chọn giáo viên" allowClear showSearch optionFilterProp="children">
                   {teachers.map(t => (
                     <Option key={t.id} value={t.id}>
-                      {t.firstName} {t.lastName} ({t.email || t.mobile || 'GV'})
+                      {t.lastName} {t.firstName} ({t.email || t.mobile || 'GV'})
                     </Option>
                   ))}
                 </Select>
@@ -1151,7 +1151,7 @@ const ClassDetailInner: React.FC = () => {
                 <Select placeholder="Chọn trợ giảng" allowClear showSearch optionFilterProp="children">
                   {teachers.map(t => (
                     <Option key={t.id} value={t.id}>
-                      {t.firstName} {t.lastName} {t.type === 'TeachingAssistant' ? ' (TA)' : ''}
+                      {t.lastName} {t.firstName} {t.type === 'TeachingAssistant' ? ' (TA)' : ''}
                     </Option>
                   ))}
                 </Select>
