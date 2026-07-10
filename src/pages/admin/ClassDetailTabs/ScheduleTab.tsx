@@ -23,10 +23,16 @@ interface ClassSession {
 interface ScheduleTabProps {
   sessions: ClassSession[];
   handleGenerateSessions: () => void;
+  handleGenerateSessionsFromStart: () => void;
   openSessionDetail: (session: ClassSession) => void;
 }
 
-export const ScheduleTab: React.FC<ScheduleTabProps> = ({ sessions, handleGenerateSessions, openSessionDetail }) => {
+export const ScheduleTab: React.FC<ScheduleTabProps> = ({ 
+  sessions, 
+  handleGenerateSessions, 
+  handleGenerateSessionsFromStart,
+  openSessionDetail 
+}) => {
   const sessionColumns = [
     {
       title: 'Ngày học',
@@ -115,14 +121,24 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({ sessions, handleGenera
             Các buổi học được sinh tự động dựa trên Lịch học cố định từ ngày Khai giảng.
           </Text>
         </div>
-        <Button
-          type="dashed"
-          icon={<CalendarOutlined />}
-          onClick={handleGenerateSessions}
-          style={{ color: '#a5b4fc', borderColor: '#6366f1' }}
-        >
-          {sessions.length === 0 ? 'Sinh các buổi học' : 'Sinh lại / Đồng bộ buổi học tương lai'}
-        </Button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button
+            type="dashed"
+            icon={<CalendarOutlined />}
+            onClick={handleGenerateSessions}
+            style={{ color: '#a5b4fc', borderColor: '#6366f1' }}
+          >
+            {sessions.length === 0 ? 'Sinh các buổi học' : 'Sinh lại / Đồng bộ buổi học tương lai'}
+          </Button>
+          <Button
+            type="dashed"
+            icon={<CalendarOutlined />}
+            onClick={handleGenerateSessionsFromStart}
+            style={{ color: '#fdba74', borderColor: '#f97316' }}
+          >
+            Sinh từ ngày khai giảng
+          </Button>
+        </div>
       </div>
       <Table
         columns={sessionColumns}

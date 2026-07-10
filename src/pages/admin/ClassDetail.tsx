@@ -563,6 +563,25 @@ const ClassDetailInner: React.FC = () => {
     });
   };
 
+  const handleGenerateSessionsFromStart = async () => {
+    if (!id) return;
+    modal.confirm({
+      title: 'Xác nhận sinh lại toàn bộ buổi học từ ngày khai giảng',
+      content: 'Hệ thống sẽ xóa toàn bộ các buổi học chưa diễn ra (chưa khóa điểm danh, bao gồm cả các buổi trong quá khứ) và sinh lại theo lịch học cố định tính từ ngày Khai giảng lớp học. Bạn có chắc chắn muốn tiếp tục?',
+      okText: 'Đồng ý',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          await api.post(`/classes/${id}/generate-sessions?fromStartDate=true`);
+          message.success('Đã sinh lại và đồng bộ các buổi học từ ngày khai giảng thành công!');
+          await loadAllData();
+        } catch (err: any) {
+          message.error(err.response?.data?.message || 'Lỗi khi sinh buổi học');
+        }
+      }
+    });
+  };
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
@@ -650,7 +669,14 @@ const ClassDetailInner: React.FC = () => {
           {
             key: 'sessions',
             label: `Lịch dạy & Điểm danh (${sessions.length})`,
-            children: <ScheduleTab sessions={sessions} handleGenerateSessions={handleGenerateSessions} openSessionDetail={openSessionDetail} />
+            children: (
+              <ScheduleTab 
+                sessions={sessions} 
+                handleGenerateSessions={handleGenerateSessions} 
+                handleGenerateSessionsFromStart={handleGenerateSessionsFromStart}
+                openSessionDetail={openSessionDetail} 
+              />
+            )
           },
           {
             key: 'assignments',
