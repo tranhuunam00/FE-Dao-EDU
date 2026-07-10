@@ -606,6 +606,26 @@ const ClassDetailInner: React.FC = () => {
     }
   };
 
+  const handleRevertToScheduled = async () => {
+    if (!currentSession || !id) return;
+    modal.confirm({
+      title: 'Xác nhận hoàn tác trạng thái buổi học',
+      content: 'Hành động này sẽ hủy quá trình điểm danh hiện tại và đặt trạng thái buổi học trở lại "Chưa diễn ra", đồng thời đặt lại toàn bộ điểm danh về vắng mặt. Bạn có chắc chắn muốn tiếp tục?',
+      okText: 'Đồng ý',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          await api.post(`/classes/sessions/${currentSession.id}/revert-to-scheduled`);
+          message.success('Đã chuyển trạng thái buổi học trở lại "Chưa diễn ra"!');
+          setIsSessionModalVisible(false);
+          await loadAllData();
+        } catch (err: any) {
+          message.error(err.response?.data?.message || 'Lỗi khi hoàn tác trạng thái buổi học');
+        }
+      }
+    });
+  };
+
   const handleGenerateSessions = async () => {
     if (!id) return;
     const isRegenerate = sessions.length > 0;
@@ -959,6 +979,11 @@ const ClassDetailInner: React.FC = () => {
                   {currentSession.status === 'In-Progress' && (
                     <Button danger icon={<StopOutlined />} onClick={handleCompleteSession}>
                       Kết thúc buổi học
+                    </Button>
+                  )}
+                  {currentSession.status === 'In-Progress' && (
+                    <Button type="dashed" danger onClick={handleRevertToScheduled}>
+                      Trở lại chưa diễn ra
                     </Button>
                   )}
                 </>
