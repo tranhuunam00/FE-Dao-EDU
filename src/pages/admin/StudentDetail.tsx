@@ -4,7 +4,7 @@ import {
   Form, Button, Tabs, Space, App, Avatar, Upload, Spin, Tag, Modal, Select, Typography
 } from 'antd';
 import {
-  SaveOutlined, ArrowLeftOutlined, UserOutlined, LockOutlined, TeamOutlined, CameraOutlined, DollarOutlined
+  SaveOutlined, ArrowLeftOutlined, UserOutlined, LockOutlined, TeamOutlined, CameraOutlined, DollarOutlined, CalendarOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../services/api';
@@ -14,6 +14,7 @@ import { AccountTab } from './StudentDetailTabs/AccountTab';
 import { StatusTab } from './StudentDetailTabs/StatusTab';
 import { ClassesTab } from './StudentDetailTabs/ClassesTab';
 import { TuitionTab } from './StudentDetailTabs/TuitionTab';
+import { AttendanceTab } from './StudentDetailTabs/AttendanceTab';
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -375,6 +376,11 @@ const StudentDetailInner: React.FC = () => {
               key: 'classes',
               label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><TeamOutlined /> Lớp học ({studentClasses.filter(c => c.status === 'Active').length})</span>,
               children: <ClassesTab studentClasses={studentClasses} setIsAddClassVisible={setIsAddClassVisible} navigate={navigate} handleRemoveClass={handleRemoveClass} />
+            },
+            {
+              key: 'attendance',
+              label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><CalendarOutlined /> Chuyên cần</span>,
+              children: <AttendanceTab studentId={id!} studentClasses={studentClasses} />
             },
             {
               key: 'tuition',
