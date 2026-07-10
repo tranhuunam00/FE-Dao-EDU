@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Typography, Button, Table, Tag } from 'antd';
-import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -11,6 +11,8 @@ interface StudentsTabProps {
   handleKickStudent: (id: string, name: string) => void;
   handleReAddStudent: (id: string) => void;
   openCloneModal: () => void;
+  handleEditJoinDate: (studentId: string, studentName: string, currentJoinedDate: string) => void;
+  handleEditAllJoinDates: () => void;
 }
 
 export const StudentsTab: React.FC<StudentsTabProps> = ({
@@ -19,6 +21,8 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
   handleKickStudent,
   handleReAddStudent,
   openCloneModal,
+  handleEditJoinDate,
+  handleEditAllJoinDates,
 }) => {
   const studentColumns = [
     {
@@ -47,7 +51,20 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
       dataIndex: 'joinedDate',
       key: 'joinedDate',
       width: '180px',
-      render: (v: string) => dayjs(v).format('DD/MM/YYYY'),
+      render: (v: string, record: any) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>{dayjs(v).format('DD/MM/YYYY')}</span>
+          {record.status === 'Active' && (
+            <Button
+              type="text"
+              size="small"
+              icon={<EditOutlined style={{ fontSize: '12px', color: 'var(--primary)' }} />}
+              onClick={() => handleEditJoinDate(record.studentId, record.student ? `${record.student.lastName} ${record.student.firstName}` : '', v)}
+              title="Sửa ngày tham gia lớp"
+            />
+          )}
+        </div>
+      ),
     },
     {
       title: 'Trạng thái',
@@ -97,6 +114,14 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Title level={5} style={{ color: 'var(--text-primary)', margin: 0 }}>Danh sách Học sinh trong lớp</Title>
         <div style={{ display: 'flex', gap: '8px' }}>
+          <Button
+            type="default"
+            icon={<EditOutlined />}
+            onClick={handleEditAllJoinDates}
+            style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--card-border)', color: 'var(--text-primary)' }}
+          >
+            Sửa nhanh ngày tham gia
+          </Button>
           <Button
             type="default"
             icon={<PlusOutlined />}

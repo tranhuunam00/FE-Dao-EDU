@@ -85,6 +85,18 @@ const ClassDetailInner: React.FC = () => {
   const [savingClass, setSavingClass] = useState(false);
   const [editSchedules, setEditSchedules] = useState<any[]>([]);
 
+  // Edit Join Date states
+  const [isEditJoinDateVisible, setIsEditJoinDateVisible] = useState(false);
+  const [editJoinDateStudentId, setEditJoinDateStudentId] = useState<string | null>(null);
+  const [editJoinDateStudentName, setEditJoinDateStudentName] = useState<string>('');
+  const [editJoinDateForm] = Form.useForm();
+  const [savingJoinDate, setSavingJoinDate] = useState(false);
+
+  // Bulk Edit Join Date states
+  const [isEditAllJoinDatesVisible, setIsEditAllJoinDatesVisible] = useState(false);
+  const [editAllJoinDatesForm] = Form.useForm();
+  const [savingAllJoinDates, setSavingAllJoinDates] = useState(false);
+
   // Clone Students from other class states
   const [isCloneVisible, setIsCloneVisible] = useState(false);
   const [allClasses, setAllClasses] = useState<any[]>([]);
@@ -409,6 +421,65 @@ const ClassDetailInner: React.FC = () => {
       loadAllData();
     } catch (err: any) {
       message.error(err.response?.data?.message || 'Lỗi khi thêm lại học sinh');
+    }
+  };
+
+  const handleEditJoinDate = (studentId: string, studentName: string, currentJoinedDate: string) => {
+    setEditJoinDateStudentId(studentId);
+    setEditJoinDateStudentName(studentName);
+    editJoinDateForm.setFieldsValue({
+      joinedDate: currentJoinedDate ? dayjs(currentJoinedDate) : null,
+    });
+    setIsEditJoinDateVisible(true);
+  };
+
+  const handleEditJoinDateSubmit = async () => {
+    if (!id || !editJoinDateStudentId) return;
+    try {
+      const values = await editJoinDateForm.validateFields();
+      setSavingJoinDate(true);
+      
+      const payload = {
+        joinedDate: values.joinedDate ? values.joinedDate.format('YYYY-MM-DD') : null,
+      };
+
+      await api.put(`/classes/${id}/students/${editJoinDateStudentId}/joined-date`, payload);
+      message.success('Cập nhật ngày tham gia lớp của học sinh thành công!');
+      setIsEditJoinDateVisible(false);
+      loadAllData();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi cập nhật ngày tham gia');
+    } finally {
+      setSavingJoinDate(false);
+    }
+  };
+
+  const handleEditAllJoinDates = () => {
+    const defaultDate = classData?.startDate ? dayjs(classData.startDate) : dayjs();
+    editAllJoinDatesForm.setFieldsValue({
+      joinedDate: defaultDate,
+    });
+    setIsEditAllJoinDatesVisible(true);
+  };
+
+  const handleEditAllJoinDatesSubmit = async () => {
+    if (!id) return;
+    try {
+      const values = await editAllJoinDatesForm.validateFields();
+      setSavingAllJoinDates(true);
+
+      const payload = {
+        joinedDate: values.joinedDate ? values.joinedDate.format('YYYY-MM-DD') : null,
+      };
+
+      await api.put(`/classes/${id}/students/joined-date`, payload);
+      message.success('Cập nhật ngày tham gia lớp cho toàn bộ học sinh thành công!');
+      setIsEditAllJoinDatesVisible(false);
+      loadAllData();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi cập nhật ngày tham gia hàng loạt');
+    } finally {
+      setSavingAllJoinDates(false);
     }
   };
 
@@ -751,6 +822,8 @@ const ClassDetailInner: React.FC = () => {
                 handleKickStudent={handleKickStudent}
                 handleReAddStudent={handleReAddStudent}
                 openCloneModal={openCloneModal}
+                handleEditJoinDate={handleEditJoinDate}
+                handleEditAllJoinDates={handleEditAllJoinDates}
               />
             )
           },
@@ -1426,6 +1499,56 @@ const ClassDetailInner: React.FC = () => {
               size="small"
             />
           )}
+        </Form>
+      </Modal>
+
+      {/* Modal Chỉnh Sửa Ngày Tham Gia Lớp */}
+      <Modal
+        title={`Chỉnh sửa ngày vào lớp - ${editJoinDateStudentName}`}
+        open={isEditJoinDateVisible}
+        onOk={handleEditJoinDateSubmit}
+        onCancel={() => setIsEditJoinDateVisible(false)}
+        confirmLoading={savingJoinDate}
+        okText="Lưu thay đổi"
+        cancelText="Hủy"
+        width={400}
+      >
+        <Form form={editJoinDateForm} layout="vertical" style={{ padding: '12px 0' }}>
+          <Form.Item
+            name="joinedDate"
+            label="Ngày tham gia lớp"
+            rules={[{ required: true, message: 'Vui lòng chọn ngày!' }]}
+          >
+            <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+          </Form.Item>
+          <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginTop: '8px' }}>
+            Lưu ý: Hệ thống sẽ tự động đồng bộ lại điểm danh cho học sinh này. Các buổi học chưa diễn ra hoặc các buổi tương lai sẽ có mặt học sinh kể từ ngày vào lớp mới. Các buổi học trước ngày vào lớp mới sẽ tự động bị loại bỏ khỏi bảng điểm danh của học sinh.
+          </Text>
+        </Form>
+      </Modal>
+
+      {/* Modal Chỉnh Sửa Ngày Tham Gia Lớp Hàng Loạt */}
+      <Modal
+        title="Sửa nhanh ngày tham gia lớp (Tất cả học sinh)"
+        open={isEditAllJoinDatesVisible}
+        onOk={handleEditAllJoinDatesSubmit}
+        onCancel={() => setIsEditAllJoinDatesVisible(false)}
+        confirmLoading={savingAllJoinDates}
+        okText="Lưu thay đổi"
+        cancelText="Hủy"
+        width={400}
+      >
+        <Form form={editAllJoinDatesForm} layout="vertical" style={{ padding: '12px 0' }}>
+          <Form.Item
+            name="joinedDate"
+            label="Ngày tham gia lớp mới"
+            rules={[{ required: true, message: 'Vui lòng chọn ngày!' }]}
+          >
+            <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+          </Form.Item>
+          <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginTop: '8px' }}>
+            Lưu ý: Hệ thống sẽ áp dụng ngày này cho <strong>TẤT CẢ</strong> học sinh đang học trong lớp và tự động đồng bộ lại điểm danh cho toàn bộ học sinh. Các buổi học cũ trước ngày này sẽ xóa bản ghi điểm danh để không ảnh hưởng báo cáo vắng học.
+          </Text>
         </Form>
       </Modal>
     </div>
