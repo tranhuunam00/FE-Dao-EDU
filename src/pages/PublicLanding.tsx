@@ -128,6 +128,15 @@ export default function PublicLanding() {
           colorInfo: '#15803d',
           borderRadius: 12,
           fontFamily: 'Inter, sans-serif',
+          /* Force light colors — override dark global CSS variables */
+          colorBgContainer: '#ffffff',
+          colorBgElevated: '#ffffff',
+          colorBgLayout: '#f8fafc',
+          colorText: '#172033',
+          colorTextSecondary: '#526075',
+          colorTextPlaceholder: '#94a3b8',
+          colorBorder: '#d1d5db',
+          colorBorderSecondary: '#e2e8f0',
         },
       }}
     >
@@ -141,11 +150,22 @@ export default function PublicLanding() {
             {menuOpen ? <X /> : <Menu />}
           </button>
           <nav className={menuOpen ? 'open' : ''}>
-            <a href="#features">Tính năng</a>
-            <a href="#guide">Hướng dẫn</a>
-            <a href="#workflow">Quy trình</a>
-            <a href="#contact">Liên hệ</a>
-            <Link to="/login"><Button type="primary">Đăng nhập</Button></Link>
+            <a href="#features" onClick={() => setMenuOpen(false)}>
+              <span className="nav-dot" />Tính năng
+            </a>
+            <a href="#guide" onClick={() => setMenuOpen(false)}>
+              <span className="nav-dot" />Hướng dẫn
+            </a>
+            <a href="#workflow" onClick={() => setMenuOpen(false)}>
+              <span className="nav-dot" />Quy trình
+            </a>
+            <a href="#contact" onClick={() => setMenuOpen(false)}>
+              <span className="nav-dot" />Liên hệ
+            </a>
+            <div className="mobile-nav-divider" />
+            <Link to="/login" className="mobile-login-link">
+              <Button type="primary" block size="large">Đăng nhập hệ thống</Button>
+            </Link>
           </nav>
         </header>
 
@@ -286,7 +306,7 @@ export default function PublicLanding() {
                 <Input size="large" inputMode="tel" placeholder="09xxxxxxxx" />
               </Form.Item>
               <Form.Item name="type" label="Loại liên hệ">
-                <Select size="large" options={contactTypeOptions} />
+                <Select size="large" options={contactTypeOptions} popupClassName="public-contact-form-dropdown" />
               </Form.Item>
               <Button
                 type="primary"

@@ -1,36 +1,48 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth, Role } from '../context/AuthContext';
-import {
-  LayoutDashboard,
-  Users,
-  BookOpen,
-  LogOut,
-  User as UserIcon,
-  Shield,
-  Bell,
-  ClipboardList,
-  BookMarked,
-  DollarSign,
-  CalendarOff,
-  Settings,
-  MessagesSquare,
-  Search,
-  BarChart2,
-} from 'lucide-react';
-import { TeamOutlined as AntdTeamOutlined, BankOutlined as AntdBankOutlined } from '@ant-design/icons';
-import { Badge, Button, Dropdown, Empty } from 'antd';
+import { BookOpen, LogOut, User as UserIcon, Settings } from 'lucide-react';
+import { TopHeader } from './components/TopHeader';
+import { MobileSidebar } from './components/MobileSidebar';
+import { SidebarNav } from './components/SidebarNav';
 import api from '../services/api';
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getRoleBadge(role: Role) {
+  switch (role) {
+    case Role.ADMIN:
+      return <span className="badge badge-admin">Quản trị</span>;
+    case Role.TEACHER:
+      return <span className="badge badge-doctor">Giáo viên</span>;
+    case Role.STUDENT:
+      return <span className="badge badge-patient">Học sinh</span>;
+    default:
+      return null;
+  }
+}
+
+function getAppTitle(role?: Role) {
+  switch (role) {
+    case Role.ADMIN: return 'Quản trị';
+    case Role.TEACHER: return 'Giảng dạy';
+    case Role.STUDENT: return 'Học tập';
+    default: return 'Hệ thống';
+  }
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
+
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     try {
       const { data } = await api.get('/notifications');
       setNotifications(data.notifications || []);
@@ -38,7 +50,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
     } catch {
       // Notifications must not block the rest of the application.
     }
-  };
+  }, []);
 
   useEffect(() => {
     const initial = window.setTimeout(loadNotifications, 0);
@@ -47,188 +59,58 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
       window.clearTimeout(initial);
       window.clearInterval(timer);
     };
+  }, [loadNotifications]);
+
+  // Close mobile sidebar when navigating
+  useEffect(() => {
+    setMobileOpen(false);
   }, []);
+
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileOpen]);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  const settingsPath = user
-    ? `/${user.role.toLowerCase()}/settings`
-    : '/login';
-  const notificationsPath = user
-    ? `/${user.role.toLowerCase()}/notifications`
-    : '/login';
-
-  const getNavigation = () => {
-    if (!user) return [];
-
-    switch (user.role) {
-      case Role.ADMIN:
-        return [
-          { name: 'Tổng quan', path: '/admin', icon: <LayoutDashboard size={20} /> },
-          { name: 'Học sinh', path: '/admin/students', icon: <Users size={20} /> },
-          { name: 'Giáo viên/Trợ giảng', path: '/admin/teachers', icon: <AntdTeamOutlined style={{ fontSize: '20px' }} /> },
-          { name: 'Trung tâm', path: '/admin/centers', icon: <AntdBankOutlined style={{ fontSize: '20px' }} /> },
-          { name: 'Chương trình học', path: '/admin/courses', icon: <BookMarked size={20} /> },
-          { name: 'Lớp học', path: '/admin/classes', icon: <AntdTeamOutlined style={{ fontSize: '20px' }} /> },
-          { name: 'Theo dõi bài tập', path: '/admin/assignments', icon: <ClipboardList size={20} /> },
-          { name: 'Đơn xin nghỉ', path: '/admin/leave-requests', icon: <CalendarOff size={20} /> },
-          { name: 'Kế Toán', path: '/admin/accounting', icon: <DollarSign size={20} /> },
-          { name: 'Báo cáo', path: '/admin/reports', icon: <BarChart2 size={20} /> },
-          { name: 'Nhật ký hệ thống', path: '/admin/logs', icon: <Shield size={20} /> },
-          { name: 'Ngày nghỉ lễ', path: '/admin/holidays', icon: <CalendarOff size={20} /> },
-          { name: 'Yêu cầu liên hệ', path: '/admin/contact-requests', icon: <MessagesSquare size={20} /> },
-          { name: 'Quản lý Lead CRM', path: '/admin/facebook-leads', icon: <Search size={20} /> },
-        ];
-      case Role.TEACHER:
-        return [
-          { name: 'Tổng quan', path: '/teacher', icon: <LayoutDashboard size={20} /> },
-          { name: 'Lịch sử nhận lương', path: '/teacher/salary', icon: <DollarSign size={20} /> },
-          { name: 'Lớp & Học sinh', path: '/teacher/students', icon: <Users size={20} /> },
-          { name: 'Bài tập & Chấm điểm', path: '/teacher/grades', icon: <ClipboardList size={20} /> },
-          { name: 'Đơn xin nghỉ', path: '/teacher/leave-requests', icon: <CalendarOff size={20} /> },
-          { name: 'Tài liệu học tập', path: '/teacher/materials', icon: <BookMarked size={20} /> },
-        ];
-      case Role.STUDENT:
-        return [
-          { name: 'Dashboard', path: '/student', icon: <LayoutDashboard size={20} /> },
-          { name: 'Bài tập', path: '/student/assignments', icon: <ClipboardList size={20} /> },
-          { name: 'Đơn xin nghỉ', path: '/student/leave-requests', icon: <CalendarOff size={20} /> },
-          { name: 'Học phí', path: '/student/tuition', icon: <DollarSign size={20} /> },
-          { name: 'Tài liệu học tập', path: '/student/materials', icon: <BookMarked size={20} /> },
-        ];
-      default:
-        return [];
-    }
-  };
-
-  const menuItems = getNavigation();
-
-  const getRoleBadge = (role: Role) => {
-    switch (role) {
-      case Role.ADMIN:
-        return <span className="badge badge-admin">Quản trị</span>;
-      case Role.TEACHER:
-        return <span className="badge badge-doctor">Giáo viên</span>;
-      case Role.STUDENT:
-        return <span className="badge badge-patient">Học sinh</span>;
-      default:
-        return null;
-    }
-  };
-
-  const getAppTitle = () => {
-    switch (user?.role) {
-      case Role.ADMIN: return 'Quản trị';
-      case Role.TEACHER: return 'Giảng dạy';
-      case Role.STUDENT: return 'Học tập';
-      default: return 'Hệ thống';
-    }
-  };
+  const settingsPath = user ? `/${user.role.toLowerCase()}/settings` : '/login';
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-primary)' }}>
-      {/* Sidebar */}
-      <aside className="glass-panel" style={{
-        width: '280px',
-        display: 'flex',
-        flexDirection: 'column',
-        borderRadius: '0px',
-        borderTop: 'none',
-        borderBottom: 'none',
-        borderLeft: 'none',
-        padding: '24px 16px',
-        height: '100vh',
-        position: 'sticky',
-        top: 0
-      }}>
+    <div className="dashboard-root">
+
+      {/* ── Mobile Drawer ─────────────────────────────────────────────────── */}
+      <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
+
+      {/* ── Desktop / Tablet Sidebar ──────────────────────────────────────── */}
+      <aside className="glass-panel dashboard-sidebar">
+
         {/* Logo */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          padding: '8px 12px',
-          marginBottom: '32px'
-        }}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            boxShadow: '0 0 15px rgba(99, 102, 241, 0.4)'
-          }}>
+        <div className="sidebar-logo">
+          <div className="sidebar-logo-icon">
             <BookOpen size={22} />
           </div>
-          <div>
-            <h1 style={{ fontSize: '1.2rem', fontFamily: 'var(--font-display)', fontWeight: 800 }}>DAO EDU</h1>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>{getAppTitle()}</span>
+          <div className="sidebar-logo-text">
+            <h1>DAO EDU</h1>
+            <span>{getAppTitle(user?.role)}</span>
           </div>
         </div>
 
-        {/* Menu Navigation */}
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-muted)', paddingLeft: '12px', marginBottom: '10px', letterSpacing: '0.05em' }}>
-            Chức năng
-          </div>
-          {menuItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <Link
-                key={item.name}
-                to={item.path}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  padding: '11px 12px',
-                  borderRadius: 'var(--border-radius-sm)',
-                  color: isActive ? '#fff' : 'var(--text-secondary)',
-                  background: isActive
-                    ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(168, 85, 247, 0.08))'
-                    : 'transparent',
-                  borderLeft: isActive ? '3px solid var(--primary)' : '3px solid transparent',
-                  fontWeight: isActive ? 600 : 500,
-                  fontSize: '0.92rem',
-                  textDecoration: 'none',
-                  transition: 'all 0.2s'
-                }}
-              >
-                <span style={{ color: isActive ? 'var(--primary)' : 'var(--text-secondary)' }}>{item.icon}</span>
-                {item.name}
-              </Link>
-            );
-          })}
-        </nav>
+        {/* Navigation */}
+        <SidebarNav />
 
         {/* User Card */}
         {user && (
-          <div className="glass-panel" style={{
-            padding: '16px',
-            borderRadius: 'var(--border-radius-sm)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            background: 'rgba(255, 255, 255, 0.02)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{
-                width: '42px', height: '42px', borderRadius: '50%',
-                backgroundColor: 'var(--bg-tertiary)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'var(--primary)', border: '1px solid var(--card-border)'
-              }}>
+          <div className="glass-panel sidebar-user-card">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div className="sidebar-avatar">
                 <UserIcon size={20} />
               </div>
               <div style={{ overflow: 'hidden' }}>
-                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                  {user.name}
-                </div>
+                <div className="sidebar-username">{user.name}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
                   {getRoleBadge(user.role)}
                 </div>
@@ -237,13 +119,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
 
             <button
               onClick={() => navigate(settingsPath)}
-              className="btn btn-outline"
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                fontSize: '0.85rem',
-                justifyContent: 'center',
-              }}
+              className="btn btn-outline sidebar-action-btn"
             >
               <Settings size={16} />
               Cài đặt
@@ -251,20 +127,7 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
 
             <button
               onClick={handleLogout}
-              className="btn btn-outline"
-              style={{
-                width: '100%', padding: '8px 12px', fontSize: '0.85rem',
-                justifyContent: 'center', borderColor: 'rgba(239, 68, 68, 0.2)',
-                color: 'var(--text-secondary)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--text-primary)';
-                e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--text-secondary)';
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
+              className="btn btn-outline sidebar-action-btn sidebar-logout-btn"
             >
               <LogOut size={16} />
               Đăng xuất
@@ -273,51 +136,16 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
         )}
       </aside>
 
-      {/* Main Content Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflowY: 'auto' }}>
-        {/* Top Navbar */}
-        <header className="glass-panel" style={{
-          height: '70px', borderRadius: 0,
-          borderTop: 'none', borderLeft: 'none', borderRight: 'none',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 32px', position: 'sticky', top: 0, zIndex: 10
-        }}>
-          {/* Empty spacer for space-between or just change header to flex-end */}
-          <div style={{ flex: 1 }}></div>
-          {/* System status / Actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-              <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--secondary)', boxShadow: '0 0 10px var(--secondary-glow)' }}></span>
-              Hệ thống kết nối
-            </div>
-            <Dropdown
-              trigger={['click']}
-              dropdownRender={() => (
-                <div style={{ width: 360, maxHeight: 480, overflow: 'auto', padding: 12, background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', borderRadius: 10 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                    <b>Thông báo</b>
-                    {unreadCount > 0 && <Button size="small" type="link" onClick={async () => { await api.patch('/notifications/read-all'); loadNotifications(); }}>Đánh dấu đã đọc</Button>}
-                  </div>
-                  {notifications.length === 0 ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Chưa có thông báo" /> : notifications.map(item => (
-                    <button key={item.id} onClick={async () => { await api.patch(`/notifications/${item.id}/read`); if (item.linkPath) navigate(item.linkPath); loadNotifications(); }} style={{ width: '100%', textAlign: 'left', border: 0, borderBottom: '1px solid var(--card-border)', padding: 12, cursor: 'pointer', color: 'var(--text-primary)', background: item.readAt ? 'transparent' : 'rgba(99,102,241,.12)' }}>
-                      <b>{item.title}</b><div style={{ color: 'var(--text-secondary)', marginTop: 4 }}>{item.message}</div>
-                    </button>
-                  ))}
-                  <Button type="link" block onClick={() => navigate(notificationsPath)} style={{ marginTop: 8 }}>
-                    Xem tất cả thông báo
-                  </Button>
-                </div>
-              )}
-            >
-              <button onClick={loadNotifications} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-                <Badge count={unreadCount} size="small"><Bell size={20} color="currentColor" /></Badge>
-              </button>
-            </Dropdown>
-          </div>
-        </header>
-
-        {/* Page Content */}
-        <main style={{ padding: '16px 24px', flex: 1 }}>
+      {/* ── Main Content ──────────────────────────────────────────────────── */}
+      <div className="dashboard-main">
+        <TopHeader
+          notifications={notifications}
+          unreadCount={unreadCount}
+          onLoadNotifications={loadNotifications}
+          mobileOpen={mobileOpen}
+          onToggleMobile={() => setMobileOpen(v => !v)}
+        />
+        <main className="dashboard-content">
           <div className="animate-fade-in">
             {children}
           </div>

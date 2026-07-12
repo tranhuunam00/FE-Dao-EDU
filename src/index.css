@@ -684,3 +684,343 @@ button[disabled],
 .ant-picker-dropdown .ant-picker-cell-today .ant-picker-cell-inner::before {
   border-color: var(--primary) !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DASHBOARD LAYOUT — Responsive System
+   Breakpoints:
+     Mobile  < 768px    → drawer sidebar, hamburger
+     Tablet  768–1023px → icon-only sidebar (64px)
+     Desktop ≥ 1024px   → full sidebar (280px)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Root shell ─────────────────────────────────────────────────────────── */
+.dashboard-root {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+}
+
+/* ── Desktop sidebar ────────────────────────────────────────────────────── */
+.dashboard-sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+  padding: 24px 16px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Sidebar logo ───────────────────────────────────────────────────────── */
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  margin-bottom: 28px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.sidebar-logo-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+  flex-shrink: 0;
+}
+
+.sidebar-logo-text h1 {
+  font-size: 1.2rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+
+.sidebar-logo-text span {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ── User card ──────────────────────────────────────────────────────────── */
+.sidebar-user-card {
+  padding: 14px;
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  flex-shrink: 0;
+}
+
+.sidebar-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  border: 1px solid var(--card-border);
+  flex-shrink: 0;
+}
+
+.sidebar-username {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sidebar-action-btn {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  justify-content: center;
+}
+
+.sidebar-logout-btn {
+  border-color: rgba(239, 68, 68, 0.2) !important;
+  color: var(--text-secondary) !important;
+}
+
+.sidebar-logout-btn:hover {
+  color: var(--text-primary) !important;
+  background-color: rgba(239, 68, 68, 0.15) !important;
+}
+
+/* ── Main content area ──────────────────────────────────────────────────── */
+.dashboard-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.dashboard-content {
+  padding: 16px 24px;
+  flex: 1;
+}
+
+/* ── Top header ─────────────────────────────────────────────────────────── */
+.top-header {
+  height: 64px;
+  border-radius: 0 !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  gap: 12px;
+}
+
+/* ── Hamburger button ─────────────────────────────────────────────────── */
+.hamburger-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.hamburger-btn:hover {
+  background: var(--bg-tertiary);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TABLET — 768px to 1023px → icon-only sidebar (64px)
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .dashboard-sidebar {
+    width: 64px;
+    padding: 20px 8px;
+    align-items: center;
+  }
+
+  .sidebar-logo {
+    padding: 8px 0;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 20px;
+  }
+
+  .sidebar-logo-text {
+    display: none;
+  }
+
+  .sidebar-user-card {
+    padding: 10px 6px;
+    align-items: center;
+  }
+
+  .sidebar-username,
+  .sidebar-user-card .badge,
+  .sidebar-action-btn {
+    display: none;
+  }
+
+  .sidebar-avatar {
+    width: 38px;
+    height: 38px;
+  }
+
+  .dashboard-content {
+    padding: 14px 16px;
+  }
+
+  .top-header {
+    padding: 0 16px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBILE — < 768px → hidden sidebar, hamburger + drawer
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  html {
+    font-size: 13px;
+  }
+
+  /* Hide desktop sidebar entirely */
+  .dashboard-sidebar {
+    display: none;
+  }
+
+  /* Show hamburger button */
+  .hamburger-btn {
+    display: flex !important;
+  }
+
+  /* Hide system status text */
+  .status-text {
+    display: none;
+  }
+
+  .top-header {
+    height: 56px !important;
+    padding: 0 12px !important;
+  }
+
+  .dashboard-content {
+    padding: 12px 12px 32px;
+  }
+
+  /* Tables: force horizontal scroll */
+  .ant-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ant-table {
+    min-width: 480px;
+  }
+
+  /* Cards full-width */
+  .ant-card {
+    border-radius: 12px !important;
+  }
+
+  /* Forms — label on top */
+  .ant-form-item-label {
+    text-align: left;
+  }
+
+  /* Modals full-screen on mobile */
+  .ant-modal {
+    max-width: 100vw !important;
+    margin: 8px !important;
+    top: 8px !important;
+  }
+
+  .ant-modal-content {
+    border-radius: 16px !important;
+  }
+
+  /* Drawers max width */
+  .ant-drawer-content-wrapper {
+    max-width: 340px !important;
+  }
+
+  /* Pagination center & wrap */
+  .ant-pagination {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  /* Tabs: scrollable */
+  .ant-tabs-nav-wrap {
+    overflow-x: auto !important;
+  }
+
+  /* Ant Col — no overflow */
+  .ant-col {
+    min-width: 0;
+  }
+
+  /* Ant Row responsive gap reduction */
+  .ant-row {
+    margin-left: -8px !important;
+    margin-right: -8px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SHARED UTILITIES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Horizontal scroll for any table */
+.table-scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Safe area support (notched devices) */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .dashboard-content {
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .mobile-drawer,
+  .hover-scale,
+  .btn-primary,
+  .btn-secondary {
+    animation: none !important;
+    transition: none !important;
+  }
+}
