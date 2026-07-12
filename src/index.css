@@ -75,13 +75,15 @@
 }
 
 html {
-  font-size: 13.5px;
+  font-size: 13px;
 }
 
 body {
   font-family: var(--font-primary);
-  font-size: 13.5px;
+  font-size: 13px;
   background-color: var(--bg-primary);
+
+
   color: var(--text-primary);
   overflow-x: hidden;
   min-height: 100vh;
@@ -102,26 +104,20 @@ body {
 .ant-descriptions-item,
 .ant-alert,
 .ant-badge {
-  font-size: 13px !important;
+  font-size: 12px !important;
 }
 
 .ant-table-thead > tr > th {
-  font-size: 12px !important;
+  font-size: 11px !important;
   font-weight: 600 !important;
 }
 
 .ant-form-item-label > label {
-  font-size: 12px !important;
+  font-size: 11px !important;
 }
 
 .ant-select-dropdown .ant-select-item {
-  font-size: 13px !important;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display);
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-size: 12px !important;
 }
 
 a {
@@ -129,6 +125,7 @@ a {
   text-decoration: none;
   transition: var(--transition-fast);
 }
+
 a:hover {
   color: var(--text-primary);
 }
@@ -148,10 +145,49 @@ a:hover {
   background: var(--primary);
 }
 
+/* Typography Headings */
+h1, .ant-typography.ant-typography-h1, h1.ant-typography {
+  font-size: 1.6rem !important;
+  font-family: var(--font-display);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+h2, .ant-typography.ant-typography-h2, h2.ant-typography {
+  font-size: 1.3rem !important;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+h3, .ant-typography.ant-typography-h3, h3.ant-typography {
+  font-size: 1.1rem !important;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+h4, .ant-typography.ant-typography-h4, h4.ant-typography {
+  font-size: 0.95rem !important;
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+h5, .ant-typography.ant-typography-h5, h5.ant-typography {
+  font-size: 0.88rem !important;
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+h6, .ant-typography.ant-typography-h6, h6.ant-typography {
+  font-size: 0.8rem !important;
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+
 /* Glassmorphism utility */
 .glass-panel {
-  background: var(--card-bg);
-  backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--card-border);
   border-radius: var(--border-radius-md);
@@ -909,7 +945,7 @@ button[disabled],
    ═══════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 767px) {
   html {
-    font-size: 13px;
+    font-size: 12px;
   }
 
   /* Hide desktop sidebar entirely */
@@ -945,6 +981,31 @@ button[disabled],
   .ant-table {
     min-width: 480px;
   }
+
+  .ant-table-thead > tr > th {
+    font-size: 10px !important;
+    padding: 8px 6px !important;
+  }
+
+  .ant-table-tbody > tr > td {
+    font-size: 10.5px !important;
+    padding: 8px 6px !important;
+  }
+
+  /* Compact nested buttons or tags in tables */
+  .ant-table-tbody .ant-btn {
+    font-size: 10.5px !important;
+    height: auto !important;
+    padding: 2px 6px !important;
+  }
+
+  .ant-table-tbody .ant-tag {
+    font-size: 9.5px !important;
+    padding: 0 4px !important;
+    line-height: 1.5 !important;
+    margin: 1px !important;
+  }
+
 
   /* Cards full-width */
   .ant-card {
@@ -1024,3 +1085,97 @@ button[disabled],
     transition: none !important;
   }
 }
+
+/* ── Dashboard Stats Cards Responsive Design ── */
+.dashboard-summary-cards .ant-card-body {
+  padding: 14px 16px !important;
+}
+
+.dashboard-summary-cards .dashboard-stat-icon-box {
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 12px !important;
+  flex-shrink: 0;
+}
+
+.dashboard-summary-cards .dashboard-stat-icon-box svg {
+  width: 22px !important;
+  height: 22px !important;
+}
+
+.dashboard-summary-cards span.ant-typography {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+
+.dashboard-summary-cards h2.ant-typography {
+  font-size: 1.3rem !important;
+  font-weight: 700 !important;
+}
+
+.dashboard-summary-cards .ant-card-body > div {
+  gap: 14px !important; /* Tighten flex container gap */
+}
+
+@media (max-width: 767px) {
+  .dashboard-summary-cards .ant-card-body {
+    padding: 12px 14px !important;
+  }
+
+  .dashboard-summary-cards .dashboard-stat-icon-box {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 10px !important;
+  }
+
+  .dashboard-summary-cards .dashboard-stat-icon-box svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .dashboard-summary-cards span.ant-typography {
+    font-size: 10px !important;
+  }
+
+  .dashboard-summary-cards h2.ant-typography {
+    font-size: 1.15rem !important;
+  }
+
+  .dashboard-summary-cards .ant-card-body > div {
+    gap: 10px !important;
+  }
+}
+
+/* ── Dashboard Operation Cards Responsive Design ── */
+.dashboard-operation-cards .ant-card-body {
+  padding: 14px 16px !important;
+}
+
+.dashboard-operation-cards span.ant-typography {
+  font-size: 11px !important;
+  display: block;
+  min-height: 32px; /* Prevent text wrapping height mismatch */
+}
+
+.dashboard-operation-value {
+  font-size: 24px;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+@media (max-width: 767px) {
+  .dashboard-operation-cards .ant-card-body {
+    padding: 12px !important;
+  }
+
+  .dashboard-operation-cards span.ant-typography {
+    font-size: 10px !important;
+    min-height: 28px;
+  }
+
+  .dashboard-operation-value {
+    font-size: 1.3rem;
+  }
+}
+
+

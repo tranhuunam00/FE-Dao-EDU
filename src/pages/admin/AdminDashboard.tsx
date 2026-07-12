@@ -190,8 +190,8 @@ const AdminDashboardInner: React.FC = () => {
       </div>
 
       {/* Summary Stats */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={24} sm={12} lg={6}>
+      <Row gutter={[16, 16]} className="dashboard-summary-cards" style={{ marginBottom: 16 }}>
+        <Col xs={12} sm={12} lg={6}>
           <Card 
             bodyStyle={{ padding: '16px' }} 
             style={cardStyle} 
@@ -200,7 +200,7 @@ const AdminDashboardInner: React.FC = () => {
             onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--card-border)'; }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-              <div style={{ 
+              <div className="dashboard-stat-icon-box" style={{ 
                 width: 56, height: 56, borderRadius: 16, 
                 background: 'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(79,70,229,0.1))', 
                 display: 'flex', alignItems: 'center', justifyContent: 'center', 
@@ -218,7 +218,7 @@ const AdminDashboardInner: React.FC = () => {
           </Card>
         </Col>
         
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={12} sm={12} lg={6}>
           <Card 
             bodyStyle={{ padding: '16px' }} 
             style={cardStyle} 
@@ -227,7 +227,7 @@ const AdminDashboardInner: React.FC = () => {
             onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--card-border)'; }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-              <div style={{ 
+              <div className="dashboard-stat-icon-box" style={{ 
                 width: 56, height: 56, borderRadius: 16, 
                 background: 'linear-gradient(135deg, rgba(16,185,129,0.2), rgba(5,150,105,0.1))', 
                 display: 'flex', alignItems: 'center', justifyContent: 'center', 
@@ -245,7 +245,7 @@ const AdminDashboardInner: React.FC = () => {
           </Card>
         </Col>
         
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={12} sm={12} lg={6}>
           <Card 
             bodyStyle={{ padding: '16px' }} 
             style={cardStyle} 
@@ -254,7 +254,7 @@ const AdminDashboardInner: React.FC = () => {
             onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--card-border)'; }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-              <div style={{ 
+              <div className="dashboard-stat-icon-box" style={{ 
                 width: 56, height: 56, borderRadius: 16, 
                 background: 'linear-gradient(135deg, rgba(245,158,11,0.2), rgba(217,119,6,0.1))', 
                 display: 'flex', alignItems: 'center', justifyContent: 'center', 
@@ -272,7 +272,7 @@ const AdminDashboardInner: React.FC = () => {
           </Card>
         </Col>
         
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={12} sm={12} lg={6}>
           <Card 
             bodyStyle={{ padding: '16px' }} 
             style={cardStyle} 
@@ -281,7 +281,7 @@ const AdminDashboardInner: React.FC = () => {
             onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--card-border)'; }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-              <div style={{ 
+              <div className="dashboard-stat-icon-box" style={{ 
                 width: 56, height: 56, borderRadius: 16, 
                 background: 'linear-gradient(135deg, rgba(236,72,153,0.2), rgba(219,39,119,0.1))', 
                 display: 'flex', alignItems: 'center', justifyContent: 'center', 
@@ -300,9 +300,11 @@ const AdminDashboardInner: React.FC = () => {
         </Col>
       </Row>
 
+
+
       {/* Financial Stats */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={24} md={8}>
+      <Row gutter={[16, 16]} className="dashboard-summary-cards" style={{ marginBottom: 16 }}>
+        <Col xs={12} md={8}>
           <Card 
             bodyStyle={{ padding: '16px' }} 
             style={cardStyle} 
@@ -311,7 +313,7 @@ const AdminDashboardInner: React.FC = () => {
             onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--card-border)'; }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-              <div style={{ 
+              <div className="dashboard-stat-icon-box" style={{ 
                 width: 56, height: 56, borderRadius: 16, 
                 background: 'linear-gradient(135deg, rgba(16,185,129,0.2), rgba(5,150,105,0.1))', 
                 display: 'flex', alignItems: 'center', justifyContent: 'center', 
@@ -329,7 +331,7 @@ const AdminDashboardInner: React.FC = () => {
           </Card>
         </Col>
 
-        <Col xs={24} md={8}>
+        <Col xs={12} md={8}>
           <Card 
             bodyStyle={{ padding: '16px' }} 
             style={cardStyle} 
@@ -338,7 +340,7 @@ const AdminDashboardInner: React.FC = () => {
             onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--card-border)'; }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-              <div style={{ 
+              <div className="dashboard-stat-icon-box" style={{ 
                 width: 56, height: 56, borderRadius: 16, 
                 background: 'linear-gradient(135deg, rgba(239,68,68,0.2), rgba(185,28,28,0.1))', 
                 display: 'flex', alignItems: 'center', justifyContent: 'center', 
@@ -365,7 +367,7 @@ const AdminDashboardInner: React.FC = () => {
             onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--card-border)'; }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-              <div style={{ 
+              <div className="dashboard-stat-icon-box" style={{ 
                 width: 56, height: 56, borderRadius: 16, 
                 background: 'linear-gradient(135deg, rgba(59,130,246,0.2), rgba(29,78,216,0.1))', 
                 display: 'flex', alignItems: 'center', justifyContent: 'center', 
@@ -387,25 +389,28 @@ const AdminDashboardInner: React.FC = () => {
         </Col>
       </Row>
 
+
+
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '28px 0 14px' }}>
         <ClipboardCheck size={22} color="#818cf8" />
         <Title level={4} style={{ margin: 0, color: 'var(--text-primary)' }}>Vận hành cần chú ý</Title>
       </div>
-      <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
+      <Row gutter={[16, 16]} className="dashboard-operation-cards" style={{ marginBottom: 20 }}>
         {[
           ['Học sinh chưa xếp lớp', operations?.tasks.unassignedStudents || 0, '/admin/students', '#f59e0b'],
           ['Buổi học chưa chốt điểm danh', operations?.tasks.unlockedPastSessions || 0, '/admin/classes?tab=unlocked', '#ef4444'],
           ['Kỳ học phí/lương chưa chốt', operations?.tasks.openPaymentPeriods || 0, '/admin/accounting', '#6366f1'],
           ['Phiếu hủy thanh toán', operations?.tasks.cancelledReceipts || 0, '/admin/accounting?tab=anomalies', '#ec4899'],
         ].map(([label, value, path, color]) => (
-          <Col xs={24} sm={12} lg={6} key={String(label)}>
+          <Col xs={12} sm={12} lg={6} key={String(label)}>
             <Card className="glass-panel" hoverable onClick={() => navigate(String(path))} bodyStyle={{ padding: 16 }}>
               <Text style={{ color: 'var(--text-secondary)' }}>{label}</Text>
-              <div style={{ color: String(color), fontSize: 30, fontWeight: 750, marginTop: 4 }}>{Number(value)}</div>
+              <div className="dashboard-operation-value" style={{ color: String(color), marginTop: 4 }}>{Number(value)}</div>
             </Card>
           </Col>
         ))}
       </Row>
+
 
       <Row gutter={[20, 20]} style={{ marginBottom: 28 }}>
         <Col span={24}>
