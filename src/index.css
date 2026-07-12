@@ -1178,4 +1178,78 @@ button[disabled],
   }
 }
 
+/* ── Audit Logs Detail Modal Responsive Styling ── */
+.responsive-log-modal .ant-modal-content {
+  border-radius: 16px !important;
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+.responsive-log-modal .ant-modal-header {
+  background: transparent !important;
+  border-bottom: 1px solid var(--card-border) !important;
+  padding-bottom: 12px !important;
+}
+
+.responsive-log-modal .ant-modal-title {
+  color: var(--text-primary) !important;
+  font-weight: 700 !important;
+}
+
+.responsive-log-modal .ant-modal-close-icon {
+  color: var(--text-secondary) !important;
+}
+
+.responsive-log-modal .ant-descriptions-bordered .ant-descriptions-view {
+  border: 1px solid var(--card-border) !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+}
+
+.responsive-log-modal .ant-descriptions-item-label {
+  background: rgba(255, 255, 255, 0.02) !important;
+  color: var(--text-secondary) !important;
+  font-weight: 600 !important;
+  border-right: 1px solid var(--card-border) !important;
+  border-bottom: 1px solid var(--card-border) !important;
+}
+
+.responsive-log-modal .ant-descriptions-item-content {
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--card-border) !important;
+  background: transparent !important;
+}
+
+@media (max-width: 767px) {
+  .responsive-log-modal {
+    max-width: 95% !important;
+    margin: 10px auto !important;
+  }
+
+  .responsive-log-modal .ant-modal-body {
+    padding: 16px 12px !important;
+  }
+
+  /* Force vertical layout for Descriptions on mobile */
+  .responsive-log-modal .ant-descriptions-row {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+
+  .responsive-log-modal .ant-descriptions-item-label,
+  .responsive-log-modal .ant-descriptions-item-content {
+    display: block !important;
+    width: 100% !important;
+    border-right: none !important;
+    padding: 10px 12px !important;
+  }
+
+  .responsive-log-modal .ant-descriptions-item-label {
+    border-bottom: none !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+  }
+}
+
+
 
