@@ -28,6 +28,16 @@ const eventColors: Record<string, string> = {
   DELETE: 'red',
 };
 
+const eventLabels: Record<string, string> = {
+  CREATED: 'Gửi thông báo',
+  READ: 'Đọc thông báo',
+  UNREAD: 'Đánh dấu chưa đọc',
+  ARCHIVED: 'Lưu trữ thông báo',
+  CREATE: 'Thêm mới dữ liệu',
+  UPDATE: 'Cập nhật dữ liệu',
+  DELETE: 'Xóa dữ liệu',
+};
+
 export default function NotificationLogs() {
   const [logs, setLogs] = useState<NotificationLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +71,7 @@ export default function NotificationLogs() {
       title: 'Sự kiện',
       dataIndex: 'eventType',
       width: 120,
-      render: (value) => <Tag color={eventColors[value] || 'blue'}>{value}</Tag>,
+      render: (value) => <Tag color={eventColors[value] || 'blue'}>{eventLabels[value] || value}</Tag>,
     },
     {
       title: 'Người thực hiện/Nhận',
@@ -107,9 +117,13 @@ export default function NotificationLogs() {
             setEventType(value);
             setPage(1);
           }}
-          options={[...Object.keys(eventColors)].map((value) => ({ value, label: value }))}
+          options={Object.keys(eventColors).map((value) => ({
+            value,
+            label: eventLabels[value] || value,
+          }))}
         />
       </Card>
+
       <Card className="glass-panel">
         <Table
           rowKey="id"

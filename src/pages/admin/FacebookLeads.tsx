@@ -155,7 +155,7 @@ const renderEvidenceThread = (ev: any, leadAuthorName: string) => {
           style={{
             display: 'inline',
             fontSize: '0.85rem',
-            color: '#e5e7eb',
+            color: 'var(--text-primary)',
             marginBottom: 0,
           }}
         >
@@ -277,7 +277,7 @@ const renderEvidenceThread = (ev: any, leadAuthorName: string) => {
                 )}
               </div>
               
-              <Paragraph style={{ margin: 0, fontSize: '0.85rem', color: '#e5e7eb', lineHeight: 1.4 }}>
+              <Paragraph style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-primary)', lineHeight: 1.4 }}>
                 {item.text || '(Không có nội dung)'}
               </Paragraph>
             </div>

@@ -199,16 +199,17 @@ export const StudentProfile: React.FC<{ embedded?: boolean }> = ({
                   {profile?.lastName} {profile?.firstName} {profile?.nickName ? `(${profile.nickName})` : ''}
                 </h2>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                  <span style={{ color: '#9ca3af', fontSize: '0.88rem' }}>Mã học sinh:</span>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>Mã học sinh:</span>
                   <span style={{ color: '#6366f1', fontWeight: 600, fontSize: '0.88rem' }}>{profile?.studentId}</span>
                   <Divider type="vertical" style={{ borderColor: 'var(--card-border)' }} />
-                  <span style={{ color: '#9ca3af', fontSize: '0.88rem' }}>Trạng thái:</span>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>Trạng thái:</span>
                   <span style={{ color: getStatusColor(profile?.status), fontWeight: 600, fontSize: '0.88rem' }}>
                     {profile?.status === 'Waiting for class' ? 'Chờ xếp lớp' 
                      : profile?.status === 'Studying' ? 'Đang học' 
                      : profile?.status === 'Suspended' ? 'Tạm nghỉ' : 'Đã tốt nghiệp'}
                   </span>
                 </div>
+
               </div>
             </div>
 
