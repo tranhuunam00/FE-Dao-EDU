@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   Form, Input, Select, DatePicker, Button, Card, Typography, Row, Col, Upload, Tabs, App, Space, Spin, Alert, Avatar, Table, Tag
 } from 'antd';
-import { CameraOutlined, ArrowLeftOutlined, SaveOutlined, LockOutlined, UserOutlined, EnvironmentOutlined, DollarOutlined, SearchOutlined } from '@ant-design/icons';
+import { CameraOutlined, ArrowLeftOutlined, SaveOutlined, LockOutlined, UserOutlined, EnvironmentOutlined, DollarOutlined, SearchOutlined, ReadOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../services/api';
 import { PROVINCE_OPTIONS, getDistrictsOrWards } from '../../assets/vietnam_divisions';
@@ -30,6 +30,10 @@ const TeacherDetailInner: React.FC = () => {
   const [wagesReport, setWagesReport] = useState<any>(null);
   const [wagesLoading, setWagesLoading] = useState(false);
   const [wagesYear, setWagesYear] = useState<any>(dayjs());
+
+  // Classes statistics state
+  const [classesStats, setClassesStats] = useState<any[]>([]);
+  const [statsLoading, setStatsLoading] = useState(false);
 
   const selectedProvince = Form.useWatch('province', form);
   const [districtOptions, setDistrictOptions] = useState<{label: string, value: string}[]>([]);
@@ -102,6 +106,25 @@ const TeacherDetailInner: React.FC = () => {
       fetchWagesReport(wagesYear);
     }
   }, [activeTab, wagesYear]);
+
+  const fetchClassesStats = async () => {
+    if (!id) return;
+    setStatsLoading(true);
+    try {
+      const { data } = await api.get(`/teachers/${id}/classes-stats`);
+      setClassesStats(data || []);
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi tải thống kê lớp học');
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'classes' && id) {
+      fetchClassesStats();
+    }
+  }, [activeTab, id]);
 
   const handleAvatarChange = (info: any) => {
     const file = info.file.originFileObj || info.file;
@@ -371,6 +394,131 @@ const TeacherDetailInner: React.FC = () => {
     </Card>
   );
 
+  const renderClassesTab = () => (
+    <Card
+      title={<span style={{ fontFamily: 'Outfit' }}><ReadOutlined /> Thống kê & Lớp giảng dạy</span>}
+      className="glass-panel"
+      style={{ border: 'none', background: 'var(--card-bg)' }}
+    >
+      <Table
+        dataSource={classesStats}
+        rowKey="id"
+        loading={statsLoading}
+        pagination={{ pageSize: 10 }}
+        size="small"
+        columns={[
+          {
+            title: 'Mã lớp',
+            dataIndex: 'classCode',
+            key: 'classCode',
+            width: 130,
+            render: (text: string, record: any) => (
+              <Text strong style={{ color: '#6366f1', cursor: 'pointer' }} onClick={() => navigate(`/admin/classes/${record.id}`)}>
+                {text}
+              </Text>
+            ),
+          },
+          {
+            title: 'Tên lớp',
+            dataIndex: 'className',
+            key: 'className',
+            render: (text: string, record: any) => (
+              <div>
+                <Text strong style={{ color: 'var(--text-primary)', cursor: 'pointer' }} onClick={() => navigate(`/admin/classes/${record.id}`)}>
+                  {text}
+                </Text>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                  {record.courseName} • {record.levelName}
+                </div>
+              </div>
+            ),
+          },
+          {
+            title: 'Vai trò',
+            dataIndex: 'role',
+            key: 'role',
+            width: 150,
+            render: (role: string) => {
+              const color = role === 'Giáo viên chính' ? 'blue' : role === 'Trợ giảng' ? 'purple' : 'orange';
+              return <Tag color={color}>{role}</Tag>;
+            },
+          },
+          {
+            title: 'Sĩ số',
+            dataIndex: 'studentsCount',
+            key: 'studentsCount',
+            align: 'center',
+            width: 100,
+            render: (count: number) => <Text strong>{count}</Text>,
+          },
+          {
+            title: 'Số buổi dạy',
+            key: 'sessions',
+            width: 130,
+            align: 'center',
+            render: (_, record: any) => `${record.finishedSessionsCount}/${record.totalSessionsCount}`,
+          },
+          {
+            title: 'Đi học',
+            dataIndex: 'attendanceRate',
+            key: 'attendanceRate',
+            width: 110,
+            align: 'center',
+            render: (rate: number) => {
+              const color = rate >= 90 ? 'green' : rate >= 70 ? 'orange' : 'red';
+              return <span style={{ color: `var(--${color})`, fontWeight: 600 }}>{rate}%</span>;
+            },
+          },
+          {
+            title: 'Nộp bài tập',
+            dataIndex: 'submissionRate',
+            key: 'submissionRate',
+            width: 110,
+            align: 'center',
+            render: (rate: number) => {
+              const color = rate >= 80 ? '#10b981' : rate >= 50 ? '#f59e0b' : '#ef4444';
+              return <span style={{ color, fontWeight: 600 }}>{rate}%</span>;
+            },
+          },
+          {
+            title: 'Điểm TB',
+            dataIndex: 'averageScore',
+            key: 'averageScore',
+            width: 100,
+            align: 'center',
+            render: (score: number) => {
+              return <Text strong style={{ color: score >= 8 ? '#10b981' : score >= 5 ? '#f59e0b' : '#ef4444' }}>{score || '—'}</Text>;
+            },
+          },
+          {
+            title: 'Trạng thái',
+            dataIndex: 'status',
+            key: 'status',
+            width: 130,
+            render: (status: string) => {
+              let color = 'blue';
+              let label = status;
+              if (status === 'Active') {
+                color = 'green';
+                label = 'Hoạt động';
+              } else if (status === 'Planning') {
+                color = 'orange';
+                label = 'Lên kế hoạch';
+              } else if (status === 'Completed') {
+                color = 'gray';
+                label = 'Đã kết thúc';
+              } else if (status === 'Closed') {
+                color = 'red';
+                label = 'Đã đóng';
+              }
+              return <Tag color={color}>{label}</Tag>;
+            },
+          },
+        ]}
+      />
+    </Card>
+  );
+
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '12px 0' }}>
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
@@ -411,6 +559,7 @@ const TeacherDetailInner: React.FC = () => {
           onChange={setActiveTab}
           items={[
             { key: 'overview', label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><UserOutlined /> Thông tin chung</span>, children: renderOverviewTab() },
+            { key: 'classes', label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><ReadOutlined /> Lớp giảng dạy & Thống kê</span>, children: renderClassesTab() },
             { key: 'address', label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><EnvironmentOutlined /> Địa chỉ & Liên hệ</span>, children: renderAddressTab() },
             { key: 'login', label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><LockOutlined /> Tài khoản Đăng nhập</span>, children: renderLoginTab() },
             {
