@@ -28,6 +28,16 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
     {
       title: 'Học sinh',
       key: 'name',
+      sorter: (a: any, b: any) => {
+        const aFirst = a.student?.firstName || '';
+        const bFirst = b.student?.firstName || '';
+        const comp = aFirst.localeCompare(bFirst, 'vi', { sensitivity: 'base' });
+        if (comp !== 0) return comp;
+        const aLast = a.student?.lastName || '';
+        const bLast = b.student?.lastName || '';
+        return aLast.localeCompare(bLast, 'vi', { sensitivity: 'base' });
+      },
+      defaultSortOrder: 'ascend' as const,
       render: (_: any, record: any) => {
         const fullName = record.student ? `${record.student.lastName} ${record.student.firstName}` : '-';
         return (

@@ -511,7 +511,9 @@ const ClassDetailInner: React.FC = () => {
             note: record ? record.note : '',
             student: {
               name: cs.student ? `${cs.student.lastName} ${cs.student.firstName}` : '-',
-              user: cs.student.user,
+              user: cs.student?.user,
+              firstName: cs.student?.firstName || '',
+              lastName: cs.student?.lastName || '',
             }
           };
         });
@@ -1153,6 +1155,16 @@ const ClassDetailInner: React.FC = () => {
                       title: 'Học sinh',
                       dataIndex: ['student', 'name'],
                       key: 'name',
+                      sorter: (a: any, b: any) => {
+                        const aFirst = a.student?.firstName || '';
+                        const bFirst = b.student?.firstName || '';
+                        const comp = aFirst.localeCompare(bFirst, 'vi', { sensitivity: 'base' });
+                        if (comp !== 0) return comp;
+                        const aLast = a.student?.lastName || '';
+                        const bLast = b.student?.lastName || '';
+                        return aLast.localeCompare(bLast, 'vi', { sensitivity: 'base' });
+                      },
+                      defaultSortOrder: 'ascend' as const,
                     },
                     {
                       title: 'Có mặt?',
