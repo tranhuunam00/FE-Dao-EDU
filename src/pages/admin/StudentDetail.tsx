@@ -4,7 +4,7 @@ import {
   Form, Button, Tabs, Space, App, Avatar, Upload, Spin, Tag, Modal, Select, Typography
 } from 'antd';
 import {
-  SaveOutlined, ArrowLeftOutlined, UserOutlined, LockOutlined, TeamOutlined, CameraOutlined, DollarOutlined, CalendarOutlined
+  SaveOutlined, ArrowLeftOutlined, UserOutlined, LockOutlined, TeamOutlined, CameraOutlined, DollarOutlined, CalendarOutlined, DeleteOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../services/api';
@@ -152,6 +152,26 @@ const StudentDetailInner: React.FC = () => {
     } catch (err: any) {
       message.error(err.response?.data?.message || 'Lỗi khi thêm học sinh vào lớp');
     }
+  };
+
+  const handleDeleteStudent = () => {
+    modal.confirm({
+      title: 'Xác nhận xóa học sinh',
+      content: 'Bạn có chắc chắn muốn xóa học sinh này khỏi hệ thống? Hành động này không thể hoàn tác.',
+      okText: 'Xóa',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          await api.delete(`/students/${id}`);
+          message.success('Đã xóa học sinh thành công!');
+          navigate('/admin/students');
+        } catch (err: any) {
+          const msg = err.response?.data?.message || 'Lỗi khi xóa học sinh';
+          message.error(msg);
+        }
+      }
+    });
   };
 
   const handleRemoveClass = (classId: string, className: string) => {
@@ -336,6 +356,14 @@ const StudentDetailInner: React.FC = () => {
           </div>
 
           <Space size="middle">
+            <Button
+              type="primary"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={handleDeleteStudent}
+            >
+              Xóa học sinh
+            </Button>
             <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/admin/students')} style={{ background: 'transparent' }}>
               Quay lại
             </Button>
@@ -399,6 +427,15 @@ const StudentDetailInner: React.FC = () => {
             ID: <code style={{ color: '#818cf8', background: 'rgba(99,102,241,0.1)', padding: '2px 6px', borderRadius: '4px' }}>{id}</code>
           </span>
           <Space>
+            <Button
+              type="primary"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={handleDeleteStudent}
+              size="large"
+            >
+              Xóa học sinh
+            </Button>
             <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/admin/students')} style={{ background: 'transparent' }}>
               Quay lại danh sách
             </Button>
