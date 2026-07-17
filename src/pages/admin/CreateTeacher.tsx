@@ -6,6 +6,7 @@ import {
 import { CameraOutlined, ArrowLeftOutlined, SaveOutlined, LockOutlined, UserOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import api from '../../services/api';
 import { PROVINCE_OPTIONS, getDistrictsOrWards } from '../../assets/vietnam_divisions';
+import { FormErrorAlert } from '../../components/FormErrorAlert';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -20,6 +21,7 @@ const CreateTeacherInner: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
   const [avatarBase64, setAvatarBase64] = useState<string | undefined>(undefined);
+  const [formError, setFormError] = useState<any>(null);
   
   const selectedProvince = Form.useWatch('province', form);
   const [districtOptions, setDistrictOptions] = useState<{label: string, value: string}[]>([]);
@@ -55,6 +57,7 @@ const CreateTeacherInner: React.FC = () => {
 
   const handleSubmit = async (values: any) => {
     setLoading(true);
+    setFormError(null);
     try {
       const payload: any = {
         firstName: values.firstName?.trim(),
@@ -82,6 +85,7 @@ const CreateTeacherInner: React.FC = () => {
       message.success('Đã thêm nhân sự thành công!');
       navigate('/admin/teachers');
     } catch (err: any) {
+      setFormError(err);
       const msg = err.response?.data?.message;
       if (Array.isArray(msg)) {
         message.error(msg.join(', '));
@@ -286,6 +290,8 @@ const CreateTeacherInner: React.FC = () => {
             </Button>
           </div>
         </div>
+
+        <FormErrorAlert error={formError} />
 
         {/* Tabs */}
         <Tabs

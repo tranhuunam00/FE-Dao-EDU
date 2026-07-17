@@ -32,6 +32,7 @@ import {
 import dayjs from 'dayjs';
 import api from '../../services/api';
 import { PROVINCE_OPTIONS, DISTRICT_WARD_MAP } from '../../assets/vietnam_divisions';
+import { FormErrorAlert } from '../../components/FormErrorAlert';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -47,6 +48,7 @@ export const CreateStudent: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
   const [avatarBase64, setAvatarBase64] = useState<string | undefined>(undefined);
+  const [formError, setFormError] = useState<any>(null);
 
   // Watch fields for dynamic changes
   const birthdate = Form.useWatch('birthdate', form);
@@ -80,6 +82,7 @@ export const CreateStudent: React.FC = () => {
 
   const handleSubmit = async (values: any) => {
     setLoading(true);
+    setFormError(null);
     try {
       const payload = {
         ...values,
@@ -117,6 +120,7 @@ export const CreateStudent: React.FC = () => {
       form.resetFields();
       setActiveTab('overview');
     } catch (err: any) {
+      setFormError(err);
       const msg = err.response?.data?.message;
       if (Array.isArray(msg)) {
         message.error(msg.join(', '));
@@ -243,6 +247,8 @@ export const CreateStudent: React.FC = () => {
               </Button>
             </Space>
           </div>
+
+          <FormErrorAlert error={formError} />
 
           {/* Form Tabs */}
           <Tabs

@@ -155,15 +155,14 @@ const LoginInner: React.FC = () => {
               >
                 <Form.Item
                   name="email"
-                  label={<span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}><MailOutlined /> Email đăng nhập</span>}
+                  label={<span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)' }}><MailOutlined /> Tài khoản đăng nhập (SĐT / Email)</span>}
                   rules={[
-                    { required: true, message: 'Vui lòng điền email' },
-                    { type: 'email', message: 'Email không đúng định dạng' }
+                    { required: true, message: 'Vui lòng điền số điện thoại hoặc email đăng nhập' }
                   ]}
                 >
                   <Input
                     id="login-email"
-                    placeholder="admin@dao.edu.vn"
+                    placeholder="Nhập số điện thoại hoặc email..."
                     size="large"
                     style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.08)', color: '#fff' }}
                     disabled={loading}

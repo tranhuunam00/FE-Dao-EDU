@@ -7,6 +7,7 @@ import { CameraOutlined, ArrowLeftOutlined, SaveOutlined, LockOutlined, UserOutl
 import dayjs from 'dayjs';
 import api from '../../services/api';
 import { PROVINCE_OPTIONS, getDistrictsOrWards } from '../../assets/vietnam_divisions';
+import { FormErrorAlert } from '../../components/FormErrorAlert';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -22,6 +23,7 @@ const TeacherDetailInner: React.FC = () => {
   const [submittable, setSubmittable] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [teacher, setTeacher] = useState<any>(null);
+  const [formError, setFormError] = useState<any>(null);
   
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
   const [avatarBase64, setAvatarBase64] = useState<string | undefined>(undefined);
@@ -148,6 +150,7 @@ const TeacherDetailInner: React.FC = () => {
 
   const handleSubmit = async (values: any) => {
     setSaving(true);
+    setFormError(null);
     try {
       const payload: any = {
         firstName: values.firstName?.trim(),
@@ -182,6 +185,7 @@ const TeacherDetailInner: React.FC = () => {
       });
       message.success('Đã cập nhật thông tin nhân sự thành công!');
     } catch (err: any) {
+      setFormError(err);
       const msg = err.response?.data?.message;
       if (Array.isArray(msg)) {
         message.error(msg.join(', '));
@@ -553,6 +557,8 @@ const TeacherDetailInner: React.FC = () => {
             </Button>
           </div>
         </div>
+
+        <FormErrorAlert error={formError} />
 
         <Tabs
           activeKey={activeTab}
