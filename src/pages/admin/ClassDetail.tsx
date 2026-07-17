@@ -27,7 +27,7 @@ interface StudentAttendance {
   isPresent: boolean;
   reason?: string;
   note?: string;
-  evaluationScore?: number | null;
+  evaluationScore?: string | null;
   evaluationComment?: string | null;
   student?: {
     name: string;
@@ -550,7 +550,7 @@ const ClassDetailInner: React.FC = () => {
           isPresent: a.isPresent,
           reason: a.reason,
           note: a.note,
-          evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore) !== '' ? Number(a.evaluationScore) : null,
+          evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore).trim() !== '' ? String(a.evaluationScore).trim() : null,
           evaluationComment: a.evaluationComment || null,
         })),
       });
@@ -570,7 +570,7 @@ const ClassDetailInner: React.FC = () => {
       await api.post(`/classes/sessions/${currentSession.id}/evaluations`, {
         evaluations: sessionAttendance.map(a => ({
           studentId: a.studentId,
-          evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore) !== '' ? Number(a.evaluationScore) : null,
+          evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore).trim() !== '' ? String(a.evaluationScore).trim() : null,
           evaluationComment: a.evaluationComment || null,
         })),
       });
@@ -598,7 +598,7 @@ const ClassDetailInner: React.FC = () => {
               isPresent: a.isPresent,
               reason: a.reason,
               note: a.note,
-              evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore) !== '' ? Number(a.evaluationScore) : null,
+              evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore).trim() !== '' ? String(a.evaluationScore).trim() : null,
               evaluationComment: a.evaluationComment || null,
             })),
           });
@@ -637,7 +637,7 @@ const ClassDetailInner: React.FC = () => {
               isPresent: a.isPresent,
               reason: a.reason,
               note: a.note,
-              evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore) !== '' ? Number(a.evaluationScore) : null,
+              evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore).trim() !== '' ? String(a.evaluationScore).trim() : null,
               evaluationComment: a.evaluationComment || null,
             })),
           });
@@ -1206,19 +1206,26 @@ const ClassDetailInner: React.FC = () => {
                       title: 'Có mặt?',
                       dataIndex: 'isPresent',
                       key: 'isPresent',
-                      width: 80,
+                      width: 140,
                       render: (val, record) => (
-                        <Switch
-                          checked={val}
-                          disabled={currentSession.attendanceLocked && !isOverrideMode}
-                          onChange={(checked) => {
-                            setSessionAttendance(prev => prev.map(a => 
-                              a.studentId === record.studentId 
-                                ? { ...a, isPresent: checked, reason: checked ? "" : "Nghỉ có phép" } 
-                                : a
-                            ));
-                          }}
-                        />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Switch
+                            checked={val}
+                            disabled={currentSession.attendanceLocked && !isOverrideMode}
+                            onChange={(checked) => {
+                              setSessionAttendance(prev => prev.map(a => 
+                                a.studentId === record.studentId 
+                                  ? { ...a, isPresent: checked, reason: checked ? "" : "Nghỉ có phép" } 
+                                  : a
+                              ));
+                            }}
+                          />
+                          {val ? (
+                            <Tag color="success" style={{ margin: 0, fontWeight: 'bold' }}>Có mặt</Tag>
+                          ) : (
+                            <Tag color="error" style={{ margin: 0, fontWeight: 'bold' }}>Vắng</Tag>
+                          )}
+                        </div>
                       ),
                     },
                     {
@@ -1276,35 +1283,28 @@ const ClassDetailInner: React.FC = () => {
                     {
                       title: 'Điểm số',
                       key: 'evaluationScore',
-                      width: 100,
+                      width: 110,
                       align: 'center' as const,
                       render: (_, record) => (
-                        <Select
-                          value={record.evaluationScore !== null && record.evaluationScore !== undefined ? record.evaluationScore : undefined}
+                        <Input
+                          value={record.evaluationScore !== null && record.evaluationScore !== undefined ? record.evaluationScore : ''}
                           placeholder="—"
-                          allowClear
                           disabled={currentSession.status === 'Scheduled'}
-                          style={{ width: 80 }}
+                          style={{ width: 80, textAlign: 'center' }}
                           size="small"
-                          onChange={(val) => {
+                          onChange={(e) => {
+                            const val = e.target.value;
                             setSessionAttendance(prev => prev.map(a => 
-                              a.studentId === record.studentId ? { ...a, evaluationScore: val !== undefined ? val : null } : a
+                              a.studentId === record.studentId ? { ...a, evaluationScore: val === '' ? null : val } : a
                             ));
                           }}
-                          options={[
-                            { value: 0, label: '0' },
-                            ...Array.from({ length: 20 }, (_, i) => {
-                              const v = (i + 1) * 0.5;
-                              return { value: v, label: v.toFixed(1) };
-                            })
-                          ]}
                         />
                       )
                     },
                     {
                       title: 'Nhận xét',
                       key: 'evaluationComment',
-                      width: 180,
+                      width: 300,
                       render: (_, record) => (
                         <Input
                           placeholder="Nhận xét..."

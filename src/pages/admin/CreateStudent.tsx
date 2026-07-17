@@ -478,13 +478,12 @@ export const CreateStudent: React.FC = () => {
 
                     <Form.Item
                       name="loginEmail"
-                      label="Email đăng nhập"
+                      label="Tài khoản đăng nhập (SĐT / Email)"
                       rules={[
-                        { required: true, message: 'Vui lòng điền email đăng nhập' },
-                        { type: 'email', message: 'Địa chỉ email không hợp lệ' },
+                        { required: true, message: 'Vui lòng điền SĐT hoặc email đăng nhập' },
                       ]}
                     >
-                      <Input placeholder="student.login@gmail.com" prefix={<MailOutlined style={{ color: '#6b7280' }} />} />
+                      <Input placeholder="Nhập số điện thoại hoặc email..." prefix={<MailOutlined style={{ color: '#6b7280' }} />} />
                     </Form.Item>
 
                     <Form.Item

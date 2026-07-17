@@ -49,10 +49,11 @@ export const AttendanceTab: React.FC<AttendanceTabProps> = ({ studentId, student
     // 3. Only show:
     // - Absent: completed AND isPresent = false
     // - Unmarked: not completed / locked = false
+    const isPresent = (session.attendanceLocked || session.status === 'Completed') && session.attendance?.isPresent === true;
     const isAbsent = (session.attendanceLocked || session.status === 'Completed') && session.attendance?.isPresent === false;
     const isUnmarked = !session.attendanceLocked && session.status !== 'Completed';
 
-    if (!isAbsent && !isUnmarked) return false;
+    if (!isPresent && !isAbsent && !isUnmarked) return false;
 
     // 4. Class filter
     if (selectedClassId !== 'all' && session.classId !== selectedClassId) return false;
@@ -158,7 +159,11 @@ export const AttendanceTab: React.FC<AttendanceTabProps> = ({ studentId, student
             title: 'Trạng thái Chuyên cần',
             key: 'attendanceStatus',
             render: (_, record) => {
+              const isPresent = (record.attendanceLocked || record.status === 'Completed') && record.attendance?.isPresent === true;
               const isAbsent = (record.attendanceLocked || record.status === 'Completed') && record.attendance?.isPresent === false;
+              if (isPresent) {
+                return <Tag color="green" style={{ fontWeight: 600 }}>Có mặt</Tag>;
+              }
               if (isAbsent) {
                 return <Tag color="red" style={{ fontWeight: 600 }}>Vắng mặt</Tag>;
               }

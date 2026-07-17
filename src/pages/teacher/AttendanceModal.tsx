@@ -9,7 +9,7 @@ interface StudentAttendance {
   isPresent: boolean;
   reason?: string;
   note?: string;
-  evaluationScore?: number | null;
+  evaluationScore?: string | null;
   evaluationComment?: string | null;
   student: {
     id: string;
@@ -76,7 +76,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
           isPresent: a.isPresent,
           reason: a.reason,
           note: a.note,
-          evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore) !== '' ? Number(a.evaluationScore) : null,
+          evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore).trim() !== '' ? String(a.evaluationScore).trim() : null,
           evaluationComment: a.evaluationComment || null,
         }))
       });
@@ -100,7 +100,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
           isPresent: a.isPresent,
           reason: a.reason,
           note: a.note,
-          evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore) !== '' ? Number(a.evaluationScore) : null,
+          evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore).trim() !== '' ? String(a.evaluationScore).trim() : null,
           evaluationComment: a.evaluationComment || null,
         }))
       });
@@ -123,7 +123,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
       await api.post(`/classes/sessions/${session.id}/evaluations`, {
         evaluations: attendances.map(a => ({
           studentId: a.studentId,
-          evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore) !== '' ? Number(a.evaluationScore) : null,
+          evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore).trim() !== '' ? String(a.evaluationScore).trim() : null,
           evaluationComment: a.evaluationComment || null,
         }))
       });
@@ -230,17 +230,24 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
                         <td style={{ color: 'var(--text-secondary)' }}>{a.student?.studentId}</td>
                         <td style={{ fontWeight: 500 }}>{a.student?.lastName} {a.student?.firstName}</td>
                         <td style={{ textAlign: 'center' }}>
-                          <Switch
-                            checked={a.isPresent}
-                            disabled={attendanceLocked || sessionStatus === 'Scheduled'}
-                            onChange={(checked) => {
-                              setAttendances(prev => prev.map(item => 
-                                item.studentId === a.studentId 
-                                  ? { ...item, isPresent: checked, reason: checked ? "" : "Nghỉ có phép" } 
-                                  : item
-                              ));
-                            }}
-                          />
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                            <Switch
+                              checked={a.isPresent}
+                              disabled={attendanceLocked || sessionStatus === 'Scheduled'}
+                              onChange={(checked) => {
+                                setAttendances(prev => prev.map(item => 
+                                  item.studentId === a.studentId 
+                                    ? { ...item, isPresent: checked, reason: checked ? "" : "Nghỉ có phép" } 
+                                    : item
+                                ));
+                              }}
+                            />
+                            {a.isPresent ? (
+                              <span style={{ fontSize: '0.82rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(74, 222, 128, 0.15)', color: '#4ade80', fontWeight: 'bold', border: '1px solid rgba(74, 222, 128, 0.3)' }}>Có mặt</span>
+                            ) : (
+                              <span style={{ fontSize: '0.82rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', fontWeight: 'bold', border: '1px solid rgba(239, 68, 68, 0.3)' }}>Vắng</span>
+                            )}
+                          </div>
                         </td>
                         <td>
                           {!a.isPresent ? (
@@ -284,27 +291,19 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
                           )}
                         </td>
                         <td style={{ textAlign: 'center' }}>
-                          <select
+                          <input
+                            type="text"
+                            placeholder="—"
                             value={a.evaluationScore !== undefined && a.evaluationScore !== null ? a.evaluationScore : ''}
                             disabled={sessionStatus === 'Scheduled'}
-                            style={{ padding: '4px', borderRadius: '4px', border: '1px solid var(--border-color, #ddd)', fontSize: '0.85rem', width: '100%', background: 'transparent', color: 'inherit' }}
+                            style={{ padding: '4px', borderRadius: '4px', border: '1px solid var(--border-color, #ddd)', fontSize: '0.85rem', width: '100%', textAlign: 'center', background: 'transparent', color: 'inherit' }}
                             onChange={(e) => {
                               const val = e.target.value;
                               setAttendances(prev => prev.map(item => 
-                                item.studentId === a.studentId ? { ...item, evaluationScore: val === '' ? null : Number(val) } : item
+                                item.studentId === a.studentId ? { ...item, evaluationScore: val === '' ? null : val } : item
                               ));
                             }}
-                          >
-                            <option value="" style={{ background: 'var(--card-bg, #fff)', color: 'var(--text-primary, #000)' }}>—</option>
-                            {Array.from({ length: 21 }, (_, i) => {
-                              const val = i * 0.5;
-                              return (
-                                <option key={val} value={val} style={{ background: 'var(--card-bg, #fff)', color: 'var(--text-primary, #000)' }}>
-                                  {val.toFixed(1)}
-                                </option>
-                              );
-                            })}
-                          </select>
+                          />
                         </td>
                         <td>
                           <input

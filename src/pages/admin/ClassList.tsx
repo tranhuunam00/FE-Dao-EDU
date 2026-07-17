@@ -20,6 +20,7 @@ interface ClassData {
   startDate?: string;
   finishDate?: string;
   maxSize?: number;
+  studentCount?: number;
   course?: { name: string };
   courseLevel?: { levelName: string };
   mainTeacher?: { firstName: string; lastName: string };
@@ -301,10 +302,13 @@ const ClassListInner: React.FC = () => {
     },
     {
       title: 'Sĩ số',
-      dataIndex: 'maxSize',
-      key: 'maxSize',
+      dataIndex: 'studentCount',
+      key: 'studentCount',
       width: colWidths.maxSize,
-      render: (val: number) => val || '-',
+      render: (_: any, record: ClassData) => {
+        const studentCount = record.studentCount || 0;
+        return record.maxSize ? `${studentCount}/${record.maxSize}` : `${studentCount}`;
+      },
     },
     {
       title: 'Trạng thái',
