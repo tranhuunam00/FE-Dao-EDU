@@ -9,6 +9,8 @@ interface StudentAttendance {
   isPresent: boolean;
   reason?: string;
   note?: string;
+  evaluationScore?: number | null;
+  evaluationComment?: string | null;
   student: {
     id: string;
     studentId: string;
@@ -73,7 +75,9 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
           studentId: a.studentId,
           isPresent: a.isPresent,
           reason: a.reason,
-          note: a.note
+          note: a.note,
+          evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore) !== '' ? Number(a.evaluationScore) : null,
+          evaluationComment: a.evaluationComment || null,
         }))
       });
       message.success('Lưu điểm danh thành công!');
@@ -89,6 +93,17 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
   const completeSession = async () => {
     try {
       setSubmitting(true);
+      // Save attendance & evaluations first to ensure they are captured when completing
+      await api.post(`/classes/sessions/${session.id}/attendance`, {
+        attendance: attendances.map(a => ({
+          studentId: a.studentId,
+          isPresent: a.isPresent,
+          reason: a.reason,
+          note: a.note,
+          evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore) !== '' ? Number(a.evaluationScore) : null,
+          evaluationComment: a.evaluationComment || null,
+        }))
+      });
       await api.post(`/classes/sessions/${session.id}/complete`);
       message.success('Đã chốt điểm danh và kết thúc lớp!');
       setSessionStatus('Completed');
@@ -97,6 +112,26 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
       onClose();
     } catch (err: any) {
       message.error(err.response?.data?.message || 'Lỗi khi kết thúc lớp.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const saveEvaluationsOnly = async () => {
+    try {
+      setSubmitting(true);
+      await api.post(`/classes/sessions/${session.id}/evaluations`, {
+        evaluations: attendances.map(a => ({
+          studentId: a.studentId,
+          evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore) !== '' ? Number(a.evaluationScore) : null,
+          evaluationComment: a.evaluationComment || null,
+        }))
+      });
+      message.success('Cập nhật đánh giá thành công!');
+      onSuccess();
+      onClose();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi cập nhật đánh giá.');
     } finally {
       setSubmitting(false);
     }
@@ -179,7 +214,9 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
                     <th>Mã HS</th>
                     <th>Họ và Tên</th>
                     <th style={{ textAlign: 'center' }}>Điểm danh</th>
-                    <th style={{ width: '40%' }}>Lý do vắng mặt / Ghi chú</th>
+                    <th style={{ width: '30%' }}>Lý do vắng mặt / Ghi chú</th>
+                    <th style={{ width: '12%', textAlign: 'center' }}>Điểm số</th>
+                    <th style={{ width: '28%' }}>Nhận xét</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -246,6 +283,43 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
                             <span style={{ color: 'var(--text-muted)' }}>—</span>
                           )}
                         </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <select
+                            value={a.evaluationScore !== undefined && a.evaluationScore !== null ? a.evaluationScore : ''}
+                            disabled={sessionStatus === 'Scheduled'}
+                            style={{ padding: '4px', borderRadius: '4px', border: '1px solid var(--border-color, #ddd)', fontSize: '0.85rem', width: '100%', background: 'transparent', color: 'inherit' }}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setAttendances(prev => prev.map(item => 
+                                item.studentId === a.studentId ? { ...item, evaluationScore: val === '' ? null : Number(val) } : item
+                              ));
+                            }}
+                          >
+                            <option value="" style={{ background: 'var(--card-bg, #fff)', color: 'var(--text-primary, #000)' }}>—</option>
+                            {Array.from({ length: 21 }, (_, i) => {
+                              const val = i * 0.5;
+                              return (
+                                <option key={val} value={val} style={{ background: 'var(--card-bg, #fff)', color: 'var(--text-primary, #000)' }}>
+                                  {val.toFixed(1)}
+                                </option>
+                              );
+                            })}
+                          </select>
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            placeholder="Nhận xét..."
+                            value={a.evaluationComment || ''}
+                            disabled={sessionStatus === 'Scheduled'}
+                            style={{ padding: '4px', borderRadius: '4px', border: '1px solid var(--border-color, #ddd)', fontSize: '0.85rem', width: '100%', background: 'transparent', color: 'inherit' }}
+                            onChange={(e) => {
+                              setAttendances(prev => prev.map(item => 
+                                item.studentId === a.studentId ? { ...item, evaluationComment: e.target.value } : item
+                              ));
+                            }}
+                          />
+                        </td>
                       </tr>
                     );
                   })}
@@ -257,6 +331,11 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
           <button className="btn btn-outline" onClick={onClose} disabled={submitting}>Hủy</button>
+          {attendanceLocked && sessionStatus !== 'Scheduled' && (
+            <button className="btn btn-primary" onClick={saveEvaluationsOnly} disabled={submitting} style={{ display: 'flex', gap: '8px', background: 'var(--primary)', borderColor: 'var(--primary)' }}>
+              <Save size={16} /> Cập nhật đánh giá
+            </button>
+          )}
           {!attendanceLocked && sessionStatus !== 'Scheduled' && (
             <>
               <button className="btn btn-primary" onClick={saveAttendance} disabled={submitting} style={{ display: 'flex', gap: '8px', background: 'var(--accent)', borderColor: 'var(--accent)' }}>

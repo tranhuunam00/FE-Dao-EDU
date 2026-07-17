@@ -27,6 +27,8 @@ interface StudentAttendance {
   isPresent: boolean;
   reason?: string;
   note?: string;
+  evaluationScore?: number | null;
+  evaluationComment?: string | null;
   student?: {
     name: string;
     user?: { email: string };
@@ -509,6 +511,8 @@ const ClassDetailInner: React.FC = () => {
             isPresent: record ? record.isPresent : false,
             reason: record ? record.reason : '',
             note: record ? record.note : '',
+            evaluationScore: record ? record.evaluationScore : null,
+            evaluationComment: record ? record.evaluationComment : '',
             student: {
               name: cs.student ? `${cs.student.lastName} ${cs.student.firstName}` : '-',
               user: cs.student?.user,
@@ -546,6 +550,8 @@ const ClassDetailInner: React.FC = () => {
           isPresent: a.isPresent,
           reason: a.reason,
           note: a.note,
+          evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore) !== '' ? Number(a.evaluationScore) : null,
+          evaluationComment: a.evaluationComment || null,
         })),
       });
       message.success('Lưu điểm danh thành công!');
@@ -553,6 +559,27 @@ const ClassDetailInner: React.FC = () => {
       message.error(err.response?.data?.message || 'Lỗi khi lưu điểm danh');
     } finally {
       setSavingAttendance(false);
+    }
+  };
+
+  const [savingEvaluations, setSavingEvaluations] = useState(false);
+  const handleSaveEvaluationsOnly = async () => {
+    if (!currentSession) return;
+    setSavingEvaluations(true);
+    try {
+      await api.post(`/classes/sessions/${currentSession.id}/evaluations`, {
+        evaluations: sessionAttendance.map(a => ({
+          studentId: a.studentId,
+          evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore) !== '' ? Number(a.evaluationScore) : null,
+          evaluationComment: a.evaluationComment || null,
+        })),
+      });
+      message.success('Cập nhật đánh giá thành công!');
+      loadAllData();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi cập nhật đánh giá');
+    } finally {
+      setSavingEvaluations(false);
     }
   };
 
@@ -571,6 +598,8 @@ const ClassDetailInner: React.FC = () => {
               isPresent: a.isPresent,
               reason: a.reason,
               note: a.note,
+              evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore) !== '' ? Number(a.evaluationScore) : null,
+              evaluationComment: a.evaluationComment || null,
             })),
           });
           const { data } = await api.post(`/classes/sessions/${currentSession.id}/complete`);
@@ -608,6 +637,8 @@ const ClassDetailInner: React.FC = () => {
               isPresent: a.isPresent,
               reason: a.reason,
               note: a.note,
+              evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore) !== '' ? Number(a.evaluationScore) : null,
+              evaluationComment: a.evaluationComment || null,
             })),
           });
           message.success('Đã cập nhật điểm danh thành công!');
@@ -1029,6 +1060,11 @@ const ClassDetailInner: React.FC = () => {
             </Descriptions>
 
             <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+              {currentSession.attendanceLocked && currentSession.status !== 'Cancelled' && (
+                <Button type="primary" icon={<SaveOutlined />} onClick={handleSaveEvaluationsOnly} loading={savingEvaluations}>
+                  Cập nhật đánh giá
+                </Button>
+              )}
               {!currentSession.attendanceLocked && (
                 <>
                   {currentSession.status === 'Scheduled' && (
@@ -1170,7 +1206,7 @@ const ClassDetailInner: React.FC = () => {
                       title: 'Có mặt?',
                       dataIndex: 'isPresent',
                       key: 'isPresent',
-                      width: 120,
+                      width: 80,
                       render: (val, record) => (
                         <Switch
                           checked={val}
@@ -1188,6 +1224,7 @@ const ClassDetailInner: React.FC = () => {
                     {
                       title: 'Lý do vắng mặt / Ghi chú',
                       key: 'reason',
+                      width: 180,
                       render: (_, record) => {
                         if (record.isPresent) return <span style={{ color: 'var(--text-muted)' }}>—</span>;
                         
@@ -1195,7 +1232,7 @@ const ClassDetailInner: React.FC = () => {
                         const isUnexcused = !record.reason || record.reason.trim() === '';
                         
                         const selectValue = isExcusedDefault ? 'Nghỉ có phép' : isUnexcused ? 'Nghỉ không phép' : 'custom';
-
+ 
                         return (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%' }}>
                             <Select
@@ -1235,6 +1272,52 @@ const ClassDetailInner: React.FC = () => {
                           </div>
                         );
                       }
+                    },
+                    {
+                      title: 'Điểm số',
+                      key: 'evaluationScore',
+                      width: 100,
+                      align: 'center' as const,
+                      render: (_, record) => (
+                        <Select
+                          value={record.evaluationScore !== null && record.evaluationScore !== undefined ? record.evaluationScore : undefined}
+                          placeholder="—"
+                          allowClear
+                          disabled={currentSession.status === 'Scheduled'}
+                          style={{ width: 80 }}
+                          size="small"
+                          onChange={(val) => {
+                            setSessionAttendance(prev => prev.map(a => 
+                              a.studentId === record.studentId ? { ...a, evaluationScore: val !== undefined ? val : null } : a
+                            ));
+                          }}
+                          options={[
+                            { value: 0, label: '0' },
+                            ...Array.from({ length: 20 }, (_, i) => {
+                              const v = (i + 1) * 0.5;
+                              return { value: v, label: v.toFixed(1) };
+                            })
+                          ]}
+                        />
+                      )
+                    },
+                    {
+                      title: 'Nhận xét',
+                      key: 'evaluationComment',
+                      width: 180,
+                      render: (_, record) => (
+                        <Input
+                          placeholder="Nhận xét..."
+                          value={record.evaluationComment || ''}
+                          disabled={currentSession.status === 'Scheduled'}
+                          size="small"
+                          onChange={(e) => {
+                            setSessionAttendance(prev => prev.map(a => 
+                              a.studentId === record.studentId ? { ...a, evaluationComment: e.target.value } : a
+                            ));
+                          }}
+                        />
+                      )
                     },
                   ]}
                 />

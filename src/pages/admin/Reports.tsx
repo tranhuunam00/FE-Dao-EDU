@@ -699,7 +699,7 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
       const headers = [
         'STT', 'Mã HS', 'Họ tên', 'SĐT liên hệ',
         ...sessionDates,
-        'Tổng số buổi', 'Đơn giá/buổi', 'Tổng học phí', 'Trạng thái TT'
+        'Tổng số buổi', 'Đơn giá/buổi', 'Tổng học phí', 'Điểm ĐG trung bình', 'Trạng thái TT'
       ];
       sheetData.push(headers);
 
@@ -718,10 +718,16 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
             row.push(!sessionData ? '—' : (sessionData.isPresent ? sessionData.rate : 0));
           });
 
+          const evals = (cls.sessions || [])
+            .map((sess: any) => s.attendance[sess.sessionId]?.evaluationScore)
+            .filter((score: any) => score !== null && score !== undefined);
+          const avgScore = evals.length > 0 ? (evals.reduce((sum: number, val: number) => sum + val, 0) / evals.length).toFixed(1) : '—';
+
           row.push(
             s.presentCount,
             s.pricePerSession,
             s.totalTuition,
+            avgScore === '—' ? '—' : Number(avgScore),
             s.paymentStatus === 'Paid' ? 'Đã thu' : s.paymentStatus === 'Unpaid' ? 'Chưa thu' : (s.paymentStatus === 'Partially_Paid' || s.paymentStatus === 'Partially Paid') ? 'Thu một phần' : '—'
           );
 
@@ -765,10 +771,22 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
               align: 'center' as const,
               render: (sessionData: any) => {
                 if (!sessionData) return '—';
-                return sessionData.isPresent ? (
-                  <span style={{ color: '#10b981', fontWeight: 600 }}>{fmtVND(sessionData.rate)}</span>
-                ) : (
-                  <span style={{ color: '#ef4444', fontWeight: 600 }}>0 ₫</span>
+                const score = sessionData.evaluationScore;
+                const comment = sessionData.evaluationComment;
+                const tooltipText = comment ? `Điểm: ${score ?? '—'} | Nhận xét: ${comment}` : score !== null && score !== undefined ? `Điểm: ${score}` : '';
+                return (
+                  <div title={tooltipText} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
+                    {sessionData.isPresent ? (
+                      <span style={{ color: '#10b981', fontWeight: 600 }}>{fmtVND(sessionData.rate)}</span>
+                    ) : (
+                      <span style={{ color: '#ef4444', fontWeight: 600 }}>0 ₫</span>
+                    )}
+                    {score !== null && score !== undefined && (
+                      <span style={{ fontSize: '10px', color: 'var(--primary, #6366f1)', marginTop: 2, background: 'rgba(99,102,241,0.1)', padding: '0px 4px', borderRadius: 4, whiteSpace: 'nowrap' }}>
+                        ★ {score}
+                      </span>
+                    )}
+                  </div>
                 );
               }
             }));
@@ -782,6 +800,15 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
               { title: 'Tổng số buổi', dataIndex: 'presentCount', key: 'presentCount', width: 110, align: 'center' as const, render: (v: number) => <b>{v}</b> },
               { title: 'Đơn giá/buổi', dataIndex: 'pricePerSession', key: 'pricePerSession', width: 110, align: 'right' as const, render: (v: number) => fmtVND(v) },
               { title: 'Tổng học phí', dataIndex: 'totalTuition', key: 'totalTuition', width: 120, align: 'right' as const, render: (v: number) => <b>{fmtVND(v)}</b> },
+              { title: 'Điểm ĐG trung bình', key: 'avgEvaluation', width: 110, align: 'center' as const, render: (_: any, s: any) => {
+                  const evals = (record.sessions || [])
+                    .map((sess: any) => s.attendance[sess.sessionId]?.evaluationScore)
+                    .filter((score: any) => score !== null && score !== undefined);
+                  if (evals.length === 0) return '—';
+                  const avg = evals.reduce((sum: number, val: number) => sum + val, 0) / evals.length;
+                  return <b>{avg.toFixed(1)}</b>;
+                }
+              },
               { title: 'Trạng thái TT', dataIndex: 'paymentStatus', key: 'paymentStatus', width: 130, render: (v: string) => {
                   if (v === 'Paid') return <Tag color="green">Đã thu</Tag>;
                   if (v === 'Unpaid') return <Tag color="red">Chưa thu</Tag>;
@@ -823,7 +850,7 @@ const StudentAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> =
 
   return (
     <Card className="glass-panel" title="Báo cáo điểm danh theo Học viên" style={cardStyle}
-      extra={<Button icon={<DownloadOutlined />} size="small" onClick={() => exportCSV(data, 'bc-diem-danh-hoc-vien.csv', ['Mã HS', 'Tên học sinh', 'Mã lớp', 'Tên lớp', 'Tổng số buổi', 'Có mặt', 'Vắng mặt', 'Tỉ lệ có mặt'], ['studentCode', 'studentName', 'classCode', 'className', 'totalSessions', 'presentCount', 'absentCount', 'rate'])} style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}>Xuất CSV</Button>}
+      extra={<Button icon={<DownloadOutlined />} size="small" onClick={() => exportCSV(data, 'bc-diem-danh-hoc-vien.csv', ['Mã HS', 'Tên học sinh', 'Mã lớp', 'Tên lớp', 'Tổng số buổi', 'Có mặt', 'Vắng mặt', 'Tỉ lệ có mặt', 'Điểm ĐG trung bình'], ['studentCode', 'studentName', 'classCode', 'className', 'totalSessions', 'presentCount', 'absentCount', 'rate', 'avgEvaluationScore'])} style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}>Xuất CSV</Button>}
     >
       <Table
         dataSource={data} rowKey={(r) => `${r.studentId}-${r.classCode}`} pagination={{ pageSize: 15 }} size="small"
@@ -839,6 +866,7 @@ const StudentAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> =
               return <Tag color={Number(rate) >= 80 ? 'green' : Number(rate) >= 50 ? 'orange' : 'red'}>{rate}%</Tag>;
             }
           },
+          { title: 'Điểm ĐG trung bình', dataIndex: 'avgEvaluationScore', key: 'avgEvaluationScore', width: 130, align: 'center' as const, render: (v) => v !== null && v !== undefined ? <b>{Number(v).toFixed(1)}</b> : '—' },
         ]}
       />
     </Card>
