@@ -1037,7 +1037,7 @@ const ClassDetailInner: React.FC = () => {
           </div>
         }
         open={isSessionModalVisible}
-        width={1100}
+        width={1350}
         onCancel={() => setIsSessionModalVisible(false)}
         footer={null}
       >
@@ -1304,7 +1304,7 @@ const ClassDetailInner: React.FC = () => {
                     {
                       title: 'Nhận xét',
                       key: 'evaluationComment',
-                      width: 300,
+                      width: 450,
                       render: (_, record) => (
                         <Input.TextArea
                           placeholder="Nhận xét..."

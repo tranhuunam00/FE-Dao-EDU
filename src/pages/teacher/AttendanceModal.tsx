@@ -146,7 +146,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
       backdropFilter: 'blur(4px)'
     }}>
       <div className="glass-panel" style={{
-        width: '100%', maxWidth: '1100px',
+        width: '100%', maxWidth: '1350px',
         maxHeight: '90vh', display: 'flex', flexDirection: 'column',
         padding: '24px', position: 'relative'
       }}>
@@ -214,9 +214,9 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
                     <th>Mã HS</th>
                     <th>Họ và Tên</th>
                     <th style={{ textAlign: 'center' }}>Điểm danh</th>
-                    <th style={{ width: '30%' }}>Lý do vắng mặt / Ghi chú</th>
-                    <th style={{ width: '12%', textAlign: 'center' }}>Điểm số</th>
-                    <th style={{ width: '28%' }}>Nhận xét</th>
+                    <th style={{ width: '25%' }}>Lý do vắng mặt / Ghi chú</th>
+                    <th style={{ width: '10%', textAlign: 'center' }}>Điểm số</th>
+                    <th style={{ width: '45%' }}>Nhận xét</th>
                   </tr>
                 </thead>
                 <tbody>
