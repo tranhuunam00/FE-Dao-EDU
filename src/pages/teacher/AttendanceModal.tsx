@@ -146,7 +146,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
       backdropFilter: 'blur(4px)'
     }}>
       <div className="glass-panel" style={{
-        width: '100%', maxWidth: '800px',
+        width: '100%', maxWidth: '1100px',
         maxHeight: '90vh', display: 'flex', flexDirection: 'column',
         padding: '24px', position: 'relative'
       }}>
@@ -306,12 +306,12 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
                           />
                         </td>
                         <td>
-                          <input
-                            type="text"
+                          <textarea
                             placeholder="Nhận xét..."
                             value={a.evaluationComment || ''}
                             disabled={sessionStatus === 'Scheduled'}
-                            style={{ padding: '4px', borderRadius: '4px', border: '1px solid var(--border-color, #ddd)', fontSize: '0.85rem', width: '100%', background: 'transparent', color: 'inherit' }}
+                            rows={2}
+                            style={{ padding: '4px', borderRadius: '4px', border: '1px solid var(--border-color, #ddd)', fontSize: '0.85rem', width: '100%', background: 'transparent', color: 'inherit', resize: 'vertical' }}
                             onChange={(e) => {
                               setAttendances(prev => prev.map(item => 
                                 item.studentId === a.studentId ? { ...item, evaluationComment: e.target.value } : item

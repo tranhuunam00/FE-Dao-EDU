@@ -1037,7 +1037,7 @@ const ClassDetailInner: React.FC = () => {
           </div>
         }
         open={isSessionModalVisible}
-        width={750}
+        width={1100}
         onCancel={() => setIsSessionModalVisible(false)}
         footer={null}
       >
@@ -1306,10 +1306,11 @@ const ClassDetailInner: React.FC = () => {
                       key: 'evaluationComment',
                       width: 300,
                       render: (_, record) => (
-                        <Input
+                        <Input.TextArea
                           placeholder="Nhận xét..."
                           value={record.evaluationComment || ''}
                           disabled={currentSession.status === 'Scheduled'}
+                          autoSize={{ minRows: 1, maxRows: 3 }}
                           size="small"
                           onChange={(e) => {
                             setSessionAttendance(prev => prev.map(a => 
