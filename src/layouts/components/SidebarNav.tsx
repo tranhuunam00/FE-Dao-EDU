@@ -99,7 +99,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ collapsed = false, onNav
               borderRadius: 'var(--border-radius-sm)',
               color: isActive ? '#fff' : 'var(--text-secondary)',
               background: isActive
-                ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(168, 85, 247, 0.08))'
+                ? 'linear-gradient(135deg, rgba(4, 108, 78, 0.22), rgba(16, 185, 129, 0.12))'
                 : 'transparent',
               borderLeft: collapsed ? 'none' : (isActive ? '3px solid var(--primary)' : '3px solid transparent'),
               fontWeight: isActive ? 600 : 500,

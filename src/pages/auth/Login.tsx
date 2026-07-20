@@ -228,7 +228,7 @@ export const Login: React.FC = () => {
       theme={{
         algorithm: theme.darkAlgorithm,
         token: {
-          colorPrimary: '#6366f1',
+          colorPrimary: '#046c4e',
           colorBgContainer: '#111827',
           colorBorder: 'rgba(255, 255, 255, 0.06)',
           borderRadius: 8,

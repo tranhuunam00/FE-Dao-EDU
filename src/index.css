@@ -10,8 +10,8 @@
   --card-border: rgba(255, 255, 255, 0.06);
   --card-border-glow: rgba(99, 102, 241, 0.15);
   
-  --primary: #10b981;         /* Green (Emerald) */
-  --primary-hover: #34d399;
+  --primary: #10b981;         /* Bright Emerald Green for Dark Mode */
+  --primary-hover: #34d399;   /* Minty Hover Green for Dark Mode */
   --primary-glow: rgba(16, 185, 129, 0.35);
   
   --secondary: #6366f1;       /* Indigo */
@@ -46,11 +46,11 @@
 
   --card-bg: rgba(255, 255, 255, 0.88);
   --card-border: rgba(15, 23, 42, 0.1);
-  --card-border-glow: rgba(34, 197, 94, 0.2);
+  --card-border-glow: rgba(4, 108, 78, 0.2);
 
-  --primary: #22c55e;         /* Bright Green */
-  --primary-hover: #16a34a;
-  --primary-glow: rgba(34, 197, 94, 0.22);
+  --primary: #046c4e;         /* Dark Forest Green for Light Mode (Matches screenshot) */
+  --primary-hover: #059669;   /* Vibrant Emerald Hover for Light Mode */
+  --primary-glow: rgba(4, 108, 78, 0.22);
 
   --secondary: #4f46e5;       /* Indigo */
   --secondary-hover: #4338ca;
@@ -351,17 +351,34 @@ h6, .ant-typography.ant-typography-h6, h6.ant-typography {
   outline: none;
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  color: #ffffff;
-  box-shadow: 0 4px 15px var(--primary-glow);
+.btn-primary,
+.ant-btn-primary,
+button.ant-btn-primary {
+  background: var(--primary, #046c4e) !important;
+  background-color: var(--primary, #046c4e) !important;
+  border-color: var(--primary, #046c4e) !important;
+  color: #ffffff !important;
+  box-shadow: 0 3px 10px var(--primary-glow) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px var(--primary-glow);
+.btn-primary:hover:not(:disabled),
+.ant-btn-primary:hover:not(:disabled),
+button.ant-btn-primary:hover:not(:disabled) {
+  background: var(--primary-hover, #059669) !important;
+  background-color: var(--primary-hover, #059669) !important;
+  border-color: var(--primary-hover, #059669) !important;
+  color: #ffffff !important;
+  box-shadow: 0 5px 15px var(--primary-glow) !important;
+  transform: translateY(-1px) !important;
 }
-.btn-primary:active {
-  transform: translateY(0);
+.btn-primary:active:not(:disabled),
+.ant-btn-primary:active:not(:disabled),
+button.ant-btn-primary:active:not(:disabled) {
+  background: #034b36 !important;
+  background-color: #034b36 !important;
+  border-color: #034b36 !important;
+  transform: translateY(1px) scale(0.97) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
 }
 
 .btn-secondary {
