@@ -1251,5 +1251,150 @@ button[disabled],
   }
 }
 
+/* ── Custom Shared Modal Styles ── */
+:root {
+  --primary-green: #10b981;
+  --primary-green-hover: #059669;
+  --primary-green-active: #047857;
+}
+
+:root[data-theme='light'] {
+  --primary-green: #22c55e;
+  --primary-green-hover: #16a34a;
+  --primary-green-active: #15803d;
+  --disabled-bg: #f3f4f6;
+  --disabled-color: #9ca3af;
+  --disabled-border: #e5e7eb;
+}
+
+:root[data-theme='dark'] {
+  --primary-green: #10b981;
+  --primary-green-hover: #34d399;
+  --primary-green-active: #059669;
+  --disabled-bg: #1f2937;
+  --disabled-color: #4b5563;
+  --disabled-border: #374151;
+}
+
+.custom-shared-modal .ant-modal-content {
+  background-color: var(--modal-bg, #111827) !important;
+  border: 1px solid var(--modal-border, rgba(16, 185, 129, 0.3)) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
+  padding: 24px !important;
+}
+
+.custom-shared-modal .ant-modal-header {
+  background: transparent !important;
+  border-bottom: 1px solid var(--modal-header-border, rgba(255, 255, 255, 0.08)) !important;
+  padding-bottom: 14px !important;
+  margin-bottom: 16px !important;
+}
+
+.custom-shared-modal .ant-modal-title {
+  color: var(--modal-title-color, #ffffff) !important;
+  font-size: 1.2rem !important;
+  font-weight: 700 !important;
+}
+
+.custom-shared-modal .ant-modal-close-icon {
+  color: var(--modal-close-color, #9ca3af) !important;
+  transition: color 0.2s !important;
+}
+
+.custom-shared-modal .ant-modal-close-icon:hover {
+  color: var(--primary-green, #10b981) !important;
+}
+
+/* Light Theme overrides for custom-shared-modal */
+:root[data-theme='light'] .custom-shared-modal .ant-modal-content {
+  --modal-bg: #ffffff;
+  --modal-border: rgba(34, 197, 94, 0.2);
+  --modal-title-color: #111827;
+  --modal-header-border: rgba(229, 231, 235, 0.8);
+  --modal-close-color: #6b7280;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Dark Theme overrides for custom-shared-modal */
+:root[data-theme='dark'] .custom-shared-modal .ant-modal-content {
+  --modal-bg: #111827;
+  --modal-border: rgba(16, 185, 129, 0.25);
+  --modal-title-color: #ffffff;
+  --modal-header-border: rgba(255, 255, 255, 0.08);
+  --modal-close-color: #9ca3af;
+}
+
+/* Button Interactive Press & Tactile click feeling */
+.btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.97) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+  transition: transform 0.05s ease !important;
+}
+
+/* Green Action Buttons */
+.btn-green-primary {
+  background-color: var(--primary-green) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--primary-green) !important;
+  cursor: pointer;
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 8px 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease-in-out;
+}
+.btn-green-primary:hover:not(:disabled) {
+  background-color: var(--primary-green-hover) !important;
+  border-color: var(--primary-green-hover) !important;
+  transform: translateY(-1px);
+}
+.btn-green-primary:active:not(:disabled) {
+  transform: translateY(1px) scale(0.97) !important;
+}
+
+.btn-green-outline {
+  background-color: transparent !important;
+  color: var(--primary-green) !important;
+  border: 1px solid var(--primary-green) !important;
+  cursor: pointer;
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 8px 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease-in-out;
+}
+.btn-green-outline:hover:not(:disabled) {
+  background-color: rgba(34, 197, 94, 0.08) !important;
+  transform: translateY(-1px);
+}
+.btn-green-outline:active:not(:disabled) {
+  transform: translateY(1px) scale(0.97) !important;
+}
+
+/* Button Disabled Styles - Flat and dead with no feedback */
+button:disabled,
+button[disabled],
+.btn:disabled,
+.btn[disabled],
+.ant-btn:disabled,
+.ant-btn-primary:disabled,
+.btn-green-primary:disabled,
+.btn-green-outline:disabled {
+  background: var(--disabled-bg, #1f2937) !important;
+  color: var(--disabled-color, #4b5563) !important;
+  border: 1px solid var(--disabled-border, #374151) !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+
 
 
