@@ -478,6 +478,25 @@ const StudentsTab: React.FC<{ data: any; loading: boolean }> = ({ data, loading 
   const { summary, byMonth, newList } = data;
   const chartMonths = [...(byMonth || [])].reverse();
 
+  const handleExportNewStudentsCSV = () => {
+    const exportData = (newList || []).map((s: any) => ({
+      studentCode: s.studentCode || '—',
+      studentName: s.studentName || '—',
+      birthdate: s.birthdate ? dayjs(s.birthdate).format('DD/MM/YYYY') : '—',
+      mobile: s.mobile || '—',
+      classNames: s.classNames || '—',
+      status: s.status === 'Active' ? 'Active' : (s.status || '—'),
+      createdAt: s.createdAt ? dayjs(s.createdAt).format('DD/MM/YYYY') : '—',
+    }));
+
+    exportCSV(
+      exportData,
+      'hoc-sinh-moi.csv',
+      ['Mã HS', 'Họ tên', 'Ngày sinh', 'Số điện thoại', 'Lớp học', 'Trạng thái', 'Ngày đăng ký'],
+      ['studentCode', 'studentName', 'birthdate', 'mobile', 'classNames', 'status', 'createdAt']
+    );
+  };
+
   return (
     <div>
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
@@ -516,16 +535,18 @@ const StudentsTab: React.FC<{ data: any; loading: boolean }> = ({ data, loading 
       </Row>
 
       <Card className="glass-panel" title="Danh sách học sinh mới đăng ký" style={cardStyle}
-        extra={<Button icon={<DownloadOutlined />} size="small" onClick={() => exportCSV(newList, 'hoc-sinh-moi.csv', ['Mã HS', 'Họ tên', 'SĐT', 'Trạng thái', 'Ngày đăng ký'], ['studentCode', 'studentName', 'mobile', 'status', 'createdAt'])} style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}>Xuất CSV</Button>}
+        extra={<Button icon={<DownloadOutlined />} size="small" onClick={handleExportNewStudentsCSV} style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}>Xuất CSV</Button>}
       >
         <Table
           dataSource={newList} rowKey="studentId" pagination={{ pageSize: 10 }} size="small"
           columns={[
-            { title: 'Mã HS', dataIndex: 'studentCode', key: 'studentCode', width: 130 },
-            { title: 'Họ tên', dataIndex: 'studentName', key: 'studentName' },
-            { title: 'Số điện thoại', dataIndex: 'mobile', key: 'mobile', width: 150 },
-            { title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 180, render: (v: string) => <Tag color={v === 'Active' ? 'green' : 'orange'}>{v}</Tag> },
-            { title: 'Ngày đăng ký', dataIndex: 'createdAt', key: 'createdAt', width: 180, render: (v: string) => dayjs(v).format('DD/MM/YYYY') },
+            { title: 'Mã HS', dataIndex: 'studentCode', key: 'studentCode', width: 120 },
+            { title: 'Họ tên', dataIndex: 'studentName', key: 'studentName', width: 160 },
+            { title: 'Ngày sinh', dataIndex: 'birthdate', key: 'birthdate', width: 120, render: (v: string) => v ? dayjs(v).format('DD/MM/YYYY') : '—' },
+            { title: 'Số điện thoại', dataIndex: 'mobile', key: 'mobile', width: 130 },
+            { title: 'Lớp học', dataIndex: 'classNames', key: 'classNames', render: (v: string) => v || '—' },
+            { title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 140, render: (v: string) => <Tag color={v === 'Active' ? 'green' : 'orange'}>{v}</Tag> },
+            { title: 'Ngày đăng ký', dataIndex: 'createdAt', key: 'createdAt', width: 130, render: (v: string) => dayjs(v).format('DD/MM/YYYY') },
           ]}
         />
       </Card>
