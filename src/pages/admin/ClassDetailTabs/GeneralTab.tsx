@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col, Card, Typography, Tag, Divider, List } from 'antd';
+import { Row, Col, Card, Typography, Tag, Divider } from 'antd';
 import {
   CalendarOutlined,
   EnvironmentOutlined,
