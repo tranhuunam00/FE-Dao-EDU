@@ -13,21 +13,6 @@ interface TopHeaderProps {
   onToggleMobile: () => void;
 }
 
-export const TopHeader: React.FC<TopHeaderProps> = ({
-  notifications,
-  unreadCount,
-  onLoadNotifications,
-  mobileOpen,
-  onToggleMobile,
-}) => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-
-  const notificationsPath = user
-    ? `/${user.role.toLowerCase()}/notifications`
-    : '/login';
-
-  return (
 export const NotificationBell: React.FC<{
   notifications: any[];
   unreadCount: number;
@@ -60,63 +45,78 @@ export const NotificationBell: React.FC<{
                 size="small"
                 type="link"
                 onClick={async () => {
-                  await api.patch('/notifications/read-all');
-                  onLoadNotifications();
+                  try {
+                    await api.put('/notifications/read-all');
+                    onLoadNotifications();
+                  } catch (e) {
+                    console.error('Failed to mark all read', e);
+                  }
                 }}
               >
-                Đánh dấu đã đọc
+                Đánh dấu đã đọc tất cả
               </Button>
             )}
           </div>
+
           {notifications.length === 0 ? (
-            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Chưa có thông báo" />
-          ) : notifications.map(item => (
-            <button
-              key={item.id}
-              onClick={async () => {
-                await api.patch(`/notifications/${item.id}/read`);
-                if (item.linkPath) navigate(item.linkPath);
-                onLoadNotifications();
-              }}
-              style={{
-                width: '100%',
-                textAlign: 'left',
-                border: 0,
-                borderBottom: '1px solid var(--card-border)',
-                padding: '12px',
-                cursor: 'pointer',
-                color: 'var(--text-primary)',
-                background: item.readAt ? 'transparent' : 'rgba(99,102,241,.12)',
-              }}
-            >
-              <b>{item.title}</b>
-              <div style={{ color: 'var(--text-secondary)', marginTop: 4, fontSize: '0.85rem' }}>
-                {item.message}
+            <Empty description="Không có thông báo mới" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+          ) : (
+            notifications.slice(0, 5).map((n) => (
+              <div
+                key={n.id}
+                onClick={async () => {
+                  try {
+                    if (!n.isRead) {
+                      await api.put(`/notifications/${n.id}/read`);
+                      onLoadNotifications();
+                    }
+                    if (n.linkPath) navigate(n.linkPath);
+                  } catch (e) {
+                    console.error('Failed to mark notification read', e);
+                  }
+                }}
+                style={{
+                  padding: '8px 10px',
+                  marginBottom: 6,
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                  background: n.isRead ? 'transparent' : 'var(--bg-primary)',
+                  borderLeft: n.isRead ? '3px solid transparent' : '3px solid var(--primary)',
+                }}
+              >
+                <div style={{ fontWeight: n.isRead ? 'normal' : 'bold', fontSize: 13, color: 'var(--text-primary)' }}>
+                  {n.title}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+                  {n.message}
+                </div>
               </div>
-            </button>
-          ))}
-          <Button type="link" block onClick={() => navigate(notificationsPath)} style={{ marginTop: 8 }}>
-            Xem tất cả thông báo
-          </Button>
+            ))
+          )}
+
+          <div style={{ textAlign: 'center', marginTop: 10, borderTop: '1px solid var(--card-border)', paddingTop: 8 }}>
+            <Button type="link" size="small" onClick={() => navigate(notificationsPath)}>
+              Xem tất cả thông báo
+            </Button>
+          </div>
         </div>
       )}
     >
       <button
-        onClick={onLoadNotifications}
+        type="button"
+        className="icon-btn-header"
+        aria-label="Thông báo"
         style={{
-          background: 'transparent',
+          background: 'none',
           border: 'none',
-          color: 'var(--text-secondary)',
           cursor: 'pointer',
-          width: '36px',
-          height: '36px',
+          color: 'var(--text-secondary)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          borderRadius: '8px',
         }}
       >
-        <Badge count={unreadCount} size="small">
+        <Badge count={unreadCount} overflowCount={99} offset={[-2, 2]}>
           <Bell size={19} color="currentColor" />
         </Badge>
       </button>
