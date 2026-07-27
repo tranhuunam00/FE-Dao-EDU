@@ -1,0 +1,15 @@
+# DAO EDU Robots.txt
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /public/
+Allow: /favicon.svg
+
+# Disallow internal application routes & API endpoints
+Disallow: /admin/
+Disallow: /teacher/
+Disallow: /student/
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://daoedu.vn/sitemap.xml
