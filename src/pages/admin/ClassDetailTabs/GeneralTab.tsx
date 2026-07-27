@@ -39,8 +39,8 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
 
   return (
     <Row gutter={[24, 24]}>
-      {/* Chi tiết Lớp học */}
-      <Col xs={24} lg={16}>
+      {/* Chi tiết Lớp học - Chiếm toàn bộ chiều rộng */}
+      <Col span={24}>
         <Card
           className="glass-panel"
           style={{ border: 'none', background: 'var(--card-bg)', borderRadius: 16 }}
@@ -55,15 +55,15 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-              gap: '14px',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: '16px',
             }}
           >
             {/* Trung tâm */}
             <div
               style={{
                 background: 'var(--bg-secondary, rgba(255,255,255,0.04))',
-                padding: '14px 16px',
+                padding: '14px 18px',
                 borderRadius: 12,
                 border: '1px solid var(--card-border, #e2e8f0)',
               }}
@@ -71,7 +71,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
               <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <HomeOutlined /> Trung tâm
               </Text>
-              <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)', marginTop: 4 }}>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginTop: 4 }}>
                 {classData.center?.name || '-'}
               </div>
             </div>
@@ -80,7 +80,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
             <div
               style={{
                 background: 'var(--bg-secondary, rgba(255,255,255,0.04))',
-                padding: '14px 16px',
+                padding: '14px 18px',
                 borderRadius: 12,
                 border: '1px solid var(--card-border, #e2e8f0)',
               }}
@@ -88,7 +88,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
               <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <BookOutlined /> Chương trình học
               </Text>
-              <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)', marginTop: 4 }}>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginTop: 4 }}>
                 {classData.course?.name || '-'}
               </div>
             </div>
@@ -97,7 +97,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
             <div
               style={{
                 background: 'var(--bg-secondary, rgba(255,255,255,0.04))',
-                padding: '14px 16px',
+                padding: '14px 18px',
                 borderRadius: 12,
                 border: '1px solid var(--card-border, #e2e8f0)',
               }}
@@ -105,7 +105,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
               <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <BookOutlined /> Mức độ (Level)
               </Text>
-              <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)', marginTop: 4 }}>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginTop: 4 }}>
                 {classData.courseLevel?.levelName ? (
                   <Tag color="cyan">{classData.courseLevel.levelName}</Tag>
                 ) : (
@@ -118,7 +118,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
             <div
               style={{
                 background: 'var(--bg-secondary, rgba(255,255,255,0.04))',
-                padding: '14px 16px',
+                padding: '14px 18px',
                 borderRadius: 12,
                 border: '1px solid var(--card-border, #e2e8f0)',
               }}
@@ -126,7 +126,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
               <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <TeamOutlined /> Sĩ số tối đa
               </Text>
-              <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)', marginTop: 4 }}>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginTop: 4 }}>
                 {classData.maxSize ? `${classData.maxSize} học sinh` : 'Không giới hạn'}
               </div>
             </div>
@@ -135,7 +135,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
             <div
               style={{
                 background: 'var(--bg-secondary, rgba(255,255,255,0.04))',
-                padding: '14px 16px',
+                padding: '14px 18px',
                 borderRadius: 12,
                 border: '1px solid var(--card-border, #e2e8f0)',
               }}
@@ -143,7 +143,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
               <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <UserOutlined /> Giáo viên chính
               </Text>
-              <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)', marginTop: 4 }}>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginTop: 4 }}>
                 {mainTeacherName || <Text type="secondary">Chưa phân công</Text>}
               </div>
             </div>
@@ -152,7 +152,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
             <div
               style={{
                 background: 'var(--bg-secondary, rgba(255,255,255,0.04))',
-                padding: '14px 16px',
+                padding: '14px 18px',
                 borderRadius: 12,
                 border: '1px solid var(--card-border, #e2e8f0)',
               }}
@@ -160,7 +160,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
               <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <UserOutlined /> Trợ giảng (TA)
               </Text>
-              <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)', marginTop: 4 }}>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginTop: 4 }}>
                 {assistantName || <Text type="secondary">Chưa phân công</Text>}
               </div>
             </div>
@@ -169,7 +169,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
             <div
               style={{
                 background: 'var(--bg-secondary, rgba(255,255,255,0.04))',
-                padding: '14px 16px',
+                padding: '14px 18px',
                 borderRadius: 12,
                 border: '1px solid var(--card-border, #e2e8f0)',
               }}
@@ -177,7 +177,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
               <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <CalendarOutlined /> Khai giảng
               </Text>
-              <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)', marginTop: 4 }}>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginTop: 4 }}>
                 {classData.startDate ? dayjs(classData.startDate).format('DD/MM/YYYY') : '-'}
               </div>
             </div>
@@ -186,7 +186,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
             <div
               style={{
                 background: 'var(--bg-secondary, rgba(255,255,255,0.04))',
-                padding: '14px 16px',
+                padding: '14px 18px',
                 borderRadius: 12,
                 border: '1px solid var(--card-border, #e2e8f0)',
               }}
@@ -194,7 +194,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
               <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <CalendarOutlined /> Kết thúc dự kiến
               </Text>
-              <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)', marginTop: 4 }}>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginTop: 4 }}>
                 {classData.finishDate ? dayjs(classData.finishDate).format('DD/MM/YYYY') : 'Chưa định'}
               </div>
             </div>
@@ -203,7 +203,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
             <div
               style={{
                 background: 'var(--bg-secondary, rgba(255,255,255,0.04))',
-                padding: '14px 16px',
+                padding: '14px 18px',
                 borderRadius: 12,
                 border: '1px solid var(--card-border, #e2e8f0)',
               }}
@@ -211,7 +211,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
               <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <ClockCircleOutlined /> Bỏ qua ngày lễ
               </Text>
-              <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)', marginTop: 4 }}>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginTop: 4 }}>
                 {classData.skipHolidays ? (
                   <Tag icon={<CheckCircleOutlined />} color="success">Có</Tag>
                 ) : (
@@ -235,11 +235,11 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
         </Card>
       </Col>
 
-      {/* Lịch học cố định */}
-      <Col xs={24} lg={8}>
+      {/* Lịch học cố định - Chuyển xuống phía dưới */}
+      <Col span={24}>
         <Card
           className="glass-panel"
-          style={{ border: 'none', background: 'var(--card-bg)', height: '100%', borderRadius: 16 }}
+          style={{ border: 'none', background: 'var(--card-bg)', borderRadius: 16 }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
             <CalendarOutlined style={{ fontSize: 20, color: 'var(--primary)' }} />
@@ -251,39 +251,42 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
           {classData.schedules.length === 0 ? (
             <Text type="secondary">Chưa xếp lịch học cố định.</Text>
           ) : (
-            <List
-              dataSource={classData.schedules}
-              renderItem={(item: any) => (
-                <List.Item
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                gap: '16px',
+              }}
+            >
+              {classData.schedules.map((item: any) => (
+                <div
+                  key={item.id || item.weekday}
                   style={{
                     borderColor: 'var(--card-border)',
-                    padding: '14px',
+                    padding: '16px',
                     borderRadius: 12,
-                    marginBottom: 10,
                     background: 'var(--bg-secondary, rgba(255,255,255,0.03))',
                     border: '1px solid var(--card-border, #e2e8f0)',
                   }}
                 >
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Tag color="blue" style={{ fontWeight: 700, padding: '2px 10px', fontSize: 13 }}>
-                        {weekdayMap[item.weekday] || item.weekday}
-                      </Tag>
-                      {item.room && (
-                        <Text style={{ fontSize: 12, color: 'var(--primary)' }}>
-                          <EnvironmentOutlined style={{ marginRight: 4 }} />
-                          {item.room.name}
-                        </Text>
-                      )}
-                    </div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginTop: 4 }}>
-                      <ClockCircleOutlined style={{ marginRight: 6, color: 'var(--text-secondary)' }} />
-                      {item.startTime.substring(0, 5)} - {item.endTime.substring(0, 5)}
-                    </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <Tag color="blue" style={{ fontWeight: 700, padding: '3px 12px', fontSize: 13, borderRadius: 6 }}>
+                      {weekdayMap[item.weekday] || item.weekday}
+                    </Tag>
+                    {item.room && (
+                      <Text style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600 }}>
+                        <EnvironmentOutlined style={{ marginRight: 4 }} />
+                        {item.room.name}
+                      </Text>
+                    )}
                   </div>
-                </List.Item>
-              )}
-            />
+                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginTop: 6 }}>
+                    <ClockCircleOutlined style={{ marginRight: 6, color: 'var(--text-secondary)' }} />
+                    {item.startTime.substring(0, 5)} - {item.endTime.substring(0, 5)}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </Card>
       </Col>
