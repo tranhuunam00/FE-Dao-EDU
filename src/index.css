@@ -875,6 +875,12 @@ button[disabled],
 }
 
 /* ── Top header ─────────────────────────────────────────────────────────── */
+@media (min-width: 768px) {
+  .top-header {
+    display: none !important;
+  }
+}
+
 .top-header {
   height: 64px;
   border-radius: 0 !important;
