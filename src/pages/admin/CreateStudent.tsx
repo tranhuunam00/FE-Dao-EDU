@@ -474,31 +474,24 @@ export const CreateStudent: React.FC = () => {
                 label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><LockOutlined /> Student Login</span>,
                 children: (
                   <Card
-                    title={<span style={{ fontFamily: 'Outfit' }}><LockOutlined /> Tạo tài khoản đăng nhập học sinh</span>}
+                    title={<span style={{ fontFamily: 'Outfit' }}><LockOutlined /> Tài khoản đăng nhập học sinh</span>}
                     className="glass-panel"
                     style={{ maxWidth: '600px', margin: '0 auto', border: 'none', background: 'var(--card-bg)' }}
                   >
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', fontSize: '0.9rem' }}>
-                      Điền email và mật khẩu nếu bạn muốn tạo tài khoản đăng nhập cho học sinh này ngay lập tức. Học sinh có thể dùng tài khoản này để xem điểm, thời khóa biểu và tài liệu.
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', fontSize: '0.95rem', lineHeight: '1.6' }}>
+                      Tài khoản đăng nhập của học sinh sẽ được <strong>tự động tạo lập</strong> sau khi lưu hồ sơ:
                     </p>
-
-                    <Form.Item
-                      name="loginEmail"
-                      label="Tài khoản đăng nhập (SĐT / Email)"
-                      rules={[
-                        { required: true, message: 'Vui lòng điền SĐT hoặc email đăng nhập' },
-                      ]}
-                    >
-                      <Input placeholder="Nhập số điện thoại hoặc email..." prefix={<MailOutlined style={{ color: '#6b7280' }} />} />
-                    </Form.Item>
-
-                    <Form.Item
-                      name="loginPassword"
-                      label="Mật khẩu đăng nhập"
-                      rules={[{ required: true, message: 'Vui lòng điền mật khẩu đăng nhập' }]}
-                    >
-                      <Input.Password placeholder="Mật khẩu (mặc định: student123)" prefix={<LockOutlined style={{ color: '#6b7280' }} />} />
-                    </Form.Item>
+                    <div style={{ padding: '16px', background: 'var(--bg-tertiary)', borderRadius: '8px', marginBottom: '20px' }}>
+                      <p style={{ margin: '0 0 8px 0', color: 'var(--text-primary)' }}>
+                        <strong>Tên đăng nhập:</strong> Số điện thoại chính của học sinh
+                      </p>
+                      <p style={{ margin: 0, color: 'var(--text-primary)' }}>
+                        <strong>Mật khẩu mặc định:</strong> 123456
+                      </p>
+                    </div>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                      Học sinh có thể dùng tài khoản này để đăng nhập hệ thống, xem thời khóa biểu, điểm danh, kết quả học tập và hóa đơn học phí.
+                    </p>
                   </Card>
                 ),
               },
