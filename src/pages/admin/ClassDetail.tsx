@@ -1760,7 +1760,7 @@ const ClassDetailInner: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item name="assistantId" label="Trợ giảng (TA)">
+          <Form.Item name="assistantId" label="Trợ giảng (TA)" rules={[{ required: true, message: 'Vui lòng chọn trợ giảng!' }]}>
             <Select placeholder="Chọn trợ giảng" allowClear showSearch optionFilterProp="children">
               {teachers.map(t => (
                 <Option key={t.id} value={t.id}>
