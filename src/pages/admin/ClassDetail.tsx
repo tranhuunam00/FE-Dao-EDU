@@ -108,6 +108,11 @@ const ClassDetailInner: React.FC = () => {
   const [loadingSourceStudents, setLoadingSourceStudents] = useState(false);
   const [cloning, setCloning] = useState(false);
 
+  // Create Adhoc Session states
+  const [isCreateAdhocVisible, setIsCreateAdhocVisible] = useState(false);
+  const [savingAdhoc, setSavingAdhoc] = useState(false);
+  const [adhocForm] = Form.useForm();
+
   const loadAllData = async () => {
     if (!id) return;
     try {
@@ -482,6 +487,49 @@ const ClassDetailInner: React.FC = () => {
       message.error(err.response?.data?.message || 'Lỗi khi cập nhật ngày tham gia hàng loạt');
     } finally {
       setSavingAllJoinDates(false);
+    }
+  };
+
+  const openCreateAdhocModal = () => {
+    adhocForm.setFieldsValue({
+      date: dayjs(),
+      startTime: null,
+      endTime: null,
+      roomId: undefined,
+      teacherId: classData?.mainTeacherId || undefined,
+      assistantId: classData?.assistantId || undefined,
+    });
+    setIsCreateAdhocVisible(true);
+  };
+
+  const handleCreateAdhocSubmit = async () => {
+    try {
+      const values = await adhocForm.validateFields();
+      
+      if (values.startTime && values.endTime) {
+        if (values.startTime.isAfter(values.endTime) || values.startTime.isSame(values.endTime)) {
+          message.error('Thời gian bắt đầu phải trước thời gian kết thúc.');
+          return;
+        }
+      }
+
+      setSavingAdhoc(true);
+      const payload = {
+        date: values.date ? values.date.format('YYYY-MM-DD') : undefined,
+        startTime: values.startTime ? values.startTime.format('HH:mm') : undefined,
+        endTime: values.endTime ? values.endTime.format('HH:mm') : undefined,
+        roomId: values.roomId || null,
+        teacherId: values.teacherId || null,
+        assistantId: values.assistantId || null,
+      };
+      await api.post(`/classes/${id}/sessions`, payload);
+      message.success('Tạo buổi học đột xuất thành công!');
+      setIsCreateAdhocVisible(false);
+      loadAllData();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi tạo buổi học đột xuất');
+    } finally {
+      setSavingAdhoc(false);
     }
   };
 
@@ -868,7 +916,8 @@ const ClassDetailInner: React.FC = () => {
                 sessions={sessions} 
                 handleGenerateSessions={handleGenerateSessions} 
                 handleGenerateSessionsFromStart={handleGenerateSessionsFromStart}
-                openSessionDetail={openSessionDetail} 
+                openSessionDetail={openSessionDetail}
+                openCreateAdhocModal={openCreateAdhocModal} 
               />
             )
           },
@@ -1645,6 +1694,81 @@ const ClassDetailInner: React.FC = () => {
           <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginTop: '8px' }}>
             Lưu ý: Hệ thống sẽ áp dụng ngày này cho <strong>TẤT CẢ</strong> học sinh đang học trong lớp và tự động đồng bộ lại điểm danh cho toàn bộ học sinh. Các buổi học cũ trước ngày này sẽ xóa bản ghi điểm danh để không ảnh hưởng báo cáo vắng học.
           </Text>
+        </Form>
+      </Modal>
+
+      {/* Modal Thêm Buổi Học Đột Xuất */}
+      <Modal
+        title={
+          <div>
+            <PlusOutlined style={{ color: '#10b981', marginRight: 8 }} />
+            Thêm buổi học đột xuất
+          </div>
+        }
+        open={isCreateAdhocVisible}
+        onOk={handleCreateAdhocSubmit}
+        onCancel={() => setIsCreateAdhocVisible(false)}
+        confirmLoading={savingAdhoc}
+        okText="Tạo buổi học"
+        cancelText="Hủy"
+      >
+        <Form form={adhocForm} layout="vertical" style={{ padding: '12px 0' }}>
+          <Row gutter={12}>
+            <Col span={24}>
+              <Form.Item
+                name="date"
+                label="Ngày học"
+                rules={[{ required: true, message: 'Vui lòng chọn ngày học!' }]}
+              >
+                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="startTime"
+                label="Giờ bắt đầu"
+                rules={[{ required: true, message: 'Vui lòng chọn giờ bắt đầu!' }]}
+              >
+                <TimePicker format="HH:mm" style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="endTime"
+                label="Giờ kết thúc"
+                rules={[{ required: true, message: 'Vui lòng chọn giờ kết thúc!' }]}
+              >
+                <TimePicker format="HH:mm" style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item name="roomId" label="Phòng học" rules={[{ required: true, message: 'Vui lòng chọn phòng học!' }]}>
+            <Select placeholder="Chọn phòng học" allowClear>
+              {rooms.map(r => (
+                <Option key={r.id} value={r.id}>
+                  {r.name} ({r.capacity} chỗ)
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="teacherId" label="Giáo viên đứng lớp" rules={[{ required: true, message: 'Vui lòng chọn giáo viên đứng lớp!' }]}>
+            <Select placeholder="Chọn giáo viên" allowClear showSearch optionFilterProp="children">
+              {teachers.map(t => (
+                <Option key={t.id} value={t.id}>
+                  {t.lastName} {t.firstName}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="assistantId" label="Trợ giảng (TA)">
+            <Select placeholder="Chọn trợ giảng" allowClear showSearch optionFilterProp="children">
+              {teachers.map(t => (
+                <Option key={t.id} value={t.id}>
+                  {t.lastName} {t.firstName}{t.type === 'TeachingAssistant' ? ' (TA)' : ''}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
         </Form>
       </Modal>
     </div>
