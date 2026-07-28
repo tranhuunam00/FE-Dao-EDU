@@ -11,9 +11,9 @@ import {
   Statistic,
   Row,
   Col,
-  Modal,
   Segmented,
 } from 'antd';
+import { CustomModal } from '../../components/CustomModal';
 import {
   DollarOutlined,
   FileTextOutlined,
@@ -308,23 +308,25 @@ export const StudentTuition: React.FC = () => {
           </Collapse>
         )}
 
-        <Modal
+        <CustomModal
           title="Chuyển khoản học phí"
-          open={qrVisible}
-          onCancel={() => setQrVisible(false)}
-          footer={[
-            <Button key="close" onClick={() => setQrVisible(false)}>Đóng</Button>,
-            qrRequest?.status === 'pending' && (
-              <Button key="confirm" type="primary" loading={confirmingTransfer} onClick={confirmTransfer}>
-                Tôi đã chuyển khoản
-              </Button>
-            ),
-            qrRequest?.status !== 'reconciled' && (
-              <Button key="demo-terminal" type="dashed" loading={simulatingTerminal} onClick={simulateTerminalSuccess}>
-                Demo terminal báo thành công
-              </Button>
-            ),
-          ]}
+          isOpen={qrVisible}
+          onClose={() => setQrVisible(false)}
+          footer={
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
+              <button className="btn-green-outline" onClick={() => setQrVisible(false)}>Đóng</button>
+              {qrRequest?.status === 'pending' && (
+                <button className="btn-green-primary" disabled={confirmingTransfer} onClick={confirmTransfer}>
+                  {confirmingTransfer ? "Đang xử lý..." : "Tôi đã chuyển khoản"}
+                </button>
+              )}
+              {qrRequest?.status !== 'reconciled' && (
+                <button className="btn btn-outline" disabled={simulatingTerminal} onClick={simulateTerminalSuccess} style={{ borderColor: '#a78bfa', color: '#a78bfa' }}>
+                  {simulatingTerminal ? "Đang giả lập..." : "Demo terminal báo thành công"}
+                </button>
+              )}
+            </div>
+          }
         >
           {qrRequest && (
             <div style={{ textAlign: 'center' }}>
@@ -345,7 +347,7 @@ export const StudentTuition: React.FC = () => {
               </div>
             </div>
           )}
-        </Modal>
+        </CustomModal>
       </div>
   );
 };

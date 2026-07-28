@@ -5,12 +5,12 @@ import {
   Card,
   Form,
   Input,
-  Modal,
   Select,
   Space,
   Table,
   Tag,
 } from 'antd';
+import { CustomModal } from '../../components/CustomModal';
 import dayjs from 'dayjs';
 import axios from 'axios';
 import api from '../../services/api';
@@ -197,13 +197,18 @@ const StudentLeaveRequests: React.FC = () => {
         />
       </Card>
 
-      <Modal
+      <CustomModal
         title="Gửi đơn xin nghỉ"
-        open={open}
-        onCancel={() => setOpen(false)}
-        onOk={submit}
-        okText="Gửi đơn"
-        confirmLoading={submitting}
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+            <button className="btn-green-outline" onClick={() => setOpen(false)}>Hủy</button>
+            <button className="btn-green-primary" disabled={submitting} onClick={submit}>
+              {submitting ? "Đang gửi..." : "Gửi đơn"}
+            </button>
+          </div>
+        }
       >
         <Form form={form} layout="vertical">
           <Form.Item
@@ -232,7 +237,7 @@ const StudentLeaveRequests: React.FC = () => {
             <Input.TextArea rows={4} maxLength={1000} showCount />
           </Form.Item>
         </Form>
-      </Modal>
+      </CustomModal>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Typography, Button, Table, Tag } from 'antd';
-import { CalendarOutlined } from '@ant-design/icons';
+import { CalendarOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -25,13 +25,15 @@ interface ScheduleTabProps {
   handleGenerateSessions: () => void;
   handleGenerateSessionsFromStart: () => void;
   openSessionDetail: (session: ClassSession) => void;
+  openCreateAdhocModal: () => void;
 }
 
 export const ScheduleTab: React.FC<ScheduleTabProps> = ({ 
   sessions, 
   handleGenerateSessions, 
   handleGenerateSessionsFromStart,
-  openSessionDetail 
+  openSessionDetail,
+  openCreateAdhocModal
 }) => {
   const sessionColumns = [
     {
@@ -137,6 +139,14 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
             style={{ color: '#fdba74', borderColor: '#f97316' }}
           >
             Sinh từ ngày khai giảng
+          </Button>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={openCreateAdhocModal}
+            style={{ background: 'linear-gradient(135deg, #10b981, #059669)', border: 'none' }}
+          >
+            Thêm buổi học đột xuất
           </Button>
         </div>
       </div>

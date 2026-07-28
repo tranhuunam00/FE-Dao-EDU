@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, Role } from '../context/AuthContext';
 import { BookOpen, LogOut, User as UserIcon, Settings } from 'lucide-react';
-import { TopHeader } from './components/TopHeader';
+import { TopHeader, NotificationBell } from './components/TopHeader';
 import { MobileSidebar } from './components/MobileSidebar';
 import { SidebarNav } from './components/SidebarNav';
 import api from '../services/api';
@@ -89,14 +89,21 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
       <aside className="glass-panel dashboard-sidebar">
 
         {/* Logo */}
-        <div className="sidebar-logo">
-          <div className="sidebar-logo-icon">
-            <BookOpen size={22} />
+        <div className="sidebar-logo" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div className="sidebar-logo-icon">
+              <BookOpen size={22} />
+            </div>
+            <div className="sidebar-logo-text">
+              <h1>DAO EDU</h1>
+              <span>{getAppTitle(user?.role)}</span>
+            </div>
           </div>
-          <div className="sidebar-logo-text">
-            <h1>DAO EDU</h1>
-            <span>{getAppTitle(user?.role)}</span>
-          </div>
+          <NotificationBell
+            notifications={notifications}
+            unreadCount={unreadCount}
+            onLoadNotifications={loadNotifications}
+          />
         </div>
 
         {/* Navigation */}

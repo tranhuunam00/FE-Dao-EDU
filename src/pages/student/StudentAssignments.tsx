@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
-import { App, Button, Card, Col, Form, Input, Modal, Row, Space, Tag, Upload, Popconfirm } from 'antd';
+import { App, Button, Card, Col, Form, Input, Row, Space, Tag, Upload, Popconfirm } from 'antd';
+import { CustomModal } from '../../components/CustomModal';
 import { CheckCircle2, Clock3, FileText, Send, UploadCloud, Trash2, Edit3 } from 'lucide-react';
 import dayjs from 'dayjs';
 import api from '../../services/api';
@@ -211,12 +212,18 @@ const StudentAssignments: React.FC = () => {
         ))}
       </Row>
 
-      <Modal
+      <CustomModal
         title={isEditMode ? `Sửa bài đã nộp: ${selected?.title || ''}` : `Nộp bài: ${selected?.title || ''}`}
-        open={!!selected}
-        onCancel={() => setSelected(null)}
-        onOk={submit}
-        okText={isEditMode ? "Lưu thay đổi" : "Nộp bài"}
+        isOpen={!!selected}
+        onClose={() => setSelected(null)}
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+            <button className="btn-green-outline" onClick={() => setSelected(null)}>Hủy</button>
+            <button className="btn-green-primary" onClick={submit}>
+              {isEditMode ? "Lưu thay đổi" : "Nộp bài"}
+            </button>
+          </div>
+        }
       >
         <Form form={form} layout="vertical">
           <Form.Item name="answerText" label="Nội dung">
@@ -271,7 +278,7 @@ const StudentAssignments: React.FC = () => {
             </Upload>
           </Form.Item>
         </Form>
-      </Modal>
+      </CustomModal>
     </div>
   );
 };

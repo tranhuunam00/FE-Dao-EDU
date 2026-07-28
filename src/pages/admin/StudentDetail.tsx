@@ -15,6 +15,7 @@ import { StatusTab } from './StudentDetailTabs/StatusTab';
 import { ClassesTab } from './StudentDetailTabs/ClassesTab';
 import { TuitionTab } from './StudentDetailTabs/TuitionTab';
 import { AttendanceTab } from './StudentDetailTabs/AttendanceTab';
+import { FormErrorAlert } from '../../components/FormErrorAlert';
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -52,6 +53,7 @@ const StudentDetailInner: React.FC = () => {
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
   const [avatarBase64, setAvatarBase64] = useState<string | undefined>(undefined);
   const [activeTab, setActiveTab] = useState('overview');
+  const [formError, setFormError] = useState<any>(null);
 
   const [studentClasses, setStudentClasses] = useState<any[]>([]);
   const [allClasses, setAllClasses] = useState<any[]>([]);
@@ -232,6 +234,7 @@ const StudentDetailInner: React.FC = () => {
 
   const handleSubmit = async (values: any) => {
     setSaving(true);
+    setFormError(null);
     try {
       const payload: any = {
         firstName: values.firstName?.trim(),
@@ -270,6 +273,7 @@ const StudentDetailInner: React.FC = () => {
       message.success('Đã cập nhật thông tin học sinh thành công!');
       setAvatarBase64(undefined);
     } catch (err: any) {
+      setFormError(err);
       const msg = err.response?.data?.message;
       if (Array.isArray(msg)) {
         message.error(msg.join(', '));
@@ -379,6 +383,8 @@ const StudentDetailInner: React.FC = () => {
             </Button>
           </Space>
         </div>
+
+        <FormErrorAlert error={formError} />
 
         <Tabs
           activeKey={activeTab}

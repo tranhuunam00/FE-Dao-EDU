@@ -67,7 +67,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
               ? antdTheme.darkAlgorithm
               : antdTheme.defaultAlgorithm,
           token: {
-            colorPrimary: '#6366f1',
+            colorPrimary: resolvedTheme === 'dark' ? '#10b981' : '#046c4e',
             colorBgBase: resolvedTheme === 'dark' ? '#0b0f19' : '#f5f7fb',
             borderRadius: 8,
           },

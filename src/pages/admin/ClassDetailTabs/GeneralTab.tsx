@@ -1,77 +1,292 @@
 import React from 'react';
-import { Row, Col, Card, Typography, Descriptions, Divider, List, Badge } from 'antd';
-import { CalendarOutlined, EnvironmentOutlined } from '@ant-design/icons';
+import { Row, Col, Card, Typography, Tag, Divider } from 'antd';
+import {
+  CalendarOutlined,
+  EnvironmentOutlined,
+  UserOutlined,
+  BookOutlined,
+  HomeOutlined,
+  TeamOutlined,
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+} from '@ant-design/icons';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
+
+const weekdayMap: Record<string, string> = {
+  Sun: 'Chủ nhật',
+  Mon: 'Thứ hai',
+  Tue: 'Thứ ba',
+  Wed: 'Thứ tư',
+  Thu: 'Thứ năm',
+  Fri: 'Thứ sáu',
+  Sat: 'Thứ bảy',
+};
 
 interface GeneralTabProps {
   classData: any;
 }
 
 export const GeneralTab: React.FC<GeneralTabProps> = ({ classData }) => {
+  const mainTeacherName = classData.mainTeacher
+    ? `${classData.mainTeacher.lastName} ${classData.mainTeacher.firstName}`
+    : null;
+  const assistantName = classData.assistant
+    ? `${classData.assistant.lastName} ${classData.assistant.firstName}`
+    : null;
+
   return (
     <Row gutter={[24, 24]}>
-      <Col xs={24} md={16}>
-        <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)' }}>
-          <Title level={5} style={{ color: 'var(--text-primary)', marginBottom: 16 }}>Chi tiết Lớp học</Title>
-          <Descriptions column={{ xs: 1, sm: 2 }} labelStyle={{ color: 'var(--text-secondary)' }} contentStyle={{ color: 'var(--text-primary)' }}>
-            <Descriptions.Item label="Trung tâm">{classData.center?.name || '-'}</Descriptions.Item>
-            <Descriptions.Item label="Chương trình">{classData.course?.name || '-'}</Descriptions.Item>
-            <Descriptions.Item label="Mức độ (Level)">{classData.courseLevel?.levelName || '-'}</Descriptions.Item>
-            <Descriptions.Item label="Giáo viên chính">
-              {classData.mainTeacher ? `${classData.mainTeacher.lastName} ${classData.mainTeacher.firstName}` : '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="Trợ giảng (TA)">
-              {classData.assistant ? `${classData.assistant.lastName} ${classData.assistant.firstName}` : '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="Khai giảng">{classData.startDate ? dayjs(classData.startDate).format('DD/MM/YYYY') : '-'}</Descriptions.Item>
-            <Descriptions.Item label="Kết thúc dự kiến">{classData.finishDate ? dayjs(classData.finishDate).format('DD/MM/YYYY') : 'Chưa định'}</Descriptions.Item>
-            <Descriptions.Item label="Sĩ số tối đa">{classData.maxSize || 'Không giới hạn'}</Descriptions.Item>
-            <Descriptions.Item label="Bỏ qua ngày lễ">{classData.skipHolidays ? 'Có' : 'Không'}</Descriptions.Item>
-          </Descriptions>
+      {/* Chi tiết Lớp học - Chiếm toàn bộ chiều rộng */}
+      <Col span={24}>
+        <Card
+          className="glass-panel"
+          style={{ border: 'none', background: 'var(--card-bg)', borderRadius: 16 }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+            <BookOutlined style={{ fontSize: 20, color: 'var(--primary)' }} />
+            <Title level={5} style={{ margin: 0, color: 'var(--text-primary)' }}>
+              Chi tiết Lớp học
+            </Title>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: '16px',
+            }}
+          >
+            {/* Trung tâm */}
+            <div
+              style={{
+                background: 'var(--bg-secondary, rgba(255,255,255,0.04))',
+                padding: '14px 18px',
+                borderRadius: 12,
+                border: '1px solid var(--card-border, #e2e8f0)',
+              }}
+            >
+              <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <HomeOutlined /> Trung tâm
+              </Text>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginTop: 4 }}>
+                {classData.center?.name || '-'}
+              </div>
+            </div>
+
+            {/* Chương trình học */}
+            <div
+              style={{
+                background: 'var(--bg-secondary, rgba(255,255,255,0.04))',
+                padding: '14px 18px',
+                borderRadius: 12,
+                border: '1px solid var(--card-border, #e2e8f0)',
+              }}
+            >
+              <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <BookOutlined /> Chương trình học
+              </Text>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginTop: 4 }}>
+                {classData.course?.name || '-'}
+              </div>
+            </div>
+
+            {/* Trình độ (Level) */}
+            <div
+              style={{
+                background: 'var(--bg-secondary, rgba(255,255,255,0.04))',
+                padding: '14px 18px',
+                borderRadius: 12,
+                border: '1px solid var(--card-border, #e2e8f0)',
+              }}
+            >
+              <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <BookOutlined /> Mức độ (Level)
+              </Text>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginTop: 4 }}>
+                {classData.courseLevel?.levelName ? (
+                  <Tag color="cyan">{classData.courseLevel.levelName}</Tag>
+                ) : (
+                  '-'
+                )}
+              </div>
+            </div>
+
+            {/* Sĩ số tối đa */}
+            <div
+              style={{
+                background: 'var(--bg-secondary, rgba(255,255,255,0.04))',
+                padding: '14px 18px',
+                borderRadius: 12,
+                border: '1px solid var(--card-border, #e2e8f0)',
+              }}
+            >
+              <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <TeamOutlined /> Sĩ số tối đa
+              </Text>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginTop: 4 }}>
+                {classData.maxSize ? `${classData.maxSize} học sinh` : 'Không giới hạn'}
+              </div>
+            </div>
+
+            {/* Giáo viên chính */}
+            <div
+              style={{
+                background: 'var(--bg-secondary, rgba(255,255,255,0.04))',
+                padding: '14px 18px',
+                borderRadius: 12,
+                border: '1px solid var(--card-border, #e2e8f0)',
+              }}
+            >
+              <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <UserOutlined /> Giáo viên chính
+              </Text>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginTop: 4 }}>
+                {mainTeacherName || <Text type="secondary">Chưa phân công</Text>}
+              </div>
+            </div>
+
+            {/* Trợ giảng (TA) */}
+            <div
+              style={{
+                background: 'var(--bg-secondary, rgba(255,255,255,0.04))',
+                padding: '14px 18px',
+                borderRadius: 12,
+                border: '1px solid var(--card-border, #e2e8f0)',
+              }}
+            >
+              <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <UserOutlined /> Trợ giảng (TA)
+              </Text>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginTop: 4 }}>
+                {assistantName || <Text type="secondary">Chưa phân công</Text>}
+              </div>
+            </div>
+
+            {/* Ngày Khai giảng */}
+            <div
+              style={{
+                background: 'var(--bg-secondary, rgba(255,255,255,0.04))',
+                padding: '14px 18px',
+                borderRadius: 12,
+                border: '1px solid var(--card-border, #e2e8f0)',
+              }}
+            >
+              <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <CalendarOutlined /> Khai giảng
+              </Text>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginTop: 4 }}>
+                {classData.startDate ? dayjs(classData.startDate).format('DD/MM/YYYY') : '-'}
+              </div>
+            </div>
+
+            {/* Kết thúc dự kiến */}
+            <div
+              style={{
+                background: 'var(--bg-secondary, rgba(255,255,255,0.04))',
+                padding: '14px 18px',
+                borderRadius: 12,
+                border: '1px solid var(--card-border, #e2e8f0)',
+              }}
+            >
+              <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <CalendarOutlined /> Kết thúc dự kiến
+              </Text>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginTop: 4 }}>
+                {classData.finishDate ? dayjs(classData.finishDate).format('DD/MM/YYYY') : 'Chưa định'}
+              </div>
+            </div>
+
+            {/* Bỏ qua ngày lễ */}
+            <div
+              style={{
+                background: 'var(--bg-secondary, rgba(255,255,255,0.04))',
+                padding: '14px 18px',
+                borderRadius: 12,
+                border: '1px solid var(--card-border, #e2e8f0)',
+              }}
+            >
+              <Text type="secondary" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <ClockCircleOutlined /> Bỏ qua ngày lễ
+              </Text>
+              <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginTop: 4 }}>
+                {classData.skipHolidays ? (
+                  <Tag icon={<CheckCircleOutlined />} color="success">Có</Tag>
+                ) : (
+                  <Tag icon={<CloseCircleOutlined />} color="default">Không</Tag>
+                )}
+              </div>
+            </div>
+          </div>
+
           {classData.description && (
             <>
-              <Divider style={{ margin: '12px 0', borderColor: 'var(--card-border)' }} />
-              <div style={{ color: 'var(--text-primary)' }}>
-                <div style={{ color: 'var(--text-secondary)', marginBottom: 4 }}>Ghi chú lớp:</div>
-                <div>{classData.description}</div>
+              <Divider style={{ margin: '20px 0 16px', borderColor: 'var(--card-border)' }} />
+              <div>
+                <Text type="secondary" style={{ fontSize: 13, fontWeight: 600 }}>Ghi chú lớp học:</Text>
+                <div style={{ color: 'var(--text-primary)', marginTop: 6, lineHeight: 1.6, fontSize: 14 }}>
+                  {classData.description}
+                </div>
               </div>
             </>
           )}
         </Card>
       </Col>
-      <Col xs={24} md={8}>
-        <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)', height: '100%' }}>
-          <Title level={5} style={{ color: 'var(--text-primary)', marginBottom: 16 }}>Lịch học cố định</Title>
+
+      {/* Lịch học cố định - Chuyển xuống phía dưới */}
+      <Col span={24}>
+        <Card
+          className="glass-panel"
+          style={{ border: 'none', background: 'var(--card-bg)', borderRadius: 16 }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+            <CalendarOutlined style={{ fontSize: 20, color: 'var(--primary)' }} />
+            <Title level={5} style={{ margin: 0, color: 'var(--text-primary)' }}>
+              Lịch học cố định
+            </Title>
+          </div>
+
           {classData.schedules.length === 0 ? (
-            <Text type="secondary">Chưa xếp lịch cố định.</Text>
+            <Text type="secondary">Chưa xếp lịch học cố định.</Text>
           ) : (
-            <List
-              dataSource={classData.schedules}
-              renderItem={(item: any) => (
-                <List.Item style={{ borderColor: 'var(--card-border)', padding: '12px 0' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Badge status="processing" />
-                    <div>
-                      <Text strong style={{ color: 'var(--text-primary)' }}>Thứ: {item.weekday}</Text>
-                      <div>
-                        <Text type="secondary" style={{ fontSize: '13px' }}>
-                          <CalendarOutlined style={{ marginRight: 4 }} />
-                          {item.startTime.substring(0,5)} - {item.endTime.substring(0,5)}
-                        </Text>
-                      </div>
-                      {item.room && (
-                        <div style={{ fontSize: '12px', color: '#a5b4fc' }}>
-                          <EnvironmentOutlined style={{ marginRight: 4 }} />
-                          {item.room.name}
-                        </div>
-                      )}
-                    </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                gap: '16px',
+              }}
+            >
+              {classData.schedules.map((item: any) => (
+                <div
+                  key={item.id || item.weekday}
+                  style={{
+                    borderColor: 'var(--card-border)',
+                    padding: '16px',
+                    borderRadius: 12,
+                    background: 'var(--bg-secondary, rgba(255,255,255,0.03))',
+                    border: '1px solid var(--card-border, #e2e8f0)',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <Tag color="blue" style={{ fontWeight: 700, padding: '3px 12px', fontSize: 13, borderRadius: 6 }}>
+                      {weekdayMap[item.weekday] || item.weekday}
+                    </Tag>
+                    {item.room && (
+                      <Text style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600 }}>
+                        <EnvironmentOutlined style={{ marginRight: 4 }} />
+                        {item.room.name}
+                      </Text>
+                    )}
                   </div>
-                </List.Item>
-              )}
-            />
+                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginTop: 6 }}>
+                    <ClockCircleOutlined style={{ marginRight: 6, color: 'var(--text-secondary)' }} />
+                    {item.startTime.substring(0, 5)} - {item.endTime.substring(0, 5)}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </Card>
       </Col>
