@@ -231,24 +231,20 @@ const CreateTeacherInner: React.FC = () => {
 
   const renderLoginTab = () => (
     <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)' }}>
-      <div style={{ marginBottom: '24px' }}>
-        <Text style={{ color: 'var(--text-secondary)' }}>
-          Khai báo thông tin dưới đây nếu bạn muốn tạo tài khoản cho nhân sự này đăng nhập vào hệ thống ngay lúc này. 
-          Bạn có thể bỏ qua nếu chưa cần cấp tài khoản.
-        </Text>
+      <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', fontSize: '0.95rem', lineHeight: '1.6' }}>
+        Tài khoản đăng nhập của giáo viên/trợ giảng sẽ được <strong>tự động tạo lập</strong> sau khi lưu hồ sơ:
+      </p>
+      <div style={{ padding: '16px', background: 'var(--bg-tertiary)', borderRadius: '8px', marginBottom: '20px' }}>
+        <p style={{ margin: '0 0 8px 0', color: 'var(--text-primary)' }}>
+          <strong>Tên đăng nhập:</strong> Địa chỉ Email liên hệ (hoặc Số điện thoại nếu không có Email)
+        </p>
+        <p style={{ margin: 0, color: 'var(--text-primary)' }}>
+          <strong>Mật khẩu mặc định:</strong> educare123
+        </p>
       </div>
-      <Row gutter={24}>
-        <Col xs={24} md={12}>
-          <Form.Item label="Email đăng nhập" name="loginEmail" rules={[{ type: 'email' }, { required: true }]}>
-            <Input placeholder="VD: nv.a@dao.edu.vn" size="large" />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={12}>
-          <Form.Item label="Mật khẩu khởi tạo" name="loginPassword" rules={[{ required: true }]}>
-            <Input.Password placeholder="Nhập mật khẩu" size="large" />
-          </Form.Item>
-        </Col>
-      </Row>
+      <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+        Nhân sự có thể dùng tài khoản này để đăng nhập hệ thống, xem lớp giảng dạy, quản lý điểm danh và xem lịch sử nhận lương.
+      </p>
     </Card>
   );
 
