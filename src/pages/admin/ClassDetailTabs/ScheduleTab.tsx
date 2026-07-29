@@ -18,6 +18,7 @@ interface ClassSession {
   teacher?: { firstName: string; lastName: string };
   assistant?: { firstName: string; lastName: string };
   room?: { name: string };
+  isBilled?: boolean;
 }
 
 interface ScheduleTabProps {
@@ -95,6 +96,17 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
           label = 'Nghỉ học';
         }
         return <Tag color={color}>{label}</Tag>;
+      },
+    },
+    {
+      title: 'Tính học phí',
+      key: 'isBilled',
+      width: '140px',
+      render: (_: any, record: ClassSession) => {
+        if (record.isBilled) {
+          return <Tag color="success">Đã tính tiền</Tag>;
+        }
+        return <Tag color="default">Chưa tính</Tag>;
       },
     },
     {
