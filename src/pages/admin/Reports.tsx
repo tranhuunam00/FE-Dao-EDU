@@ -740,8 +740,13 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
           });
 
           const evals = (cls.sessions || [])
-            .map((sess: any) => s.attendance[sess.sessionId]?.evaluationScore)
-            .filter((score: any) => score !== null && score !== undefined);
+            .map((sess: any) => {
+              const score = s.attendance[sess.sessionId]?.evaluationScore;
+              if (score === null || score === undefined || String(score).trim() === '') return null;
+              const num = Number(String(score).replace(',', '.'));
+              return isNaN(num) ? null : num;
+            })
+            .filter((score: any) => score !== null);
           const avgScore = evals.length > 0 ? (evals.reduce((sum: number, val: number) => sum + val, 0) / evals.length).toFixed(1) : '—';
 
           row.push(
@@ -823,8 +828,13 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
               { title: 'Tổng học phí', dataIndex: 'totalTuition', key: 'totalTuition', width: 120, align: 'right' as const, render: (v: number) => <b>{fmtVND(v)}</b> },
               { title: 'Điểm ĐG trung bình', key: 'avgEvaluation', width: 110, align: 'center' as const, render: (_: any, s: any) => {
                   const evals = (record.sessions || [])
-                    .map((sess: any) => s.attendance[sess.sessionId]?.evaluationScore)
-                    .filter((score: any) => score !== null && score !== undefined);
+                    .map((sess: any) => {
+                      const score = s.attendance[sess.sessionId]?.evaluationScore;
+                      if (score === null || score === undefined || String(score).trim() === '') return null;
+                      const num = Number(String(score).replace(',', '.'));
+                      return isNaN(num) ? null : num;
+                    })
+                    .filter((score: any) => score !== null);
                   if (evals.length === 0) return '—';
                   const avg = evals.reduce((sum: number, val: number) => sum + val, 0) / evals.length;
                   return <b>{avg.toFixed(1)}</b>;
