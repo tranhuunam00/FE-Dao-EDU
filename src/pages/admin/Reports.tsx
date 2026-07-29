@@ -13,8 +13,22 @@ import {
   ResponsiveContainer, Legend, PieChart, Pie, Cell, AreaChart, Area,
 } from 'recharts';
 import dayjs from 'dayjs';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 import api from '../../services/api';
+
+const compareVietnameseNames = (nameA: string, nameB: string) => {
+  const getSortKey = (fullName: string) => {
+    const parts = fullName.trim().split(/\s+/);
+    const firstName = parts.pop() || '';
+    const lastName = parts.join(' ');
+    return { firstName, lastName };
+  };
+  const a = getSortKey(nameA || '');
+  const b = getSortKey(nameB || '');
+  const comp = a.firstName.localeCompare(b.firstName, 'vi');
+  if (comp !== 0) return comp;
+  return a.lastName.localeCompare(b.lastName, 'vi');
+};
 
 const { Text } = Typography;
 
@@ -725,8 +739,14 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
       sheetData.push(headers);
 
       // Student rows
+      let totalTuitionSum = 0;
       if (cls.students && cls.students.length > 0) {
-        cls.students.forEach((s: any, idx: number) => {
+        // Sort students alphabetically (Vietnamese friendly)
+        const sortedStudents = [...cls.students].sort((a, b) => 
+          compareVietnameseNames(a.studentName, b.studentName)
+        );
+
+        sortedStudents.forEach((s: any, idx: number) => {
           const row: any[] = [
             idx + 1,
             s.studentCode,
@@ -757,16 +777,143 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
             s.paymentStatus === 'Paid' ? 'Đã thu' : s.paymentStatus === 'Unpaid' ? 'Chưa thu' : (s.paymentStatus === 'Partially_Paid' || s.paymentStatus === 'Partially Paid') ? 'Thu một phần' : '—'
           );
 
+          totalTuitionSum += s.totalTuition || 0;
           sheetData.push(row);
         });
       } else {
         sheetData.push(['Không có học viên nào trong lớp này']);
       }
 
+      // Add accounting summary total row
+      const blankSessionCells = (cls.sessions || []).map(() => '');
+      const totalRow = [
+        '', // STT
+        '', // Student Code
+        'Tổng cộng', // Student Name
+        '', // Mobile
+        ...blankSessionCells,
+        '', // Present Count
+        '', // Price Per Session
+        totalTuitionSum, // Total Tuition
+        '', // Average Score
+        '' // Payment Status
+      ];
+      sheetData.push(totalRow);
+
       const ws = XLSX.utils.aoa_to_sheet(sheetData);
 
-      // Clean sheet name: max 30 chars, no special chars
-      const safeSheetName = cls.classCode.substring(0, 30).replace(/[\\\/\?\*\:\[\]]/g, '');
+      // --- Styling Configurations for Excel ---
+      const totalColumns = 9 + sessionDates.length;
+      const numSessions = sessionDates.length;
+
+      // 1. Merges
+      ws['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: totalColumns - 1 } }
+      ];
+
+      // 2. Column widths
+      const colWidths = Array(totalColumns).fill({ wch: 10 });
+      colWidths[0] = { wch: 6 };  // STT
+      colWidths[1] = { wch: 12 }; // Student Code
+      colWidths[2] = { wch: 22 }; // Student Name
+      colWidths[3] = { wch: 14 }; // Mobile
+      ws['!cols'] = colWidths;
+
+      // 3. Cells style declaration
+      const styleTitle = {
+        font: { bold: true, name: 'Arial', size: 13 },
+        alignment: { vertical: 'center', horizontal: 'left' }
+      };
+
+      const styleHeader = {
+        font: { bold: true, name: 'Arial', size: 10 },
+        alignment: { vertical: 'center', horizontal: 'center', wrapText: true },
+        fill: { fgColor: { rgb: 'F3F4F6' } }, // light gray bg
+        border: {
+          top: { style: 'thin', color: { rgb: 'CCCCCC' } },
+          bottom: { style: 'thin', color: { rgb: 'CCCCCC' } },
+          left: { style: 'thin', color: { rgb: 'CCCCCC' } },
+          right: { style: 'thin', color: { rgb: 'CCCCCC' } }
+        }
+      };
+
+      const styleDataCommon = {
+        font: { name: 'Arial', size: 10 },
+        border: {
+          top: { style: 'thin', color: { rgb: 'E5E7EB' } },
+          bottom: { style: 'thin', color: { rgb: 'E5E7EB' } },
+          left: { style: 'thin', color: { rgb: 'E5E7EB' } },
+          right: { style: 'thin', color: { rgb: 'E5E7EB' } }
+        }
+      };
+
+      const range = XLSX.utils.decode_range(ws['!ref'] || '');
+      for (let R = range.s.r; R <= range.e.r; ++R) {
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+          if (!ws[cellRef]) continue;
+
+          // Title row styling
+          if (R === 0) {
+            ws[cellRef].s = styleTitle;
+            continue;
+          }
+          if (R === 1) continue;
+
+          // Table headers styling
+          if (R === 2) {
+            ws[cellRef].s = styleHeader;
+            continue;
+          }
+
+          // Total row styling
+          if (R === range.e.r) {
+            const isTotalTuitionCell = (C === 4 + numSessions + 2);
+            ws[cellRef].s = {
+              font: { bold: true, name: 'Arial', size: 10 },
+              border: {
+                top: { style: 'thin', color: { rgb: '999999' } },
+                bottom: { style: 'double', color: { rgb: '000000' } }, // accountant double bottom border
+                left: { style: 'thin', color: { rgb: 'CCCCCC' } },
+                right: { style: 'thin', color: { rgb: 'CCCCCC' } }
+              },
+              alignment: {
+                vertical: 'center',
+                horizontal: isTotalTuitionCell ? 'right' : C === 2 ? 'left' : 'center'
+              },
+              fill: isTotalTuitionCell ? { fgColor: { rgb: 'FEF08A' } } : undefined // yellow highlighted
+            };
+
+            if (isTotalTuitionCell && ws[cellRef].v) {
+              ws[cellRef].z = '#,##0'; // dynamic number separator formatting
+            }
+            continue;
+          }
+
+          // Data rows styling
+          const alignHoriz = 
+            C === 2 ? 'left' : 
+            C === 1 || C === 3 ? 'center' : 
+            (C >= 4 && C <= 4 + numSessions) ? 'right' : 
+            C === 4 + numSessions + 1 || C === 4 + numSessions + 2 ? 'right' : 
+            'center';
+
+          ws[cellRef].s = {
+            ...styleDataCommon,
+            alignment: { vertical: 'center', horizontal: alignHoriz }
+          };
+
+          // Currency formats
+          if ((C === 4 + numSessions + 1 || C === 4 + numSessions + 2) && typeof ws[cellRef].v === 'number') {
+            ws[cellRef].z = '#,##0';
+          }
+          if (C >= 4 && C < 4 + numSessions && typeof ws[cellRef].v === 'number') {
+            ws[cellRef].z = '#,##0';
+          }
+        }
+      }
+
+      const safeSheetName = cls.classCode.substring(0, 30).replace(/[\\/?*:[\]]/g, '');
       XLSX.utils.book_append_sheet(wb, ws, safeSheetName || `Sheet ${cls.classId.substring(0, 5)}`);
     });
 
@@ -856,7 +1003,7 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
                   <Text type="secondary" style={{ fontSize: 13 }}>Không có học viên nào.</Text>
                 ) : (
                   <Table
-                    dataSource={record.students}
+                    dataSource={[...(record.students || [])].sort((a, b) => compareVietnameseNames(a.studentName, b.studentName))}
                     rowKey="studentId"
                     pagination={false}
                     size="small"
