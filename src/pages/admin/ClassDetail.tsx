@@ -540,6 +540,9 @@ const ClassDetailInner: React.FC = () => {
       const { data } = await api.get(`/classes/sessions/${session.id}/attendance`);
       const mapped = (classData?.students || [])
         .filter((cs: any) => {
+          const hasRecord = data.some((d: any) => d.studentId === cs.studentId);
+          if (hasRecord) return true;
+
           const joined = dayjs(cs.joinedDate);
           const sess = dayjs(session.date);
           const isJoined = joined.isBefore(sess) || joined.isSame(sess, 'day');
@@ -547,8 +550,8 @@ const ClassDetailInner: React.FC = () => {
             return isJoined;
           }
           if (cs.status === 'Dropped') {
-            const left = dayjs(cs.updatedAt);
-            return isJoined && (sess.isBefore(left) || sess.isSame(left, 'day'));
+            const leftDate = cs.updatedAt ? cs.updatedAt.split('T')[0] : cs.joinedDate;
+            return isJoined && session.date < leftDate;
           }
           return false;
         })
@@ -1760,7 +1763,7 @@ const ClassDetailInner: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item name="assistantId" label="Trợ giảng (TA)" rules={[{ required: true, message: 'Vui lòng chọn trợ giảng!' }]}>
+          <Form.Item name="assistantId" label="Trợ giảng (TA)">
             <Select placeholder="Chọn trợ giảng" allowClear showSearch optionFilterProp="children">
               {teachers.map(t => (
                 <Option key={t.id} value={t.id}>
