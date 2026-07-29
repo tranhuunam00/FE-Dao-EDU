@@ -46,6 +46,7 @@ interface StudentData {
   createdAt: string;
   userId?: string;
   loginEmail?: string;
+  siblings?: string[];
 }
 
 const ResizableTitle = (props: any) => {
@@ -100,6 +101,7 @@ const StudentListInner: React.FC = () => {
       gender: 100,
       birthdate: 120,
       mobile: 150,
+      siblings: 180,
       province: 160,
       status: 140,
       primaryAddress: 300,
@@ -229,6 +231,21 @@ const StudentListInner: React.FC = () => {
       key: 'mobile',
       width: colWidths.mobile,
       render: (text: string) => <Text type="secondary">{text}</Text>,
+    },
+    {
+      title: 'Cùng tài khoản',
+      key: 'siblings',
+      width: colWidths.siblings || 180,
+      render: (_: any, record: StudentData) => {
+        if (record.siblings && record.siblings.length > 0) {
+          return (
+            <Tooltip title={`Dùng chung tài khoản với: ${record.siblings.join(', ')}`}>
+              <Tag color="cyan" style={{ cursor: 'pointer' }}>{record.siblings.join(', ')}</Tag>
+            </Tooltip>
+          );
+        }
+        return <Text type="secondary">—</Text>;
+      },
     },
     {
       title: 'Tỉnh / Thành',
