@@ -67,6 +67,7 @@ export const StudentProfile: React.FC<{ embedded?: boolean }> = ({
         districtWard: data.districtWard || undefined,
         primaryAddress: data.primaryAddress || '',
         oldAddress: data.oldAddress || '',
+        birthdate: data.birthdate || '',
         loginPassword: '',
       });
     } catch (err: any) {
@@ -89,8 +90,8 @@ export const StudentProfile: React.FC<{ embedded?: boolean }> = ({
       setSaving(true);
       
       const updateData: any = {
+        birthdate: formValues.birthdate,
         email: formValues.email,
-        mobile: formValues.mobile,
         otherPhone1: formValues.otherPhone1,
         otherPhone2: formValues.otherPhone2,
         province: formValues.province,
@@ -258,8 +259,12 @@ export const StudentProfile: React.FC<{ embedded?: boolean }> = ({
                             </Form.Item>
                           </Col>
                           <Col xs={12}>
-                            <Form.Item label="Ngày sinh">
-                              <Input value={profile?.birthdate} disabled />
+                            <Form.Item
+                              name="birthdate"
+                              label="Ngày sinh (Có thể sửa)"
+                              rules={[{ required: true, message: 'Vui lòng chọn ngày sinh' }]}
+                            >
+                              <Input type="date" />
                             </Form.Item>
                           </Col>
                         </Row>
@@ -314,13 +319,9 @@ export const StudentProfile: React.FC<{ embedded?: boolean }> = ({
                           <Col xs={12}>
                             <Form.Item
                               name="mobile"
-                              label="Số điện thoại cá nhân"
-                              rules={[
-                                { required: true, message: 'Vui lòng nhập số điện thoại' },
-                                { pattern: /^[0-9]{9,11}$/, message: 'Số điện thoại không hợp lệ' }
-                              ]}
+                              label="Số điện thoại chính (Đã khóa)"
                             >
-                              <Input placeholder="0987654321" prefix={<PhoneOutlined style={{ color: '#6b7280' }} />} />
+                              <Input placeholder="0987654321" disabled prefix={<PhoneOutlined style={{ color: '#6b7280' }} />} />
                             </Form.Item>
                           </Col>
                           <Col xs={12}>

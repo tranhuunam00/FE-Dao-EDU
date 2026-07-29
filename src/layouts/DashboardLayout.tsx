@@ -110,7 +110,12 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
     <div className="dashboard-root">
 
       {/* ── Mobile Drawer ─────────────────────────────────────────────────── */}
-      <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
+      <MobileSidebar
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        profiles={profiles}
+        activeProfile={activeProfile}
+      />
 
       {/* ── Desktop / Tablet Sidebar ──────────────────────────────────────── */}
       <aside className="glass-panel dashboard-sidebar">
@@ -148,7 +153,11 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
                 )}
               </div>
               <div style={{ overflow: 'hidden', flex: 1 }}>
-                <div className="sidebar-username">{user.name}</div>
+                <div className="sidebar-username">
+                  {user.role === Role.STUDENT && activeProfile
+                    ? `${activeProfile.lastName} ${activeProfile.firstName}`
+                    : user.name}
+                </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
                   {getRoleBadge(user.role)}
                 </div>
