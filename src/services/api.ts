@@ -9,12 +9,16 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to attach JWT token
+// Request interceptor to attach JWT token and active student ID
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    const activeStudentId = localStorage.getItem('activeStudentId');
+    if (activeStudentId && config.headers) {
+      config.headers['x-student-id'] = activeStudentId;
     }
     return config;
   },

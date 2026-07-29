@@ -232,7 +232,7 @@ const StudentDetailInner: React.FC = () => {
       .catch(() => setSubmittable(false));
   }, [form, values]);
 
-  const handleSubmit = async (values: any) => {
+  const proceedSubmit = async (values: any) => {
     setSaving(true);
     setFormError(null);
     try {
@@ -283,6 +283,32 @@ const StudentDetailInner: React.FC = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSubmit = async (values: any) => {
+    if (values.mobile) {
+      try {
+        const checkRes = await api.get(`/students/check-mobile?mobile=${values.mobile.trim()}&excludeStudentId=${id}`);
+        if (checkRes.data.exists) {
+          const names = checkRes.data.students.map((s: any) => `${s.lastName} ${s.firstName} (${s.studentId})`).join(', ');
+          
+          modal.confirm({
+            title: 'Số điện thoại này đã được sử dụng!',
+            content: `Số điện thoại này đang được dùng bởi các học sinh sau: ${names}. Bạn có muốn tiếp tục cập nhật học sinh này và cho dùng chung tài khoản đăng nhập của phụ huynh không?`,
+            okText: 'Đồng ý dùng chung',
+            cancelText: 'Hủy bỏ',
+            onOk: async () => {
+              await proceedSubmit(values);
+            }
+          });
+          return;
+        }
+      } catch (checkErr) {
+        console.error('Lỗi check trùng số điện thoại:', checkErr);
+      }
+    }
+    
+    await proceedSubmit(values);
   };
 
   if (loading) {

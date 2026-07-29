@@ -15,6 +15,7 @@ import {
   Divider,
   Avatar,
   Upload,
+  Modal,
 } from 'antd';
 import {
   SaveOutlined,
@@ -80,14 +81,13 @@ export const CreateStudent: React.FC = () => {
       .catch(() => setSubmittable(false));
   }, [form, values]);
 
-  const handleSubmit = async (values: any) => {
+  const proceedSubmit = async (values: any) => {
     setLoading(true);
     setFormError(null);
     try {
       const payload = {
         ...values,
         birthdate: values.birthdate ? values.birthdate.format('YYYY-MM-DD') : undefined,
-        // Trim standard string fields
         firstName: values.firstName?.trim(),
         lastName: values.lastName?.trim(),
         nickName: values.nickName?.trim() || undefined,
@@ -109,7 +109,6 @@ export const CreateStudent: React.FC = () => {
         primaryAddress: values.primaryAddress?.trim(),
         oldAddress: values.oldAddress?.trim() || undefined,
         status: values.status || 'Waiting for class',
-        // Optional login account
         loginEmail: values.loginEmail?.trim() || undefined,
         loginPassword: values.loginPassword || undefined,
         avatar: avatarBase64 || undefined,
@@ -130,6 +129,32 @@ export const CreateStudent: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (values: any) => {
+    if (values.mobile) {
+      try {
+        const checkRes = await api.get(`/students/check-mobile?mobile=${values.mobile.trim()}`);
+        if (checkRes.data.exists) {
+          const names = checkRes.data.students.map((s: any) => `${s.lastName} ${s.firstName} (${s.studentId})`).join(', ');
+          
+          Modal.confirm({
+            title: 'Số điện thoại này đã được sử dụng!',
+            content: `Số điện thoại này đang được dùng bởi các học sinh sau: ${names}. Bạn có muốn tiếp tục tạo học sinh này và cho dùng chung tài khoản đăng nhập của phụ huynh không?`,
+            okText: 'Đồng ý dùng chung',
+            cancelText: 'Hủy bỏ',
+            onOk: async () => {
+              await proceedSubmit(values);
+            }
+          });
+          return;
+        }
+      } catch (checkErr) {
+        console.error('Lỗi check trùng số điện thoại:', checkErr);
+      }
+    }
+    
+    await proceedSubmit(values);
   };
 
   const handleCancel = () => {
