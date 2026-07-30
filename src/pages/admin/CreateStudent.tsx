@@ -136,7 +136,10 @@ export const CreateStudent: React.FC = () => {
       try {
         const checkRes = await api.get(`/students/check-mobile?mobile=${values.mobile.trim()}`);
         if (checkRes.data.exists) {
-          const names = checkRes.data.students.map((s: any) => `${s.lastName} ${s.firstName} (${s.studentId})`).join(', ');
+          const names = checkRes.data.students.map((s: any) => {
+            const ageStr = s.age !== null && s.age !== undefined ? `${s.age} tuổi, ` : '';
+            return `${s.lastName} ${s.firstName} (${ageStr}${s.studentId})`;
+          }).join(', ');
           
           Modal.confirm({
             title: 'Số điện thoại này đã được sử dụng!',
