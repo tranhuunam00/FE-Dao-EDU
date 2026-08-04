@@ -7,6 +7,7 @@ import { ArrowLeftOutlined, BookOutlined, DollarOutlined, PlusOutlined, EditOutl
 import dayjs from 'dayjs';
 import api from '../../services/api';
 import LevelPricingModal, { renderPricingTimeline, type PricingData } from './CourseDetailComponents/LevelPricingModal';
+import { getActiveRate } from '../../utils/pricing';
 import { AddLevelModal, EditLevelModal } from './CourseDetailComponents/LevelModal';
 
 const { Title, Text } = Typography;
@@ -125,32 +126,8 @@ const CourseDetailInner: React.FC = () => {
       key: 'currentPrice',
       width: 180,
       render: (_: any, record: LevelData) => {
-        const getCurrentRate = (pricing: any[] | undefined, rateField: string) => {
-          if (!pricing || pricing.length === 0) return 0;
-          const todayStr = dayjs().format('YYYY-MM-DD');
-          const activePricing = pricing.filter(p => Number(p[rateField]) > 0);
-          const covering = activePricing.filter(p => {
-            const pFrom = p.effectiveFrom;
-            const pTo = p.effectiveTo;
-            if (pTo !== null && pTo < pFrom) return false;
-            return pFrom <= todayStr && (pTo === null || pTo >= todayStr);
-          });
-          if (covering.length === 0) return 0;
-          covering.sort((a, b) => {
-            const getTimestamp = (p: any) => {
-              if (p.createdAt) return new Date(p.createdAt).getTime();
-              return 0;
-            };
-            const tA = getTimestamp(a);
-            const tB = getTimestamp(b);
-            if (tA !== tB) return tB - tA;
-            if (a.id && b.id) return b.id.localeCompare(a.id);
-            return dayjs(b.effectiveFrom).diff(dayjs(a.effectiveFrom));
-          });
-          return Number(covering[0][rateField]);
-        };
-
-        const rate = getCurrentRate(record.pricing, 'pricePerSession');
+        const todayStr = dayjs().format('YYYY-MM-DD');
+        const rate = getActiveRate(record.pricing, todayStr, 'pricePerSession');
         return rate > 0
           ? <Text strong style={{ color: '#34d399' }}>{rate.toLocaleString()}đ / buổi</Text>
           : <Text type="secondary">Chưa cấu hình</Text>;
@@ -161,32 +138,8 @@ const CourseDetailInner: React.FC = () => {
       key: 'currentWage',
       width: 180,
       render: (_: any, record: LevelData) => {
-        const getCurrentRate = (pricing: any[] | undefined, rateField: string) => {
-          if (!pricing || pricing.length === 0) return 0;
-          const todayStr = dayjs().format('YYYY-MM-DD');
-          const activePricing = pricing.filter(p => Number(p[rateField]) > 0);
-          const covering = activePricing.filter(p => {
-            const pFrom = p.effectiveFrom;
-            const pTo = p.effectiveTo;
-            if (pTo !== null && pTo < pFrom) return false;
-            return pFrom <= todayStr && (pTo === null || pTo >= todayStr);
-          });
-          if (covering.length === 0) return 0;
-          covering.sort((a, b) => {
-            const getTimestamp = (p: any) => {
-              if (p.createdAt) return new Date(p.createdAt).getTime();
-              return 0;
-            };
-            const tA = getTimestamp(a);
-            const tB = getTimestamp(b);
-            if (tA !== tB) return tB - tA;
-            if (a.id && b.id) return b.id.localeCompare(a.id);
-            return dayjs(b.effectiveFrom).diff(dayjs(a.effectiveFrom));
-          });
-          return Number(covering[0][rateField]);
-        };
-
-        const rate = getCurrentRate(record.pricing, 'teacherWagePerSession');
+        const todayStr = dayjs().format('YYYY-MM-DD');
+        const rate = getActiveRate(record.pricing, todayStr, 'teacherWagePerSession');
         return rate > 0
           ? <Text strong style={{ color: '#fbbf24' }}>{rate.toLocaleString()}đ / buổi</Text>
           : <Text type="secondary">Chưa cấu hình</Text>;
@@ -197,32 +150,8 @@ const CourseDetailInner: React.FC = () => {
       key: 'currentTaWage',
       width: 180,
       render: (_: any, record: LevelData) => {
-        const getCurrentRate = (pricing: any[] | undefined, rateField: string) => {
-          if (!pricing || pricing.length === 0) return 0;
-          const todayStr = dayjs().format('YYYY-MM-DD');
-          const activePricing = pricing.filter(p => Number(p[rateField]) > 0);
-          const covering = activePricing.filter(p => {
-            const pFrom = p.effectiveFrom;
-            const pTo = p.effectiveTo;
-            if (pTo !== null && pTo < pFrom) return false;
-            return pFrom <= todayStr && (pTo === null || pTo >= todayStr);
-          });
-          if (covering.length === 0) return 0;
-          covering.sort((a, b) => {
-            const getTimestamp = (p: any) => {
-              if (p.createdAt) return new Date(p.createdAt).getTime();
-              return 0;
-            };
-            const tA = getTimestamp(a);
-            const tB = getTimestamp(b);
-            if (tA !== tB) return tB - tA;
-            if (a.id && b.id) return b.id.localeCompare(a.id);
-            return dayjs(b.effectiveFrom).diff(dayjs(a.effectiveFrom));
-          });
-          return Number(covering[0][rateField]);
-        };
-
-        const rate = getCurrentRate(record.pricing, 'taWagePerSession');
+        const todayStr = dayjs().format('YYYY-MM-DD');
+        const rate = getActiveRate(record.pricing, todayStr, 'taWagePerSession');
         return rate > 0
           ? <Text strong style={{ color: '#60a5fa' }}>{rate.toLocaleString()}đ / buổi</Text>
           : <Text type="secondary">Chưa cấu hình</Text>;

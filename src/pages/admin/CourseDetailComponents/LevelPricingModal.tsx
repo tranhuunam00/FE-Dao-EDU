@@ -3,6 +3,7 @@ import { Modal, Form, InputNumber, DatePicker, Table, Typography, Button, App, T
 import { PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../../services/api';
+import { sortPricingNewestFirst } from '../../../utils/pricing';
 
 const { Text } = Typography;
 
@@ -45,17 +46,7 @@ export const computeDisjointSegments = (pricing: PricingData[], rateField: 'pric
   if (activePricing.length === 0) return [];
 
   // Sort pricing newest first to prioritize the latest configured rules when ranges overlap
-  const sortedPricing = [...activePricing].sort((a, b) => {
-    const getTimestamp = (p: PricingData) => {
-      if ((p as any).createdAt) return new Date((p as any).createdAt).getTime();
-      return 0;
-    };
-    const tA = getTimestamp(a);
-    const tB = getTimestamp(b);
-    if (tA !== tB) return tB - tA;
-    if (a.id && b.id) return b.id.localeCompare(a.id);
-    return dayjs(b.effectiveFrom).diff(dayjs(a.effectiveFrom));
-  });
+  const sortedPricing = sortPricingNewestFirst(activePricing);
 
   // Collect all boundary dates
   const datesSet = new Set<string>();
@@ -370,32 +361,9 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
     return max === null || d > max ? d : max;
   }, null);
 
-  // Filter pricing history by type and sort by creation time (newest configured first)
-  const sortHistoryNewestFirst = (a: PricingData, b: PricingData) => {
-    if (a.id && b.id && a.id.startsWith('pricing-') && b.id.startsWith('pricing-')) {
-      // For mock ids in tests
-      return b.id.localeCompare(a.id);
-    }
-    // If createdAt exists, compare by createdAt timestamp DESC
-    const getTimestamp = (p: PricingData) => {
-      if ((p as any).createdAt) return new Date((p as any).createdAt).getTime();
-      return 0;
-    };
-    const tA = getTimestamp(a);
-    const tB = getTimestamp(b);
-    if (tA !== tB) return tB - tA;
-    
-    // Otherwise fallback to ID sort
-    if (a.id && b.id) return b.id.localeCompare(a.id);
-    return dayjs(b.effectiveFrom).diff(dayjs(a.effectiveFrom));
-  };
-
-  const studentPricing = [...pricingList].filter(p => Number(p.pricePerSession) > 0)
-    .sort(sortHistoryNewestFirst);
-  const teacherPricing = [...pricingList].filter(p => Number(p.teacherWagePerSession) > 0)
-    .sort(sortHistoryNewestFirst);
-  const taPricing = [...pricingList].filter(p => Number(p.taWagePerSession) > 0)
-    .sort(sortHistoryNewestFirst);
+  const studentPricing = sortPricingNewestFirst([...pricingList].filter(p => Number(p.pricePerSession) > 0));
+  const teacherPricing = sortPricingNewestFirst([...pricingList].filter(p => Number(p.teacherWagePerSession) > 0));
+  const taPricing = sortPricingNewestFirst([...pricingList].filter(p => Number(p.taWagePerSession) > 0));
 
   return (
     <>

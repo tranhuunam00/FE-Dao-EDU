@@ -35,6 +35,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
   const [detailVisible, setDetailVisible] = useState(false);
   const [detailTitle, setDetailTitle] = useState('');
   const [detailItems, setDetailItems] = useState<any[]>([]);
+  const [detailSessions, setDetailSessions] = useState<any[]>([]);
   const [detailAuditLogs, setDetailAuditLogs] = useState<any[]>([]);
   const [detailType, setDetailType] = useState<'student' | 'teacher'>('student');
 
@@ -235,6 +236,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
     setDetailType(type === 'tuition' ? 'student' : 'teacher');
     setDetailTitle(`${record.code} - ${record.name}`);
     setDetailItems(record.items || []);
+    setDetailSessions(record.sessions || []);
 
     setDetailAuditLogs(record.auditLogs || []);
 
@@ -969,31 +971,81 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
               styles={{ body: { background: 'var(--bg-secondary)', color: 'var(--text-primary)' } }}
             >
               <Table
-                dataSource={detailItems}
+                dataSource={detailItems.filter((item) => Number(item.rate) > 0)}
                 rowKey={(r, index) => r.classId || String(index)}
                 pagination={false}
                 size="small"
                 columns={[
-                  {
-                    title: 'Ngày học',
-                    dataIndex: 'className',
-                    key: 'sessionDate',
-                    align: 'center',
-                    render: (v) => {
-                      const match = v?.match(/\(Buổi (.*?)\)/);
-                      return match ? match[1] : '-';
-                    }
-                  },
                   {
                     title: 'Lớp học',
                     dataIndex: 'className',
                     key: 'className',
                     render: (v) => v?.replace(/\(Buổi .*?\)/, '').trim() || v
                   },
-                  { title: 'Số buổi', dataIndex: 'sessionsCount', key: 'sessionsCount', align: 'center' },
+                  { title: 'Số buổi có mặt / dạy', dataIndex: 'sessionsCount', key: 'sessionsCount', align: 'center' },
                   { title: 'Đơn giá', dataIndex: 'rate', key: 'rate', align: 'right', render: (v) => `${Number(v).toLocaleString('vi-VN')} ₫` },
-                  { title: 'Thành tiền', dataIndex: 'totalAmount', key: 'totalAmount', align: 'right', render: (v) => `${Number(v).toLocaleString('vi-VN')} ₫` }
+                  { title: 'Tổng cộng', dataIndex: 'totalAmount', key: 'totalAmount', align: 'right', render: (v) => `${Number(v).toLocaleString('vi-VN')} ₫` }
                 ]}
+                expandable={{
+                  defaultExpandAllRows: true,
+                  expandedRowRender: (record) => {
+                    const classSessions = detailSessions.filter((s: any) => s.classId === record.classId);
+                    return (
+                      <div style={{ padding: '8px 16px', background: 'var(--bg-tertiary)', borderRadius: 8, margin: '4px 0' }}>
+                        <div style={{ fontWeight: 600, marginBottom: 8, color: 'var(--text-secondary)', fontSize: 11, letterSpacing: '0.5px' }}>
+                          CHI TIẾT TỪNG BUỔI HỌC & ĐIỂM DANH:
+                        </div>
+                        <Table
+                          dataSource={classSessions}
+                          rowKey="id"
+                          pagination={false}
+                          size="small"
+                          bordered
+                          columns={[
+                            {
+                              title: 'Ngày học',
+                              dataIndex: 'date',
+                              key: 'date',
+                              render: (d) => dayjs(d).format('DD/MM/YYYY')
+                            },
+                            {
+                              title: 'Thời gian',
+                              key: 'time',
+                              render: (_, s) => `${s.startTime || ''} - ${s.endTime || ''}`
+                            },
+                            {
+                              title: 'Trạng thái',
+                              key: 'status',
+                              align: 'center',
+                              render: (_, s) => {
+                                if (detailType === 'teacher') {
+                                  return <Tag color="blue">{s.role === 'teacher' ? 'Giáo viên chính' : 'Trợ giảng'}</Tag>;
+                                }
+                                return s.isPresent 
+                                  ? <Tag color="green">Có mặt</Tag> 
+                                  : <Tag color="red">Vắng mặt {s.reason ? `(${s.reason})` : ''}</Tag>;
+                              }
+                            },
+                            {
+                              title: 'Đơn giá',
+                              dataIndex: 'rate',
+                              key: 'rate',
+                              align: 'right',
+                              render: (v) => `${Number(v).toLocaleString('vi-VN')} ₫`
+                            },
+                            {
+                              title: 'Thành tiền',
+                              dataIndex: 'amount',
+                              key: 'amount',
+                              align: 'right',
+                              render: (v) => <Text strong style={{ color: v > 0 ? '#10b981' : 'var(--text-muted)' }}>{Number(v).toLocaleString('vi-VN')} ₫</Text>
+                            }
+                          ]}
+                        />
+                      </div>
+                    );
+                  }
+                }}
               />
               {detailAuditLogs.length > 0 && (
                 <div style={{ marginTop: 18 }}>
