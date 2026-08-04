@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  Card, Typography, App, Tag, Table, Button, Spin, Descriptions, Space
+  Card, Typography, App, Tag, Table, Button, Spin, Descriptions, Space, Popconfirm, Tooltip
 } from 'antd';
-import { ArrowLeftOutlined, BookOutlined, DollarOutlined, PlusOutlined, EditOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, BookOutlined, DollarOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../services/api';
 import LevelPricingModal, { renderPricingTimeline, type PricingData } from './CourseDetailComponents/LevelPricingModal';
@@ -21,6 +21,8 @@ interface LevelData {
   canUpgrade: boolean;
   gradebookSetting?: string;
   pricing: PricingData[];
+  classCount?: number;
+  sessionCount?: number;
 }
 
 interface CourseDetailData {
@@ -99,6 +101,16 @@ const CourseDetailInner: React.FC = () => {
     setPricingModalVisible(true);
   };
 
+  const handleDeleteLevel = async (levelId: string) => {
+    try {
+      await api.delete(`/courses/levels/${levelId}`);
+      message.success('Xóa Level thành công!');
+      fetchCourse();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Không thể xóa Level.');
+    }
+  };
+
 
 
   const levelColumns = [
@@ -160,35 +172,66 @@ const CourseDetailInner: React.FC = () => {
     {
       title: 'Hành động',
       key: 'action',
-      width: 260,
-      render: (_: any, record: LevelData) => (
-        <Space size="small">
-          <Button
-            type="primary"
-            size="small"
-            icon={<PlusOutlined />}
-            onClick={() => handleOpenPricingModal(record)}
-            style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)', border: 'none' }}
-          >
-            Cấu hình giá
-          </Button>
-          <Button
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => {
-              setSelectedLevel(record);
-              setEditLevelModalVisible(true);
-            }}
-          >
-            Sửa Level
-          </Button>
-        </Space>
-      ),
+      width: 320,
+      render: (_: any, record: LevelData) => {
+        const hasClasses = (record.classCount || 0) > 0;
+        const hasSessions = (record.sessionCount || 0) > 0;
+        const isUsed = hasClasses || hasSessions;
+        const disabledReason = hasClasses
+          ? 'Không thể xóa Level vì đã có lớp học sử dụng.'
+          : 'Không thể xóa Level vì đã có buổi học/điểm danh liên quan.';
+
+        return (
+          <Space size="small">
+            <Button
+              type="primary"
+              size="small"
+              icon={<PlusOutlined />}
+              onClick={() => handleOpenPricingModal(record)}
+              style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)', border: 'none' }}
+            >
+              Cấu hình giá
+            </Button>
+            <Button
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => {
+                setSelectedLevel(record);
+                setEditLevelModalVisible(true);
+              }}
+            >
+              Sửa
+            </Button>
+            {isUsed ? (
+              <Tooltip title={disabledReason}>
+                <span>
+                  <Button size="small" danger icon={<DeleteOutlined />} disabled>
+                    Xóa
+                  </Button>
+                </span>
+              </Tooltip>
+            ) : (
+              <Popconfirm
+                title="Xóa Level này?"
+                description="Lưu ý: Chỉ xóa được khi chưa có lớp hoặc buổi học nào sử dụng Level này."
+                onConfirm={() => handleDeleteLevel(record.id)}
+                okText="Xóa"
+                cancelText="Hủy"
+                okButtonProps={{ danger: true }}
+              >
+                <Button size="small" danger icon={<DeleteOutlined />}>
+                  Xóa
+                </Button>
+              </Popconfirm>
+            )}
+          </Space>
+        );
+      },
     },
   ];
 
   return (
-    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '12px 0' }}>
+    <div style={{ width: '100%', padding: '12px 24px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid var(--card-border)' }}>
         <Button
           icon={<ArrowLeftOutlined />}

@@ -139,7 +139,6 @@ export const AddLevelModal: React.FC<AddLevelModalProps> = ({ open, onCancel, on
             <Form.Item
               name="taWagePerSession"
               label="Lương trợ giảng / buổi"
-              rules={[{ required: true, message: 'Nhập lương trợ giảng!' }]}
             >
               <InputNumber
                 style={{ width: '100%' }}
