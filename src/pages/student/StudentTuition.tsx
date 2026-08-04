@@ -119,40 +119,7 @@ export const StudentTuition: React.FC = () => {
     return acc;
   }, {});
 
-  const columns = [
-    {
-      title: 'Môn học / Lớp',
-      dataIndex: 'className',
-      key: 'className',
-      render: (text: string, record: any) => (
-        <div>
-          <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{text}</div>
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{record.courseName} - {record.levelName}</div>
-        </div>
-      ),
-    },
-    {
-      title: 'Số buổi',
-      dataIndex: 'sessionsCount',
-      key: 'sessionsCount',
-      align: 'center' as const,
-      render: (val: number) => <Tag color="blue">{val} buổi</Tag>,
-    },
-    {
-      title: 'Đơn giá',
-      dataIndex: 'rate',
-      key: 'rate',
-      align: 'right' as const,
-      render: (val: number) => formatCurrency(Number(val)),
-    },
-    {
-      title: 'Thành tiền',
-      dataIndex: 'totalAmount',
-      key: 'totalAmount',
-      align: 'right' as const,
-      render: (val: number) => <span style={{ fontWeight: 600, color: '#10b981' }}>{formatCurrency(Number(val))}</span>,
-    },
-  ];
+
 
   return (
       <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '12px 0' }}>
@@ -288,18 +255,142 @@ export const StudentTuition: React.FC = () => {
                         </div>
                       </div>
 
-                      <Table
-                        dataSource={bill.items || []}
-                        columns={columns}
-                        rowKey="id"
-                        pagination={false}
-                        size="small"
-                        style={{
-                          background: 'var(--bg-secondary)',
-                          borderRadius: '8px',
-                          overflow: 'hidden'
-                        }}
-                      />
+                      {(() => {
+                        const getDisplayItems = () => {
+                          const billSessions = bill.sessions || [];
+                          if (billSessions.length > 0) {
+                            const grouped = new Map<string, any>();
+                            for (const s of billSessions) {
+                              const key = `${s.classId}_${s.rate}`;
+                              if (!grouped.has(key)) {
+                                grouped.set(key, {
+                                  classId: s.classId,
+                                  className: s.className,
+                                  rate: s.rate,
+                                  sessionsCount: 0,
+                                  totalAmount: 0,
+                                });
+                              }
+                              const item = grouped.get(key);
+                              if (s.isPresent) {
+                                item.sessionsCount += 1;
+                              }
+                              item.totalAmount += s.amount;
+                            }
+                            return Array.from(grouped.values());
+                          }
+                          return (bill.items || []).filter((item: any) => Number(item.rate) > 0);
+                        };
+                        const displayItems = getDisplayItems();
+
+                        return (
+                          <Table
+                            dataSource={displayItems}
+                            rowKey={(r: any, index) => `${r.classId}_${r.rate}_${index}`}
+                            columns={[
+                              {
+                                title: 'Môn học / Lớp',
+                                dataIndex: 'className',
+                                key: 'className',
+                                render: (text: string) => (
+                                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                                    {text?.replace(/\(Buổi .*?\)/, '').trim() || text}
+                                  </span>
+                                ),
+                              },
+                              {
+                                title: 'Số buổi có mặt',
+                                dataIndex: 'sessionsCount',
+                                key: 'sessionsCount',
+                                align: 'center' as const,
+                                render: (val: number) => <Tag color="blue">{val} buổi</Tag>,
+                              },
+                              {
+                                title: 'Đơn giá',
+                                dataIndex: 'rate',
+                                key: 'rate',
+                                align: 'right' as const,
+                                render: (val: number) => formatCurrency(Number(val)),
+                              },
+                              {
+                                title: 'Thành tiền',
+                                dataIndex: 'totalAmount',
+                                key: 'totalAmount',
+                                align: 'right' as const,
+                                render: (val: number) => <span style={{ fontWeight: 700, color: '#10b981' }}>{formatCurrency(Number(val))}</span>,
+                              },
+                            ]}
+                            pagination={false}
+                            size="small"
+                            style={{
+                              background: 'var(--bg-secondary)',
+                              borderRadius: '8px',
+                              overflow: 'hidden'
+                            }}
+                            expandable={{
+                              defaultExpandAllRows: true,
+                              expandedRowRender: (record: any) => {
+                                const classSessions = (bill.sessions || []).filter(
+                                  (s: any) =>
+                                    s.classId === record.classId &&
+                                    Number(s.rate) === Number(record.rate),
+                                );
+                                return (
+                                  <div style={{ padding: '8px 16px', background: 'var(--bg-tertiary)', borderRadius: 8, margin: '4px 0' }}>
+                                    <div style={{ fontWeight: 600, marginBottom: 8, color: 'var(--text-secondary)', fontSize: 11, letterSpacing: '0.5px' }}>
+                                      CHI TIẾT TỪNG BUỔI HỌC & ĐIỂM DANH:
+                                    </div>
+                                    <Table
+                                      dataSource={classSessions}
+                                      rowKey="id"
+                                      pagination={false}
+                                      size="small"
+                                      bordered
+                                      columns={[
+                                        {
+                                          title: 'Ngày học',
+                                          dataIndex: 'date',
+                                          key: 'date',
+                                          render: (d) => dayjs(d).format('DD/MM/YYYY')
+                                        },
+                                        {
+                                          title: 'Thời gian',
+                                          key: 'time',
+                                          render: (_, s: any) => `${s.startTime || ''} - ${s.endTime || ''}`
+                                        },
+                                        {
+                                          title: 'Trạng thái',
+                                          key: 'status',
+                                          align: 'center',
+                                          render: (_, s: any) => {
+                                            return s.isPresent 
+                                              ? <Tag color="green">Có mặt</Tag> 
+                                              : <Tag color="red">Vắng mặt {s.reason ? `(${s.reason})` : ''}</Tag>;
+                                          }
+                                        },
+                                        {
+                                          title: 'Đơn giá',
+                                          dataIndex: 'rate',
+                                          key: 'rate',
+                                          align: 'right',
+                                          render: (v) => formatCurrency(Number(v))
+                                        },
+                                        {
+                                          title: 'Thành tiền',
+                                          dataIndex: 'amount',
+                                          key: 'amount',
+                                          align: 'right',
+                                          render: (v) => <Text strong style={{ color: v > 0 ? '#10b981' : 'var(--text-muted)' }}>{formatCurrency(Number(v))}</Text>
+                                        }
+                                      ]}
+                                    />
+                                  </div>
+                                );
+                              }
+                            }}
+                          />
+                        );
+                      })()}
                     </div>
                   ))}
                 </Panel>
