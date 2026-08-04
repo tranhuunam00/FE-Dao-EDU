@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, InputNumber, DatePicker, Table, Typography, Button, App, Tabs } from 'antd';
-import { EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../../services/api';
 
@@ -376,8 +376,6 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
       // For mock ids in tests
       return b.id.localeCompare(a.id);
     }
-    // Compare dates
-    const timeA = (p: PricingData) => p.id ? p.id.split('-').pop() : ''; // fallback
     // If createdAt exists, compare by createdAt timestamp DESC
     const getTimestamp = (p: PricingData) => {
       if ((p as any).createdAt) return new Date((p as any).createdAt).getTime();
