@@ -118,25 +118,26 @@ const CourseDetailInner: React.FC = () => {
       title: 'Level',
       dataIndex: 'levelName',
       key: 'levelName',
+      width: 220,
       render: (text: string) => <Text strong style={{ color: '#a5b4fc' }}>{text}</Text>,
     },
     {
       title: 'Level Code',
       dataIndex: 'levelCode',
       key: 'levelCode',
-      width: 120,
+      width: 110,
     },
     {
       title: 'Tổng giờ',
       dataIndex: 'totalHours',
       key: 'totalHours',
-      width: 100,
+      width: 90,
       render: (v: number) => `${Number(v).toLocaleString()}`,
     },
     {
       title: 'Giá học viên hiện hành',
       key: 'currentPrice',
-      width: 180,
+      width: 160,
       render: (_: any, record: LevelData) => {
         const todayStr = dayjs().format('YYYY-MM-DD');
         const rate = getActiveRate(record.pricing, todayStr, 'pricePerSession');
@@ -148,7 +149,7 @@ const CourseDetailInner: React.FC = () => {
     {
       title: 'Lương giáo viên hiện hành',
       key: 'currentWage',
-      width: 180,
+      width: 160,
       render: (_: any, record: LevelData) => {
         const todayStr = dayjs().format('YYYY-MM-DD');
         const rate = getActiveRate(record.pricing, todayStr, 'teacherWagePerSession');
@@ -160,7 +161,7 @@ const CourseDetailInner: React.FC = () => {
     {
       title: 'Lương trợ giảng hiện hành',
       key: 'currentTaWage',
-      width: 180,
+      width: 160,
       render: (_: any, record: LevelData) => {
         const todayStr = dayjs().format('YYYY-MM-DD');
         const rate = getActiveRate(record.pricing, todayStr, 'taWagePerSession');
@@ -172,7 +173,7 @@ const CourseDetailInner: React.FC = () => {
     {
       title: 'Hành động',
       key: 'action',
-      width: 320,
+      width: 260,
       render: (_: any, record: LevelData) => {
         const hasClasses = (record.classCount || 0) > 0;
         const hasSessions = (record.sessionCount || 0) > 0;
