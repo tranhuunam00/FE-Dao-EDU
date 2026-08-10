@@ -47,6 +47,7 @@ interface StudentData {
   userId?: string;
   loginEmail?: string;
   siblings?: string[];
+  isSyncedToDevice?: boolean;
 }
 
 const ResizableTitle = (props: any) => {
@@ -86,6 +87,21 @@ const StudentListInner: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+
+  const [syncingId, setSyncingId] = useState<string | null>(null);
+
+  const handleSyncStudent = async (student: StudentData) => {
+    setSyncingId(student.id);
+    try {
+      await api.post(`/timekeeping/sync-student/${student.id}`);
+      message.success(`Đã đồng bộ tài khoản học viên ${student.lastName} ${student.firstName} lên thiết bị.`);
+      fetchStudents();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Đồng bộ học viên thất bại.');
+    } finally {
+      setSyncingId(null);
+    }
+  };
   
   // Filter states
   const [search, setSearch] = useState('');
@@ -105,7 +121,8 @@ const StudentListInner: React.FC = () => {
       province: 160,
       status: 140,
       primaryAddress: 300,
-      createdAt: 120
+      createdAt: 120,
+      timekeepingSync: 140
     };
   });
 
@@ -177,15 +194,28 @@ const StudentListInner: React.FC = () => {
       key: 'studentId',
       width: colWidths.studentId,
       render: (text: string, record: StudentData) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Text strong style={{ color: 'var(--primary)' }}>{text}</Text>
+          
+          {/* Chỉ báo tài khoản hệ thống */}
           {record.userId ? (
             <Tooltip title="Đã có tài khoản đăng nhập">
               <CheckCircleFilled style={{ color: '#10b981' }} />
             </Tooltip>
           ) : (
-            <Tooltip title="Chưa có tài khoản">
+            <Tooltip title="Chưa có tài khoản đăng nhập">
               <CloseCircleFilled style={{ color: '#6b7280' }} />
+            </Tooltip>
+          )}
+
+          {/* Chỉ báo máy chấm công */}
+          {record.isSyncedToDevice ? (
+            <Tooltip title="Đã đồng bộ tài khoản lên máy chấm công">
+              <CheckCircleFilled style={{ color: '#3b82f6' }} />
+            </Tooltip>
+          ) : (
+            <Tooltip title="Chưa đồng bộ tài khoản lên máy chấm công">
+              <CloseCircleFilled style={{ color: '#ef4444' }} />
             </Tooltip>
           )}
         </div>
@@ -281,6 +311,34 @@ const StudentListInner: React.FC = () => {
       key: 'createdAt',
       width: colWidths.createdAt,
       render: (text: string) => dayjs(text).format('DD/MM/YYYY'),
+    },
+    {
+      title: 'Máy chấm công',
+      key: 'timekeepingSync',
+      width: colWidths.timekeepingSync || 140,
+      render: (_: any, record: StudentData) => {
+        if (record.isSyncedToDevice) {
+          return (
+            <Tag color="success" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <CheckCircleFilled /> Đã đồng bộ
+            </Tag>
+          );
+        }
+        return (
+          <Button
+            type="primary"
+            size="small"
+            style={{ fontSize: '11px', background: 'var(--primary)', border: 'none' }}
+            loading={syncingId === record.id}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSyncStudent(record);
+            }}
+          >
+            Đồng bộ
+          </Button>
+        );
+      },
     },
   ].map(col => ({
     ...col,
