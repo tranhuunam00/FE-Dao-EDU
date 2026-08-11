@@ -16,7 +16,6 @@ import {
   Descriptions,
   Col,
   Row,
-  Switch,
   Select,
 } from 'antd';
 import {
@@ -43,6 +42,14 @@ interface StudentInfo {
   lastName: string;
 }
 
+interface MatchedSessionInfo {
+  id: string;
+  className: string;
+  startTime: string;
+  endTime: string;
+  date: string;
+}
+
 interface TimekeepingLog {
   id: string;
   studentId: string;
@@ -51,6 +58,7 @@ interface TimekeepingLog {
   verifyMethod: string;
   rawPayload?: any;
   student?: StudentInfo;
+  matchedSessions?: MatchedSessionInfo[];
 }
 
 interface TimekeepingDevice {
@@ -78,7 +86,6 @@ export default function TimekeepingLogs() {
   const [verifyMethod, setVerifyMethod] = useState<string | undefined>(undefined);
   const [matchStatus, setMatchStatus] = useState<'all' | 'matched' | 'unmatched'>('all');
   const [selectedLog, setSelectedLog] = useState<TimekeepingLog | null>(null);
-  const [isAutoReconcile, setIsAutoReconcile] = useState(false);
 
   // Devices States
   const [devices, setDevices] = useState<TimekeepingDevice[]>([]);
@@ -132,32 +139,7 @@ export default function TimekeepingLogs() {
     }
   }, [activeTab, fetchLogs, fetchDevices]);
 
-  // 3. Periodic Auto Reconcile (5 minutes)
-  useEffect(() => {
-    let timer: any;
-    if (isAutoReconcile) {
-      const runAutoReconcile = async () => {
-        const todayStr = dayjs().format('YYYY-MM-DD');
-        try {
-          const res = await api.post('/timekeeping/manual-reconcile', {
-            date: todayStr,
-          });
-          message.success(`[Tự động] Đối soát ngày ${todayStr} hoàn tất. Đã xử lý ${res.data.eventsProcessed} sự kiện.`);
-          void fetchLogs();
-        } catch (err: any) {
-          console.error('Tự động đối soát định kỳ thất bại:', err);
-        }
-      };
 
-      // Run once after 5 minutes, and then every 5 minutes
-      timer = setInterval(runAutoReconcile, 300000);
-    }
-    return () => {
-      if (timer) {
-        clearInterval(timer);
-      }
-    };
-  }, [isAutoReconcile, fetchLogs, message]);
 
   // Reset filter logs
   const handleResetFilters = () => {
@@ -251,6 +233,24 @@ export default function TimekeepingLogs() {
       dataIndex: 'verifyMethod',
       key: 'verifyMethod',
       render: (val) => getVerifyTag(val),
+    },
+    {
+      title: 'Ca học đối khớp',
+      key: 'matchedSessions',
+      render: (_, row) => {
+        if (!row.matchedSessions || row.matchedSessions.length === 0) {
+          return <Text type="secondary" style={{ fontSize: 11 }}>Không khớp ca học</Text>;
+        }
+        return (
+          <Space direction="vertical" size={2} style={{ display: 'flex' }}>
+            {row.matchedSessions.map((s) => (
+              <Tag color="cyan" key={s.id} style={{ display: 'inline-block', margin: '2px 0' }}>
+                <span style={{ fontWeight: 600 }}>{s.className}</span> ({s.startTime} - {s.endTime})
+              </Tag>
+            ))}
+          </Space>
+        );
+      },
     },
     {
       title: 'Nhật ký gốc (Payload)',
@@ -431,26 +431,7 @@ export default function TimekeepingLogs() {
                       </Button>
                     </Col>
                   </Row>
-                  
-                  <Row gutter={[12, 12]} align="middle" style={{ marginTop: 12 }}>
-                    <Col span={24} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Switch 
-                        checked={isAutoReconcile} 
-                        onChange={setIsAutoReconcile} 
-                        checkedChildren="Tự động đối soát: Bật"
-                        unCheckedChildren="Tự động đối soát: Tắt"
-                      />
-                      {isAutoReconcile ? (
-                        <Text type="secondary" style={{ fontSize: 12 }}>
-                          (Hệ thống đang tự động kéo sự kiện và làm mới bảng sau mỗi 5 phút)
-                        </Text>
-                      ) : (
-                        <Text type="secondary" style={{ fontSize: 12 }}>
-                          (Bật để tự động kéo sự kiện chấm công và cập nhật dữ liệu sau mỗi 5 phút)
-                        </Text>
-                      )}
-                    </Col>
-                  </Row>
+
                 </Card>
 
                 <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)' }}>
