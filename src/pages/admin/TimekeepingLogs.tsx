@@ -16,12 +16,10 @@ import {
   Descriptions,
   Col,
   Row,
-  Tooltip,
   Switch,
 } from 'antd';
 import {
   SearchOutlined,
-  SyncOutlined,
   SettingOutlined,
   ReloadOutlined,
   PlusOutlined,
@@ -65,7 +63,7 @@ interface TimekeepingDevice {
 }
 
 export default function TimekeepingLogs() {
-  const { message, modal } = App.useApp();
+  const { message } = App.useApp();
   const [activeTab, setActiveTab] = useState('1');
 
   // Logs States
@@ -84,9 +82,6 @@ export default function TimekeepingLogs() {
   const [isDeviceModalOpen, setIsDeviceModalOpen] = useState(false);
   const [editingDevice, setEditingDevice] = useState<TimekeepingDevice | null>(null);
   const [deviceForm] = Form.useForm();
-
-  // Action Pending State
-  const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
 
   // 1. Fetch Logs
   const fetchLogs = useCallback(async () => {
@@ -162,110 +157,6 @@ export default function TimekeepingLogs() {
     setLogsSearch('');
     setLogsDate(undefined);
     setLogsPage(1);
-  };
-
-  // Webhook Configuration Trigger
-  const handleSetupWebhook = (device: TimekeepingDevice) => {
-    // Đọc IP và Port hiện tại từ cửa sổ trình duyệt làm giá trị gợi ý
-    const currentHost = window.location.hostname;
-    const currentPort = 5005; // Cổng mặc định của API backend
-
-    let serverIpInput = currentHost === 'localhost' ? '192.168.22.102' : currentHost;
-    let serverPortInput = currentPort;
-
-    modal.confirm({
-      title: `Cấu hình Webhook cho ${device.name}`,
-      content: (
-        <div style={{ marginTop: 12 }}>
-          <Text type="secondary">Địa chỉ máy chủ API nhận callback từ thiết bị:</Text>
-          <div style={{ marginTop: 8 }}>
-            <label style={{ fontSize: 11, fontWeight: 600 }}>IP máy chủ Backend:</label>
-            <Input 
-              id="webhook-server-ip" 
-              defaultValue={serverIpInput} 
-              style={{ marginTop: 4, marginBottom: 8 }} 
-              onChange={(e) => { serverIpInput = e.target.value; }}
-            />
-            <label style={{ fontSize: 11, fontWeight: 600 }}>Cổng (Port):</label>
-            <Input 
-              id="webhook-server-port" 
-              type="number" 
-              defaultValue={serverPortInput} 
-              style={{ marginTop: 4 }} 
-              onChange={(e) => { serverPortInput = parseInt(e.target.value, 10); }}
-            />
-          </div>
-        </div>
-      ),
-      onOk: async () => {
-        const key = `webhook-${device.id}`;
-        setActionLoading(prev => ({ ...prev, [key]: true }));
-        try {
-          await api.post(`/timekeeping/setup-webhook/${device.id}`, {
-            serverIp: serverIpInput,
-            serverPort: serverPortInput,
-          });
-          message.success(`Đã cấu hình máy chủ Webhook thành công lên ${device.name}.`);
-          fetchDevices();
-        } catch (err: any) {
-          message.error(err.response?.data?.message || 'Cấu hình Webhook thiết bị thất bại.');
-        } finally {
-          setActionLoading(prev => ({ ...prev, [key]: false }));
-        }
-      }
-    });
-  };
-
-  // Sync Device Time Trigger
-  const handleSyncTime = async (device: TimekeepingDevice) => {
-    const key = `time-${device.id}`;
-    setActionLoading(prev => ({ ...prev, [key]: true }));
-    try {
-      await api.post(`/timekeeping/sync-time/${device.id}`);
-      message.success(`Đã đồng bộ giờ của máy ${device.name} khớp chuẩn máy chủ.`);
-      fetchDevices();
-    } catch (err: any) {
-      message.error(err.response?.data?.message || 'Đồng bộ giờ thiết bị thất bại.');
-    } finally {
-      setActionLoading(prev => ({ ...prev, [key]: false }));
-    }
-  };
-
-  // Reconcile Logs Manual
-  const handleReconcileManual = (device: TimekeepingDevice) => {
-    let selectDate = dayjs().format('YYYY-MM-DD');
-    modal.confirm({
-      title: `Đối soát bù dữ liệu ${device.name}`,
-      content: (
-        <div style={{ marginTop: 12 }}>
-          <Text type="secondary">Nhập ngày cần quét bù sự kiện điểm danh từ bộ nhớ thiết bị:</Text>
-          <div style={{ marginTop: 8 }}>
-            <DatePicker 
-              style={{ width: '100%' }} 
-              defaultValue={dayjs()} 
-              onChange={(date) => { 
-                if (date) selectDate = date.format('YYYY-MM-DD'); 
-              }} 
-            />
-          </div>
-        </div>
-      ),
-      onOk: async () => {
-        const key = `reconcile-${device.id}`;
-        setActionLoading(prev => ({ ...prev, [key]: true }));
-        try {
-          const res = await api.post('/timekeeping/manual-reconcile', {
-            date: selectDate,
-          });
-          message.success(`Đối soát ngày ${selectDate} hoàn tất. Đã xử lý ${res.data.eventsProcessed} sự kiện.`);
-          fetchLogs();
-        } catch (err: any) {
-          message.error(err.response?.data?.message || 'Đối soát bù dữ liệu thất bại.');
-        } finally {
-          setActionLoading(prev => ({ ...prev, [key]: false }));
-        }
-      }
-    });
   };
 
   // CRUD Devices
