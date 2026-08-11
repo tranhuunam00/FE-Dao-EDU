@@ -17,6 +17,7 @@ import {
   Col,
   Row,
   Switch,
+  Select,
 } from 'antd';
 import {
   SearchOutlined,
@@ -72,7 +73,10 @@ export default function TimekeepingLogs() {
   const [logsPage, setLogsPage] = useState(1);
   const [logsTotal, setLogsTotal] = useState(0);
   const [logsSearch, setLogsSearch] = useState('');
-  const [logsDate, setLogsDate] = useState<string | undefined>(undefined);
+  const [startDate, setStartDate] = useState<string | undefined>(undefined);
+  const [endDate, setEndDate] = useState<string | undefined>(undefined);
+  const [verifyMethod, setVerifyMethod] = useState<string | undefined>(undefined);
+  const [matchStatus, setMatchStatus] = useState<'all' | 'matched' | 'unmatched'>('all');
   const [selectedLog, setSelectedLog] = useState<TimekeepingLog | null>(null);
   const [isAutoReconcile, setIsAutoReconcile] = useState(false);
 
@@ -92,7 +96,10 @@ export default function TimekeepingLogs() {
           page: logsPage,
           limit: 10,
           search: logsSearch.trim() || undefined,
-          date: logsDate || undefined,
+          startDate: startDate || undefined,
+          endDate: endDate || undefined,
+          verifyMethod: verifyMethod || undefined,
+          matchStatus: matchStatus !== 'all' ? matchStatus : undefined,
         },
       });
       setLogs(response.data.logs || []);
@@ -102,7 +109,7 @@ export default function TimekeepingLogs() {
     } finally {
       setLogsLoading(false);
     }
-  }, [logsPage, logsSearch, logsDate, message]);
+  }, [logsPage, logsSearch, startDate, endDate, verifyMethod, matchStatus, message]);
 
   // 2. Fetch Devices
   const fetchDevices = useCallback(async () => {
@@ -155,7 +162,10 @@ export default function TimekeepingLogs() {
   // Reset filter logs
   const handleResetFilters = () => {
     setLogsSearch('');
-    setLogsDate(undefined);
+    setStartDate(undefined);
+    setEndDate(undefined);
+    setVerifyMethod(undefined);
+    setMatchStatus('all');
     setLogsPage(1);
   };
 
@@ -347,7 +357,7 @@ export default function TimekeepingLogs() {
                   bodyStyle={{ padding: '8px 12px' }}
                 >
                   <Row gutter={[12, 12]} align="middle">
-                    <Col xs={24} md={8}>
+                    <Col xs={24} md={6}>
                       <Input
                         placeholder="Tìm theo Mã HS, Họ và tên..."
                         prefix={<SearchOutlined style={{ color: '#6b7280' }} />}
@@ -357,18 +367,57 @@ export default function TimekeepingLogs() {
                         allowClear
                       />
                     </Col>
-                    <Col xs={24} md={8}>
-                      <DatePicker
-                        placeholder="Lọc theo ngày"
+                    <Col xs={24} md={6}>
+                      <DatePicker.RangePicker
+                        placeholder={['Từ ngày', 'Đến ngày']}
                         style={{ width: '100%' }}
-                        value={logsDate ? dayjs(logsDate) : null}
-                        onChange={(date) => {
-                          setLogsDate(date ? date.format('YYYY-MM-DD') : undefined);
+                        value={startDate && endDate ? [dayjs(startDate), dayjs(endDate)] : null}
+                        onChange={(dates) => {
+                          if (dates && dates[0] && dates[1]) {
+                            setStartDate(dates[0].format('YYYY-MM-DD'));
+                            setEndDate(dates[1].format('YYYY-MM-DD'));
+                          } else {
+                            setStartDate(undefined);
+                            setEndDate(undefined);
+                          }
                           setLogsPage(1);
                         }}
+                        format="DD/MM/YYYY"
                       />
                     </Col>
-                    <Col xs={24} md={8} style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                    <Col xs={12} md={4}>
+                      <Select
+                        placeholder="Hình thức quét"
+                        style={{ width: '100%' }}
+                        value={verifyMethod}
+                        onChange={(val) => {
+                          setVerifyMethod(val);
+                          setLogsPage(1);
+                        }}
+                        allowClear
+                      >
+                        <Select.Option value="face">Khuôn mặt</Select.Option>
+                        <Select.Option value="fingerprint">Vân tay</Select.Option>
+                        <Select.Option value="card">Thẻ từ</Select.Option>
+                        <Select.Option value="pin">Mật khẩu PIN</Select.Option>
+                      </Select>
+                    </Col>
+                    <Col xs={12} md={4}>
+                      <Select
+                        placeholder="Trạng thái khớp"
+                        style={{ width: '100%' }}
+                        value={matchStatus}
+                        onChange={(val) => {
+                          setMatchStatus(val);
+                          setLogsPage(1);
+                        }}
+                      >
+                        <Select.Option value="all">Tất cả trạng thái</Select.Option>
+                        <Select.Option value="matched">Đã khớp học sinh</Select.Option>
+                        <Select.Option value="unmatched">Chưa khớp học sinh</Select.Option>
+                      </Select>
+                    </Col>
+                    <Col xs={24} md={4} style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                       <Button icon={<ReloadOutlined />} onClick={handleResetFilters}>
                         Reset
                       </Button>
@@ -378,7 +427,7 @@ export default function TimekeepingLogs() {
                         onClick={fetchLogs}
                         style={{ background: 'var(--primary)', border: 'none' }}
                       >
-                        Lọc nhật ký
+                        Lọc
                       </Button>
                     </Col>
                   </Row>
