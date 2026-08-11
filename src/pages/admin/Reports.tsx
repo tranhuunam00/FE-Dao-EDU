@@ -15,6 +15,7 @@ import {
 import dayjs from 'dayjs';
 import * as XLSX from 'xlsx-js-style';
 import api from '../../services/api';
+import { calculateSalaryBreakdown } from '../../utils/salary';
 
 const compareVietnameseNames = (nameA: string, nameB: string) => {
   const getSortKey = (fullName: string) => {
@@ -279,27 +280,27 @@ const SalaryTab: React.FC<{ data: any; loading: boolean }> = ({ data, loading })
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={12} md={5}>
           <Card className="glass-panel" style={cardStyle}>
-            <Statistic title="Lương GV chính" value={summary.totalMainTeacher} formatter={(v) => fmtVND(Number(v))} prefix={<TeamOutlined />} />
+            <Statistic title="Lương GV chính (Gross)" value={summary.totalMainTeacher} formatter={(v) => fmtVND(Number(v))} prefix={<TeamOutlined />} />
           </Card>
         </Col>
         <Col xs={12} md={5}>
           <Card className="glass-panel" style={cardStyle}>
-            <Statistic title="Lương Trợ giảng" value={summary.totalTA} formatter={(v) => fmtVND(Number(v))} prefix={<TeamOutlined />} valueStyle={{ color: '#8b5cf6' }} />
+            <Statistic title="Lương Trợ giảng (Gross)" value={summary.totalTA} formatter={(v) => fmtVND(Number(v))} prefix={<TeamOutlined />} valueStyle={{ color: '#8b5cf6' }} />
           </Card>
         </Col>
         <Col xs={12} md={5}>
           <Card className="glass-panel" style={cardStyle}>
-            <Statistic title="Tổng chi" value={summary.totalExpense} formatter={(v) => fmtVND(Number(v))} prefix={<DollarOutlined />} valueStyle={{ color: '#ef4444' }} />
+            <Statistic title="Tổng chi (Gross)" value={summary.totalExpense} formatter={(v) => fmtVND(Number(v))} prefix={<DollarOutlined />} valueStyle={{ color: '#ef4444' }} />
           </Card>
         </Col>
         <Col xs={12} md={5}>
           <Card className="glass-panel" style={cardStyle}>
-            <Statistic title="Đã chi" value={summary.totalPaid} formatter={(v) => fmtVND(Number(v))} prefix={<CheckCircleOutlined />} valueStyle={{ color: '#10b981' }} />
+            <Statistic title="Đã chi (Thực trả)" value={calculateSalaryBreakdown(summary.totalPaid).net} formatter={(v) => fmtVND(Number(v))} prefix={<CheckCircleOutlined />} valueStyle={{ color: '#10b981' }} />
           </Card>
         </Col>
         <Col xs={12} md={4}>
           <Card className="glass-panel" style={cardStyle}>
-            <Statistic title="Chưa chi" value={summary.totalUnpaid} formatter={(v) => fmtVND(Number(v))} prefix={<WarningOutlined />} valueStyle={{ color: '#f59e0b' }} />
+            <Statistic title="Chưa chi (Cần chi)" value={calculateSalaryBreakdown(summary.totalUnpaid).net} formatter={(v) => fmtVND(Number(v))} prefix={<WarningOutlined />} valueStyle={{ color: '#f59e0b' }} />
           </Card>
         </Col>
       </Row>
@@ -332,8 +333,29 @@ const SalaryTab: React.FC<{ data: any; loading: boolean }> = ({ data, loading })
             { title: 'Họ tên', dataIndex: 'teacherName', key: 'teacherName', width: 200 },
             { title: 'Loại', dataIndex: 'type', key: 'type', width: 150, render: (v: string) => <Tag color={v === 'Teaching Assistant' ? 'purple' : 'blue'}>{v === 'Teaching Assistant' ? 'Trợ giảng' : 'Giáo viên'}</Tag> },
             { title: 'Số buổi', dataIndex: 'sessions', key: 'sessions', width: 90, align: 'center' },
-            { title: 'Tổng lương', dataIndex: 'totalAmount', key: 'totalAmount', width: 160, align: 'right', render: (v: number) => fmtVND(v) },
-            { title: 'Đã chi', dataIndex: 'paidAmount', key: 'paidAmount', width: 160, align: 'right', render: (v: number) => fmtVND(v) },
+            { title: 'Tổng lương (Gross)', dataIndex: 'totalAmount', key: 'totalAmount', width: 150, align: 'right' as const, render: (v: number) => fmtVND(v) },
+            {
+              title: 'Thuế TNCN (10%)',
+              key: 'taxAmount',
+              width: 130,
+              align: 'right' as const,
+              render: (_: any, r: any) => fmtVND(calculateSalaryBreakdown(r.totalAmount).tax)
+            },
+            {
+              title: 'Thực nhận (Net)',
+              key: 'netAmount',
+              width: 150,
+              align: 'right' as const,
+              render: (_: any, r: any) => <Text strong style={{ color: '#f59e0b' }}>{fmtVND(calculateSalaryBreakdown(r.totalAmount).net)}</Text>
+            },
+            {
+              title: 'Đã chi (Thực trả)',
+              dataIndex: 'paidAmount',
+              key: 'paidAmount',
+              width: 150,
+              align: 'right' as const,
+              render: (v: number) => fmtVND(calculateSalaryBreakdown(v).net)
+            },
             { title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 120, render: (v: string) => <Tag color={v === 'Paid' ? 'green' : 'orange'}>{v === 'Paid' ? 'Đã chi' : 'Chưa chi'}</Tag> },
           ]}
         />

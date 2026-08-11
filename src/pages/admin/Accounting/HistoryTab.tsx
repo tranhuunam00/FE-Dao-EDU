@@ -3,6 +3,7 @@ import { Card, Row, Col, Button, Table, Typography, Space, Tag, Spin, App, Modal
 import { LockOutlined, UnlockOutlined, CheckCircleOutlined, DeleteOutlined, CloseCircleOutlined, ArrowLeftOutlined, DownloadOutlined, QrcodeOutlined, PrinterOutlined, CopyOutlined, ThunderboltOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../../services/api';
+import { calculateSalaryBreakdown } from '../../../utils/salary';
 
 const { Text } = Typography;
 
@@ -511,7 +512,9 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
               </Col>
               <Col xs={12} md={6}>
                 <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
-                  <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 4 }}>Tổng tiền trong kỳ</div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 4 }}>
+                    {periodDetail.period.type === 'tuition' ? 'Tổng tiền trong kỳ' : 'Tổng lương Gross'}
+                  </div>
                   <div style={{ color: '#38bdf8', fontSize: 20, fontWeight: 700 }}>
                     {periodDetail.orders.reduce((sum: number, o: any) => sum + o.totalAmount, 0).toLocaleString('vi-VN')} ₫
                   </div>
@@ -520,20 +523,28 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
               <Col xs={12} md={6}>
                 <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
                   <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 4 }}>
-                    {periodDetail.period.type === 'tuition' ? 'Đã thu tiền' : 'Đã chi trả'}
+                    {periodDetail.period.type === 'tuition' ? 'Đã thu tiền' : 'Đã chi trả (Thực trả)'}
                   </div>
                   <div style={{ color: '#10b981', fontSize: 20, fontWeight: 700 }}>
-                    {periodDetail.orders.reduce((sum: number, o: any) => sum + o.paidAmount, 0).toLocaleString('vi-VN')} ₫
+                    {(() => {
+                      const total = periodDetail.orders.reduce((sum: number, o: any) => sum + o.paidAmount, 0);
+                      const displayTotal = periodDetail.period.type === 'salary' ? calculateSalaryBreakdown(total).net : total;
+                      return `${displayTotal.toLocaleString('vi-VN')} ₫`;
+                    })()}
                   </div>
                 </Card>
               </Col>
               <Col xs={12} md={6}>
                 <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
                   <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 4 }}>
-                    {periodDetail.period.type === 'tuition' ? 'Chưa thu' : 'Chưa chi'}
+                    {periodDetail.period.type === 'tuition' ? 'Chưa thu' : 'Chưa chi (Cần chi)'}
                   </div>
                   <div style={{ color: '#f87171', fontSize: 20, fontWeight: 700 }}>
-                    {periodDetail.orders.reduce((sum: number, o: any) => sum + Math.max(0, o.totalAmount - o.paidAmount), 0).toLocaleString('vi-VN')} ₫
+                    {(() => {
+                      const total = periodDetail.orders.reduce((sum: number, o: any) => sum + Math.max(0, o.totalAmount - o.paidAmount), 0);
+                      const displayTotal = periodDetail.period.type === 'salary' ? calculateSalaryBreakdown(total).net : total;
+                      return `${displayTotal.toLocaleString('vi-VN')} ₫`;
+                    })()}
                   </div>
                 </Card>
               </Col>
@@ -635,6 +646,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                     dataIndex: 'code',
                     key: 'code',
                     width: 110,
+                    fixed: 'left' as const,
                     render: (v: string) => <Text style={{ color: '#818cf8', fontWeight: 600 }}>{v}</Text>
                   },
                   {
@@ -642,6 +654,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                     dataIndex: 'name',
                     key: 'name',
                     width: 220,
+                    fixed: 'left' as const,
                     render: (v: string, r: any) => (
                       <div>
                         <Text style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{v}</Text>
@@ -650,21 +663,49 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                     )
                   },
                   { title: 'SĐT', dataIndex: 'mobile', key: 'mobile', width: 130, render: (v: string) => <Text type="secondary">{v}</Text> },
+                  ...(periodDetail.period.type === 'tuition' ? [
+                    {
+                      title: 'Tổng số tiền',
+                      dataIndex: 'totalAmount',
+                      key: 'totalAmount',
+                      width: 150,
+                      align: 'right' as const,
+                      render: (v: number) => <Text style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{v.toLocaleString('vi-VN')} ₫</Text>
+                    }
+                  ] : [
+                    {
+                      title: 'Tổng lương (Gross)',
+                      dataIndex: 'totalAmount',
+                      key: 'totalAmount',
+                      width: 150,
+                      align: 'right' as const,
+                      render: (v: number) => <Text style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{v.toLocaleString('vi-VN')} ₫</Text>
+                    },
+                    {
+                      title: 'Thuế TNCN (10%)',
+                      key: 'taxAmount',
+                      width: 130,
+                      align: 'right' as const,
+                      render: (_: any, r: any) => <Text type="secondary">-{calculateSalaryBreakdown(r.totalAmount).tax.toLocaleString('vi-VN')} ₫</Text>
+                    },
+                    {
+                      title: 'Thực nhận (Net)',
+                      key: 'netAmount',
+                      width: 150,
+                      align: 'right' as const,
+                      render: (_: any, r: any) => <Text strong style={{ color: '#f59e0b' }}>{calculateSalaryBreakdown(r.totalAmount).net.toLocaleString('vi-VN')} ₫</Text>
+                    }
+                  ]),
                   {
-                    title: 'Tổng số tiền',
-                    dataIndex: 'totalAmount',
-                    key: 'totalAmount',
-                    width: 150,
-                    align: 'right' as const,
-                    render: (v: number) => <Text style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{v.toLocaleString('vi-VN')} ₫</Text>
-                  },
-                  {
-                    title: periodDetail.period.type === 'tuition' ? 'Đã thu' : 'Đã chi',
+                    title: periodDetail.period.type === 'tuition' ? 'Đã thu' : 'Đã chi (Thực trả)',
                     dataIndex: 'paidAmount',
                     key: 'paidAmount',
                     width: 150,
                     align: 'right' as const,
-                    render: (v: number) => <Text style={{ color: v > 0 ? '#10b981' : 'var(--text-muted)' }}>{v.toLocaleString('vi-VN')} ₫</Text>
+                    render: (v: number) => {
+                      const displayAmount = periodDetail.period.type === 'salary' ? calculateSalaryBreakdown(v).net : v;
+                      return <Text style={{ color: v > 0 ? '#10b981' : 'var(--text-muted)' }}>{displayAmount.toLocaleString('vi-VN')} ₫</Text>;
+                    }
                   },
                   {
                     title: 'Trạng thái',

@@ -3,6 +3,7 @@ import { Card, Row, Col, DatePicker, Button, Table, Typography, Space, Tag, Inpu
 import { SearchOutlined, TeamOutlined, DownloadOutlined, CheckSquareOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../../services/api';
+import { calculateSalaryBreakdown } from '../../../utils/salary';
 
 const { Text } = Typography;
 
@@ -233,7 +234,37 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
                 { title: 'SĐT', dataIndex: 'mobile', key: 'mobile', width: 130, render: (v: string) => <Text type="secondary">{v}</Text> },
                 { title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 130, render: (v: string) => <Tag color={statusColor[v] || 'default'}>{statusLabel[v] || v}</Tag> },
                 { title: 'Số buổi', dataIndex: 'totalSessions', key: 'totalSessions', width: 100, align: 'center', render: (v: number) => <Text style={{ color: '#10b981', fontWeight: 600 }}>{v}</Text> },
-                { title: 'Lương cần trả', dataIndex: 'totalAmount', key: 'totalAmount', width: 160, align: 'right', render: (v: number) => <Text strong style={{ color: '#f59e0b', fontSize: 14 }}>{v.toLocaleString('vi-VN')} ₫</Text> },
+                {
+                  title: 'Tổng lương (Gross)',
+                  dataIndex: 'totalAmount',
+                  key: 'totalAmount',
+                  width: 150,
+                  align: 'right' as const,
+                  render: (v: number, r: any) => {
+                    const amount = r.adjustedAmount ?? v;
+                    return <Text style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{amount.toLocaleString('vi-VN')} ₫</Text>;
+                  }
+                },
+                {
+                  title: 'Thuế TNCN (10%)',
+                  key: 'taxAmount',
+                  width: 130,
+                  align: 'right' as const,
+                  render: (_: any, r: any) => {
+                    const amount = r.adjustedAmount ?? r.totalAmount;
+                    return <Text type="secondary">-{calculateSalaryBreakdown(amount).tax.toLocaleString('vi-VN')} ₫</Text>;
+                  }
+                },
+                {
+                  title: 'Thực nhận (Net)',
+                  key: 'netAmount',
+                  width: 150,
+                  align: 'right' as const,
+                  render: (_: any, r: any) => {
+                    const amount = r.adjustedAmount ?? r.totalAmount;
+                    return <Text strong style={{ color: '#f59e0b', fontSize: 14 }}>{calculateSalaryBreakdown(amount).net.toLocaleString('vi-VN')} ₫</Text>;
+                  }
+                },
                 {
                   title: 'Điều chỉnh trước chốt',
                   key: 'adjustment',
