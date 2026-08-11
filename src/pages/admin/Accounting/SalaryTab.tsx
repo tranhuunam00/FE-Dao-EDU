@@ -266,25 +266,33 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
                   }
                 },
                 {
-                  title: 'Điều chỉnh trước chốt',
+                  title: 'Điều chỉnh thực nhận',
                   key: 'adjustment',
                   width: 320,
-                  render: (_, r: any) => (
-                    <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                      <InputNumber
-                        min={0}
-                        precision={0}
-                        value={r.adjustedAmount ?? r.totalAmount}
-                        onChange={(value) => updatePreviewRow(r.teacherId, { adjustedAmount: value ?? r.totalAmount })}
-                        style={{ width: '100%' }}
-                      />
-                      <Input
-                        placeholder="Lý do nếu thay đổi số tiền"
-                        value={r.adjustmentReason}
-                        onChange={(event) => updatePreviewRow(r.teacherId, { adjustmentReason: event.target.value })}
-                      />
-                    </Space>
-                  ),
+                  render: (_, r: any) => {
+                    const currentGross = r.adjustedAmount ?? r.totalAmount;
+                    const currentNet = Math.round(currentGross * 0.9);
+                    return (
+                      <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                        <InputNumber
+                          min={0}
+                          precision={0}
+                          value={currentNet}
+                          onChange={(value) => {
+                            const newNet = value ?? Math.round(r.totalAmount * 0.9);
+                            const newGross = Math.round(newNet / 0.9);
+                            updatePreviewRow(r.teacherId, { adjustedAmount: newGross });
+                          }}
+                          style={{ width: '100%' }}
+                        />
+                        <Input
+                          placeholder="Lý do nếu thay đổi số tiền"
+                          value={r.adjustmentReason}
+                          onChange={(event) => updatePreviewRow(r.teacherId, { adjustmentReason: event.target.value })}
+                        />
+                      </Space>
+                    );
+                  }
                 },
               ]}
             />
