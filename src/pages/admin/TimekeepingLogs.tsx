@@ -395,41 +395,11 @@ export default function TimekeepingLogs() {
       render: (val) => val ? dayjs(val).format('DD/MM/YYYY HH:mm:ss') : <Text type="secondary">Chưa thực hiện</Text>,
     },
     {
-      title: 'Thao tác nâng cao',
+      title: 'Thao tác',
       key: 'operations',
-      width: 320,
+      width: 90,
       render: (_, row) => (
         <Space size="small">
-          <Tooltip title="Đồng bộ giờ máy chấm công khớp giờ máy chủ">
-            <Button 
-              size="small" 
-              icon={<SyncOutlined spin={actionLoading[`time-${row.id}`]} />} 
-              onClick={() => handleSyncTime(row)}
-              loading={actionLoading[`time-${row.id}`]}
-            >
-              Giờ
-            </Button>
-          </Tooltip>
-          <Tooltip title="Đăng ký Webhook gửi lượt quẹt thẻ về API">
-            <Button 
-              size="small" 
-              icon={<SettingOutlined />} 
-              onClick={() => handleSetupWebhook(row)}
-              loading={actionLoading[`webhook-${row.id}`]}
-            >
-              Webhook
-            </Button>
-          </Tooltip>
-          <Tooltip title="Quét bù lịch sử điểm danh theo ngày tùy chọn">
-            <Button 
-              size="small" 
-              icon={<HistoryOutlined />} 
-              onClick={() => handleReconcileManual(row)}
-              loading={actionLoading[`reconcile-${row.id}`]}
-            >
-              Đối soát
-            </Button>
-          </Tooltip>
           <Button 
             size="small" 
             type="text" 
