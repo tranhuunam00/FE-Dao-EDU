@@ -143,12 +143,25 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
           {salaryPreviewData.length > 0 && (
             <Button
               icon={<DownloadOutlined />}
-              onClick={() => exportCSV(
-                salaryPreviewData,
-                `Danh_sach_luong_gv_${salaryMonth?.format('YYYY_MM')}.csv`,
-                ['Mã GV', 'Họ tên', 'SĐT', 'Trạng thái', 'Tổng lương (₫)'],
-                ['teacherCode', 'name', 'mobile', 'status', 'totalAmount']
-              )}
+              onClick={() => {
+                const mappedPreview = salaryPreviewData.map((item) => {
+                  const gross = item.adjustedAmount ?? item.totalAmount;
+                  const tax = gross * 0.1;
+                  const net = gross * 0.9;
+                  return {
+                    ...item,
+                    gross,
+                    tax,
+                    net,
+                  };
+                });
+                exportCSV(
+                  mappedPreview,
+                  `Danh_sach_luong_gv_${salaryMonth?.format('YYYY_MM')}.csv`,
+                  ['Mã GV', 'Họ tên', 'SĐT', 'Trạng thái', 'Tổng lương (Gross) (₫)', 'Thuế TNCN (10%) (₫)', 'Thực nhận (Net) (₫)'],
+                  ['teacherCode', 'name', 'mobile', 'status', 'gross', 'tax', 'net']
+                );
+              }}
               style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}
             >
               Xuất CSV

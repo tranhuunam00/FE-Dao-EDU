@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Form, Input, Select, DatePicker, Button, Card, Typography, Row, Col, Upload, Tabs, App, Space, Avatar
+  Form, Input, Select, DatePicker, Button, Card, Typography, Row, Col, Upload, Tabs, App, Space, Avatar, Checkbox
 } from 'antd';
 import { CameraOutlined, ArrowLeftOutlined, SaveOutlined, LockOutlined, UserOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import api from '../../services/api';
@@ -75,6 +75,7 @@ const CreateTeacherInner: React.FC = () => {
         status: values.status,
         loginEmail: values.loginEmail?.trim() || undefined,
         loginPassword: values.loginPassword || undefined,
+        hasCommissionSalary: values.hasCommissionSalary || false,
       };
 
       if (avatarBase64) {
@@ -184,6 +185,11 @@ const CreateTeacherInner: React.FC = () => {
                   <Option value="Suspended">Tạm nghỉ</Option>
                   <Option value="Resigned">Đã nghỉ việc</Option>
                 </Select>
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item name="hasCommissionSalary" valuePropName="checked" style={{ marginTop: '38px' }}>
+                <Checkbox>Tính lương lũy tiến theo doanh thu học viện</Checkbox>
               </Form.Item>
             </Col>
           </Row>

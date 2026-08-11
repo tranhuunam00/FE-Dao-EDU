@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Table, Input, Select, Button, Card, Tag, Typography, Row, Col, Tooltip, App
+  Table, Input, Select, Button, Card, Tag, Typography, Row, Col, Tooltip, App, Space
 } from 'antd';
 import {
   SearchOutlined,
@@ -30,6 +30,7 @@ interface TeacherData {
   province?: string;
   createdAt: string;
   userId?: string;
+  hasCommissionSalary?: boolean;
 }
 
 const TeacherListInner: React.FC = () => {
@@ -111,10 +112,14 @@ const TeacherListInner: React.FC = () => {
       dataIndex: 'type',
       key: 'type',
       width: '120px',
-      render: (type: string) => {
-        if (type === 'Teacher') return <Tag color="blue">Giáo viên</Tag>;
-        if (type === 'TeachingAssistant') return <Tag color="purple">Trợ giảng</Tag>;
-        return <Tag>{type}</Tag>;
+      render: (type: string, record: TeacherData) => {
+        const typeTag = type === 'Teacher' ? <Tag color="blue">Giáo viên</Tag> : (type === 'TeachingAssistant' ? <Tag color="purple">Trợ giảng</Tag> : <Tag>{type}</Tag>);
+        return (
+          <Space size={4}>
+            {typeTag}
+            {record.hasCommissionSalary && <Tag color="gold">Lũy tiến</Tag>}
+          </Space>
+        );
       },
     },
     {

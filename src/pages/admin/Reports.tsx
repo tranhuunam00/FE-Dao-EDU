@@ -324,7 +324,27 @@ const SalaryTab: React.FC<{ data: any; loading: boolean }> = ({ data, loading })
       </Row>
 
       <Card className="glass-panel" title="Chi tiết lương từng giáo viên" style={cardStyle}
-        extra={<Button icon={<DownloadOutlined />} size="small" onClick={() => exportCSV(byTeacher, 'bc-luong-giao-vien.csv', ['Mã GV', 'Họ tên', 'Loại', 'Số buổi', 'Tổng lương', 'Đã chi', 'Trạng thái'], ['teacherCode', 'teacherName', 'type', 'sessions', 'totalAmount', 'paidAmount', 'status'])} style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}>Xuất CSV</Button>}
+        extra={<Button icon={<DownloadOutlined />} size="small" onClick={() => {
+          const mappedReport = (byTeacher || []).map((t: any) => {
+            const gross = t.totalAmount || 0;
+            const tax = gross * 0.1;
+            const net = gross * 0.9;
+            const netPaid = t.status === 'Paid' ? (t.paidAmount || 0) * 0.9 : 0;
+            return {
+              ...t,
+              gross,
+              tax,
+              net,
+              netPaid,
+            };
+          });
+          exportCSV(
+            mappedReport,
+            'bc-luong-giao-vien.csv',
+            ['Mã GV', 'Họ tên', 'Loại', 'Số buổi', 'Tổng lương (Gross) (₫)', 'Thuế TNCN (10%) (₫)', 'Thực nhận (Net) (₫)', 'Thực chi (Thực trả) (₫)', 'Trạng thái'],
+            ['teacherCode', 'teacherName', 'type', 'sessions', 'gross', 'tax', 'net', 'netPaid', 'status']
+          );
+        }} style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}>Xuất CSV</Button>}
       >
         <Table
           dataSource={byTeacher} rowKey="teacherId" pagination={{ pageSize: 15 }} size="small"

@@ -478,16 +478,34 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
             onClick={() => {
               if (!periodDetail) return;
               const isTuition = periodDetail.period.type === 'tuition';
-              exportCSV(
-                periodDetail.orders,
-                `${periodDetail.period.name}.csv`,
-                isTuition
-                  ? ['Mã HS', 'Họ tên', 'SĐT', 'Tổng học phí (₫)', 'Thực thu (₫)', 'Trạng thái', 'Ngày thu', 'Ghi chú']
-                  : ['Mã GV', 'Họ tên', 'SĐT', 'Loại', 'Tổng lương (₫)', 'Thực chi (₫)', 'Trạng thái', 'Ngày chi', 'Ghi chú'],
-                isTuition
-                  ? ['code', 'name', 'mobile', 'totalAmount', 'paidAmount', 'status', 'paymentDate', 'note']
-                  : ['code', 'name', 'mobile', 'type', 'totalAmount', 'paidAmount', 'status', 'paymentDate', 'note']
-              );
+              if (isTuition) {
+                exportCSV(
+                  periodDetail.orders,
+                  `${periodDetail.period.name}.csv`,
+                  ['Mã HS', 'Họ tên', 'SĐT', 'Tổng học phí (₫)', 'Thực thu (₫)', 'Trạng thái', 'Ngày thu', 'Ghi chú'],
+                  ['code', 'name', 'mobile', 'totalAmount', 'paidAmount', 'status', 'paymentDate', 'note']
+                );
+              } else {
+                const mappedOrders = periodDetail.orders.map((o: any) => {
+                  const gross = o.totalAmount || 0;
+                  const tax = gross * 0.1;
+                  const net = gross * 0.9;
+                  const netPaid = o.status === 'Paid' ? (o.paidAmount || 0) * 0.9 : 0;
+                  return {
+                    ...o,
+                    gross,
+                    tax,
+                    net,
+                    netPaid,
+                  };
+                });
+                exportCSV(
+                  mappedOrders,
+                  `${periodDetail.period.name}.csv`,
+                  ['Mã GV', 'Họ tên', 'SĐT', 'Loại', 'Tổng lương (Gross) (₫)', 'Thuế TNCN (10%) (₫)', 'Thực nhận (Net) (₫)', 'Thực chi (Thực trả) (₫)', 'Trạng thái', 'Ngày chi', 'Ghi chú'],
+                  ['code', 'name', 'mobile', 'type', 'gross', 'tax', 'net', 'netPaid', 'status', 'paymentDate', 'note']
+                );
+              }
             }}
             style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}
           >
