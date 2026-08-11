@@ -326,10 +326,10 @@ const SalaryTab: React.FC<{ data: any; loading: boolean }> = ({ data, loading })
       <Card className="glass-panel" title="Chi tiết lương từng giáo viên" style={cardStyle}
         extra={<Button icon={<DownloadOutlined />} size="small" onClick={() => {
           const mappedReport = (byTeacher || []).map((t: any) => {
-            const gross = t.totalAmount || 0;
-            const tax = gross * 0.1;
-            const net = gross * 0.9;
-            const netPaid = t.status === 'Paid' ? (t.paidAmount || 0) * 0.9 : 0;
+            const net = t.totalAmount || 0;
+            const gross = Math.round(net / 0.9);
+            const tax = Math.round((net * 0.1) / 0.9);
+            const netPaid = t.status === 'Paid' ? (t.paidAmount || 0) : 0;
             return {
               ...t,
               gross,
@@ -353,20 +353,20 @@ const SalaryTab: React.FC<{ data: any; loading: boolean }> = ({ data, loading })
             { title: 'Họ tên', dataIndex: 'teacherName', key: 'teacherName', width: 200 },
             { title: 'Loại', dataIndex: 'type', key: 'type', width: 150, render: (v: string) => <Tag color={v === 'Teaching Assistant' ? 'purple' : 'blue'}>{v === 'Teaching Assistant' ? 'Trợ giảng' : 'Giáo viên'}</Tag> },
             { title: 'Số buổi', dataIndex: 'sessions', key: 'sessions', width: 90, align: 'center' },
-            { title: 'Tổng lương (Gross)', dataIndex: 'totalAmount', key: 'totalAmount', width: 150, align: 'right' as const, render: (v: number) => fmtVND(v) },
+            { title: 'Tổng lương (Gross)', dataIndex: 'totalAmount', key: 'totalAmount', width: 150, align: 'right' as const, render: (v: number) => fmtVND(Math.round(v / 0.9)) },
             {
               title: 'Thuế TNCN (10%)',
               key: 'taxAmount',
               width: 130,
               align: 'right' as const,
-              render: (_: any, r: any) => fmtVND(calculateSalaryBreakdown(r.totalAmount).tax)
+              render: (_: any, r: any) => fmtVND(Math.round((r.totalAmount * 0.1) / 0.9))
             },
             {
               title: 'Thực nhận (Net)',
               key: 'netAmount',
               width: 150,
               align: 'right' as const,
-              render: (_: any, r: any) => <Text strong style={{ color: '#f59e0b' }}>{fmtVND(calculateSalaryBreakdown(r.totalAmount).net)}</Text>
+              render: (_: any, r: any) => <Text strong style={{ color: '#f59e0b' }}>{fmtVND(r.totalAmount)}</Text>
             },
             {
               title: 'Đã chi (Thực trả)',
@@ -374,7 +374,7 @@ const SalaryTab: React.FC<{ data: any; loading: boolean }> = ({ data, loading })
               key: 'paidAmount',
               width: 150,
               align: 'right' as const,
-              render: (v: number) => fmtVND(calculateSalaryBreakdown(v).net)
+              render: (v: number) => fmtVND(v)
             },
             { title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 120, render: (v: string) => <Tag color={v === 'Paid' ? 'green' : 'orange'}>{v === 'Paid' ? 'Đã chi' : 'Chưa chi'}</Tag> },
           ]}

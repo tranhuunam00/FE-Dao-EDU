@@ -3,7 +3,7 @@ import { Card, Row, Col, DatePicker, Button, Table, Typography, Space, Tag, Inpu
 import { SearchOutlined, TeamOutlined, DownloadOutlined, CheckSquareOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../../services/api';
-import { calculateSalaryBreakdown } from '../../../utils/salary';
+
 
 const { Text } = Typography;
 
@@ -254,8 +254,9 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
                   width: 150,
                   align: 'right' as const,
                   render: (v: number, r: any) => {
-                    const amount = r.adjustedAmount ?? v;
-                    return <Text style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{amount.toLocaleString('vi-VN')} ₫</Text>;
+                    const net = r.adjustedAmount ?? v;
+                    const gross = Math.round(net / 0.9);
+                    return <Text style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{gross.toLocaleString('vi-VN')} ₫</Text>;
                   }
                 },
                 {
@@ -264,8 +265,9 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
                   width: 130,
                   align: 'right' as const,
                   render: (_: any, r: any) => {
-                    const amount = r.adjustedAmount ?? r.totalAmount;
-                    return <Text type="secondary">-{calculateSalaryBreakdown(amount).tax.toLocaleString('vi-VN')} ₫</Text>;
+                    const net = r.adjustedAmount ?? r.totalAmount;
+                    const tax = Math.round((net * 0.1) / 0.9);
+                    return <Text type="secondary">-{tax.toLocaleString('vi-VN')} ₫</Text>;
                   }
                 },
                 {
@@ -274,8 +276,8 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
                   width: 150,
                   align: 'right' as const,
                   render: (_: any, r: any) => {
-                    const amount = r.adjustedAmount ?? r.totalAmount;
-                    return <Text strong style={{ color: '#f59e0b', fontSize: 14 }}>{calculateSalaryBreakdown(amount).net.toLocaleString('vi-VN')} ₫</Text>;
+                    const net = r.adjustedAmount ?? r.totalAmount;
+                    return <Text strong style={{ color: '#f59e0b', fontSize: 14 }}>{net.toLocaleString('vi-VN')} ₫</Text>;
                   }
                 },
                 {
@@ -283,8 +285,7 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
                   key: 'adjustment',
                   width: 320,
                   render: (_, r: any) => {
-                    const currentGross = r.adjustedAmount ?? r.totalAmount;
-                    const currentNet = Math.round(currentGross * 0.9);
+                    const currentNet = r.adjustedAmount ?? r.totalAmount;
                     return (
                       <Space direction="vertical" size={4} style={{ width: '100%' }}>
                         <InputNumber
@@ -292,9 +293,8 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
                           precision={0}
                           value={currentNet}
                           onChange={(value) => {
-                            const newNet = value ?? Math.round(r.totalAmount * 0.9);
-                            const newGross = Math.round(newNet / 0.9);
-                            updatePreviewRow(r.teacherId, { adjustedAmount: newGross });
+                            const newNet = value ?? r.totalAmount;
+                            updatePreviewRow(r.teacherId, { adjustedAmount: newNet });
                           }}
                           style={{ width: '100%' }}
                         />
