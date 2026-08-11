@@ -193,30 +193,19 @@ const StudentListInner: React.FC = () => {
       dataIndex: 'studentId',
       key: 'studentId',
       width: colWidths.studentId,
+      fixed: 'left' as const,
       render: (text: string, record: StudentData) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Text strong style={{ color: 'var(--primary)' }}>{text}</Text>
-          
-          {/* Chỉ báo tài khoản hệ thống */}
           {record.userId ? (
-            <Tooltip title="Đã có tài khoản đăng nhập">
-              <CheckCircleFilled style={{ color: '#10b981' }} />
-            </Tooltip>
+            <Tooltip title="Đã có tài khoản đăng nhập"><CheckCircleFilled style={{ color: '#10b981' }} /></Tooltip>
           ) : (
-            <Tooltip title="Chưa có tài khoản đăng nhập">
-              <CloseCircleFilled style={{ color: '#6b7280' }} />
-            </Tooltip>
+            <Tooltip title="Chưa có tài khoản đăng nhập"><CloseCircleFilled style={{ color: '#6b7280' }} /></Tooltip>
           )}
-
-          {/* Chỉ báo máy chấm công */}
           {record.isSyncedToDevice ? (
-            <Tooltip title="Đã đồng bộ tài khoản lên máy chấm công">
-              <CheckCircleFilled style={{ color: '#3b82f6' }} />
-            </Tooltip>
+            <Tooltip title="Đã đồng bộ tài khoản lên máy chấm công"><CheckCircleFilled style={{ color: '#3b82f6' }} /></Tooltip>
           ) : (
-            <Tooltip title="Chưa đồng bộ tài khoản lên máy chấm công">
-              <CloseCircleFilled style={{ color: '#ef4444' }} />
-            </Tooltip>
+            <Tooltip title="Chưa đồng bộ tài khoản lên máy chấm công"><CloseCircleFilled style={{ color: '#ef4444' }} /></Tooltip>
           )}
         </div>
       ),
@@ -226,14 +215,11 @@ const StudentListInner: React.FC = () => {
       key: 'fullName',
       dataIndex: 'fullName',
       width: colWidths.fullName,
+      fixed: 'left' as const,
       render: (_: any, record: StudentData) => (
         <div>
           <Text style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{`${record.lastName} ${record.firstName}`}</Text>
-          {record.nickName && (
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-              ({record.nickName})
-            </div>
-          )}
+          {record.nickName && <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>({record.nickName})</div>}
         </div>
       ),
     },
@@ -318,11 +304,7 @@ const StudentListInner: React.FC = () => {
       width: colWidths.timekeepingSync || 140,
       render: (_: any, record: StudentData) => {
         if (record.isSyncedToDevice) {
-          return (
-            <Tag color="success" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              <CheckCircleFilled /> Đã đồng bộ
-            </Tag>
-          );
+          return <Tag color="success" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><CheckCircleFilled /> Đã đồng bộ</Tag>;
         }
         return (
           <Button
