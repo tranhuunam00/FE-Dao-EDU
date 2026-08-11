@@ -305,7 +305,7 @@ const StudentListInner: React.FC = () => {
             <div style={{ fontSize: 12, lineHeight: 1.6 }}>
               <div style={{ fontWeight: 700, marginBottom: 4 }}>📋 Cách tạo ID khớp trên máy chấm công:</div>
               <div>1. Vào giao diện quản trị máy chấm công (IP nội bộ)</div>
-              <div>2. Tạo mới nhân viên → nhập <b>Employee No</b> = <b>studentId</b> của học sinh (VD: STU-1080)</div>
+              <div>2. Tạo mới nhân viên → nhập <b>Employee No</b> = <b>Phần số</b> của Mã HS (VD: Mã HS là <b>STU-1080</b> thì nhập <b>1080</b>)</div>
               <div>3. Đăng ký khuôn mặt / vân tay cho học sinh đó trên máy</div>
               <div>4. Bật toggle "Đồng bộ" ở đây để hệ thống ghi nhận học sinh sẵn sàng</div>
               <div style={{ marginTop: 4, color: '#fbbf24' }}>⚡ Khi học sinh quét thẻ, webhook từ máy gửi về BE sẽ tự khớp theo Employee No → studentId</div>
@@ -322,6 +322,7 @@ const StudentListInner: React.FC = () => {
       key: 'timekeepingSync',
       width: colWidths.timekeepingSync || 150,
       render: (_: any, record: StudentData) => {
+        const numericId = record.studentId.replace(/\D/g, '').replace(/^0+/, '');
         if (record.isSyncedToDevice) {
           return (
             <Tooltip title="Nhấn để bỏ đồng bộ học sinh này khỏi danh sách máy chấm công">
@@ -348,7 +349,7 @@ const StudentListInner: React.FC = () => {
           );
         }
         return (
-          <Tooltip title={`Bấm để đánh dấu ${record.lastName} ${record.firstName} đã được tạo trên máy chấm công với Employee No = ${record.studentId}`}>
+          <Tooltip title={`Bấm để đánh dấu ${record.lastName} ${record.firstName} đã được tạo trên máy chấm công với Employee No = ${numericId} (phần số của mã ${record.studentId})`}>
             <Button
               type="primary"
               size="small"
