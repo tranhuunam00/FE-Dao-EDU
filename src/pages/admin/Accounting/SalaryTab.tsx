@@ -63,8 +63,9 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
     setSalaryPreviewLoading(true);
     try {
       const endStr = salaryEndDate.format('YYYY-MM-DD');
+      const monthStr = salaryMonth ? salaryMonth.format('YYYY-MM') : undefined;
       const { data } = await api.get('/payment-periods/preview/salary', {
-        params: { endDate: endStr }
+        params: { endDate: endStr, month: monthStr }
       });
       const list = data.teachers || [];
       setSalaryPreviewData(list);
