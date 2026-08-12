@@ -59,6 +59,7 @@ interface TimekeepingLog {
   rawPayload?: any;
   student?: StudentInfo;
   matchedSessions?: MatchedSessionInfo[];
+  imageUrl?: string;
 }
 
 interface TimekeepingDevice {
@@ -516,6 +517,23 @@ export default function TimekeepingLogs() {
               <Descriptions.Item label="Hình thức xác thực">
                 {getVerifyTag(selectedLog.verifyMethod)}
               </Descriptions.Item>
+              {selectedLog.imageUrl && (
+                <Descriptions.Item label="Ảnh quẹt thẻ">
+                  <div style={{ display: 'flex', justifyContent: 'center', padding: '4px 0' }}>
+                    <img 
+                      src={selectedLog.imageUrl} 
+                      alt="Ảnh chấm công" 
+                      style={{ 
+                        maxWidth: '220px', 
+                        maxHeight: '220px', 
+                        borderRadius: '8px', 
+                        border: '1px solid var(--card-border)',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                      }} 
+                    />
+                  </div>
+                </Descriptions.Item>
+              )}
             </Descriptions>
 
             {selectedLog.rawPayload && (
