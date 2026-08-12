@@ -50,14 +50,23 @@ interface MatchedSessionInfo {
   date: string;
 }
 
+interface TeacherInfo {
+  id: string;
+  teacherId: string;
+  firstName: string;
+  lastName: string;
+}
+
 interface TimekeepingLog {
   id: string;
   studentId: string;
+  teacherId?: string | null;
   employeeNo: string;
   eventTime: string;
   verifyMethod: string;
   rawPayload?: any;
   student?: StudentInfo;
+  teacher?: TeacherInfo;
   matchedSessions?: MatchedSessionInfo[];
   imageUrl?: string;
 }
@@ -86,6 +95,7 @@ export default function TimekeepingLogs() {
   const [endDate, setEndDate] = useState<string | undefined>(undefined);
   const [verifyMethod, setVerifyMethod] = useState<string | undefined>(undefined);
   const [matchStatus, setMatchStatus] = useState<'all' | 'matched' | 'unmatched'>('all');
+  const [role, setRole] = useState<'all' | 'student' | 'teacher' | 'unmatched'>('all');
   const [selectedLog, setSelectedLog] = useState<TimekeepingLog | null>(null);
 
   // Devices States
@@ -108,6 +118,7 @@ export default function TimekeepingLogs() {
           endDate: endDate || undefined,
           verifyMethod: verifyMethod || undefined,
           matchStatus: matchStatus !== 'all' ? matchStatus : undefined,
+          role: role !== 'all' ? role : undefined,
         },
       });
       setLogs(response.data.logs || []);
@@ -117,7 +128,7 @@ export default function TimekeepingLogs() {
     } finally {
       setLogsLoading(false);
     }
-  }, [logsPage, logsSearch, startDate, endDate, verifyMethod, matchStatus, message]);
+  }, [logsPage, logsSearch, startDate, endDate, verifyMethod, matchStatus, role, message]);
 
   // 2. Fetch Devices
   const fetchDevices = useCallback(async () => {
@@ -149,6 +160,7 @@ export default function TimekeepingLogs() {
     setEndDate(undefined);
     setVerifyMethod(undefined);
     setMatchStatus('all');
+    setRole('all');
     setLogsPage(1);
   };
 
@@ -210,18 +222,44 @@ export default function TimekeepingLogs() {
   // Tables Columns
   const logColumns: ColumnsType<TimekeepingLog> = [
     {
-      title: 'Học sinh',
-      key: 'student',
-      render: (_, row) => (
-        <div>
-          <strong style={{ color: 'var(--text-primary)' }}>
-            {row.student ? `${row.student.lastName} ${row.student.firstName}` : 'Học sinh chưa đồng bộ'}
-          </strong>
-          <div style={{ color: 'var(--text-secondary)', fontSize: 11 }}>
-            Mã HS: {row.employeeNo}
-          </div>
-        </div>
-      ),
+      title: 'Đối tượng',
+      key: 'person',
+      render: (_, row) => {
+        if (row.student) {
+          return (
+            <div>
+              <strong style={{ color: 'var(--text-primary)' }}>
+                {`${row.student.lastName} ${row.student.firstName}`}
+              </strong>
+              <Tag color="blue" style={{ marginLeft: 8, fontSize: '10px' }}>Học sinh</Tag>
+              <div style={{ color: 'var(--text-secondary)', fontSize: 11 }}>
+                Mã HS: {row.employeeNo}
+              </div>
+            </div>
+          );
+        } else if (row.teacher) {
+          return (
+            <div>
+              <strong style={{ color: 'var(--text-primary)' }}>
+                {`${row.teacher.lastName} ${row.teacher.firstName}`}
+              </strong>
+              <Tag color="purple" style={{ marginLeft: 8, fontSize: '10px' }}>Giáo viên</Tag>
+              <div style={{ color: 'var(--text-secondary)', fontSize: 11 }}>
+                Mã GV: {row.employeeNo}
+              </div>
+            </div>
+          );
+        } else {
+          return (
+            <div>
+              <strong style={{ color: 'var(--text-secondary)' }}>Chưa đối khớp / Chưa đồng bộ</strong>
+              <div style={{ color: 'var(--text-secondary)', fontSize: 11 }}>
+                Mã quẹt: {row.employeeNo}
+              </div>
+            </div>
+          );
+        }
+      },
     },
     {
       title: 'Thời gian quẹt',
@@ -358,9 +396,9 @@ export default function TimekeepingLogs() {
                   bodyStyle={{ padding: '8px 12px' }}
                 >
                   <Row gutter={[12, 12]} align="middle">
-                    <Col xs={24} md={6}>
+                    <Col xs={24} md={5}>
                       <Input
-                        placeholder="Tìm theo Mã HS, Họ và tên..."
+                        placeholder="Tìm theo mã số, Họ và tên..."
                         prefix={<SearchOutlined style={{ color: '#6b7280' }} />}
                         value={logsSearch}
                         onChange={(e) => setLogsSearch(e.target.value)}
@@ -368,7 +406,7 @@ export default function TimekeepingLogs() {
                         allowClear
                       />
                     </Col>
-                    <Col xs={24} md={6}>
+                    <Col xs={24} md={5}>
                       <DatePicker.RangePicker
                         placeholder={['Từ ngày', 'Đến ngày']}
                         style={{ width: '100%' }}
@@ -386,9 +424,9 @@ export default function TimekeepingLogs() {
                         format="DD/MM/YYYY"
                       />
                     </Col>
-                    <Col xs={12} md={4}>
+                    <Col xs={12} md={3}>
                       <Select
-                        placeholder="Hình thức quét"
+                        placeholder="Hình thức"
                         style={{ width: '100%' }}
                         value={verifyMethod}
                         onChange={(val) => {
@@ -416,6 +454,22 @@ export default function TimekeepingLogs() {
                         <Select.Option value="all">Tất cả trạng thái</Select.Option>
                         <Select.Option value="matched">Đã khớp học sinh</Select.Option>
                         <Select.Option value="unmatched">Chưa khớp học sinh</Select.Option>
+                      </Select>
+                    </Col>
+                    <Col xs={12} md={3}>
+                      <Select
+                        placeholder="Vai trò"
+                        style={{ width: '100%' }}
+                        value={role}
+                        onChange={(val) => {
+                          setRole(val);
+                          setLogsPage(1);
+                        }}
+                      >
+                        <Select.Option value="all">Tất cả vai trò</Select.Option>
+                        <Select.Option value="student">Học sinh</Select.Option>
+                        <Select.Option value="teacher">Giáo viên</Select.Option>
+                        <Select.Option value="unmatched">Chưa đối khớp</Select.Option>
                       </Select>
                     </Col>
                     <Col xs={24} md={4} style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
@@ -503,9 +557,13 @@ export default function TimekeepingLogs() {
         {selectedLog && (
           <div style={{ maxHeight: '80vh', overflowY: 'auto' }}>
             <Descriptions bordered column={1} size="small" style={{ marginBottom: 16 }}>
-              <Descriptions.Item label="Học sinh">
+              <Descriptions.Item label="Đối tượng">
                 <Text strong>
-                  {selectedLog.student ? `${selectedLog.student.lastName} ${selectedLog.student.firstName}` : 'Chưa đồng bộ'}
+                  {selectedLog.student 
+                    ? `${selectedLog.student.lastName} ${selectedLog.student.firstName} (Học sinh)` 
+                    : (selectedLog.teacher 
+                      ? `${selectedLog.teacher.lastName} ${selectedLog.teacher.firstName} (Giáo viên)` 
+                      : 'Chưa đối khớp / Chưa đồng bộ')}
                 </Text>
               </Descriptions.Item>
               <Descriptions.Item label="Mã số đăng ký (Employee No)">

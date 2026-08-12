@@ -31,6 +31,7 @@ interface TeacherData {
   createdAt: string;
   userId?: string;
   hasCommissionSalary?: boolean;
+  isSyncedToDevice?: boolean;
 }
 
 const TeacherListInner: React.FC = () => {
@@ -42,6 +43,7 @@ const TeacherListInner: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [syncingId, setSyncingId] = useState<string | null>(null);
   
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<string | undefined>(undefined);
@@ -148,6 +150,80 @@ const TeacherListInner: React.FC = () => {
           color = 'red'; label = 'Đã nghỉ';
         }
         return <Tag color={color}>{label}</Tag>;
+      },
+    },
+    {
+      title: (
+        <Tooltip
+          title={
+            <div style={{ fontSize: 12, lineHeight: 1.6 }}>
+              <div style={{ fontWeight: 700, marginBottom: 4 }}>📋 Cách tạo ID khớp trên máy chấm công:</div>
+              <div>1. Vào giao diện quản trị máy chấm công (IP nội bộ)</div>
+              <div>2. Tạo mới nhân viên → nhập <b>Employee No</b> = <b>222</b> + <b>Phần số</b> của Mã GV (VD: Mã GV là <b>GV-2026-001</b> thì nhập <b>2222026001</b>)</div>
+              <div>3. Đăng ký khuôn mặt / vân tay cho giáo viên đó trên máy</div>
+              <div>4. Bật toggle "Đồng bộ" ở đây để hệ thống ghi nhận giáo viên sẵn sàng</div>
+            </div>
+          }
+          placement="topLeft"
+          overlayStyle={{ maxWidth: 360 }}
+        >
+          <span style={{ cursor: 'help', borderBottom: '1px dashed currentColor' }}>
+            Máy chấm công ℹ️
+          </span>
+        </Tooltip>
+      ),
+      key: 'timekeepingSync',
+      width: '150px',
+      render: (_: any, record: TeacherData) => {
+        const numericId = record.teacherId.replace(/\D/g, '').replace(/^0+/, '');
+        if (record.isSyncedToDevice) {
+          return (
+            <Tooltip title="Nhấn để bỏ đồng bộ giáo viên này khỏi danh sách máy chấm công">
+              <Tag
+                color="success"
+                closable
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                onClose={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setSyncingId(record.id);
+                  api.post(`/timekeeping/sync-teacher/${record.id}`, { status: false })
+                    .then(res => {
+                      message.success(`Đã bỏ đồng bộ giáo viên ${record.lastName} ${record.firstName}.`);
+                      setTeachers(prev => prev.map(t => t.id === record.id ? { ...t, isSyncedToDevice: res.data.isSyncedToDevice } : t));
+                    })
+                    .catch((err: any) => message.error(err.response?.data?.message || 'Thao tác thất bại.'))
+                    .finally(() => setSyncingId(null));
+                }}
+              >
+                <CheckCircleFilled /> Đã đồng bộ
+              </Tag>
+            </Tooltip>
+          );
+        }
+        return (
+          <Tooltip title={`Bấm để đánh dấu ${record.lastName} ${record.firstName} đã được tạo trên máy chấm công với Employee No = 222${numericId} (tiền tố 222 + phần số của mã ${record.teacherId})`}>
+            <Button
+              type="primary"
+              size="small"
+              style={{ fontSize: '11px', background: 'var(--primary)', border: 'none' }}
+              loading={syncingId === record.id}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSyncingId(record.id);
+                api.post(`/timekeeping/sync-teacher/${record.id}`, { status: true })
+                  .then(res => {
+                    message.success(`Đã đồng bộ giáo viên ${record.lastName} ${record.firstName}.`);
+                    setTeachers(prev => prev.map(t => t.id === record.id ? { ...t, isSyncedToDevice: res.data.isSyncedToDevice } : t));
+                  })
+                  .catch((err: any) => message.error(err.response?.data?.message || 'Thao tác thất bại.'))
+                  .finally(() => setSyncingId(null));
+              }}
+            >
+              Đồng bộ
+            </Button>
+          </Tooltip>
+        );
       },
     },
     {
