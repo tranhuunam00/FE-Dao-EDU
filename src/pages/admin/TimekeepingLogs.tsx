@@ -575,24 +575,41 @@ export default function TimekeepingLogs() {
               <Descriptions.Item label="Hình thức xác thực">
                 {getVerifyTag(selectedLog.verifyMethod)}
               </Descriptions.Item>
-              {selectedLog.imageUrl && (
-                <Descriptions.Item label="Ảnh quẹt thẻ">
-                  <div style={{ display: 'flex', justifyContent: 'center', padding: '4px 0' }}>
-                    <img 
-                      src={selectedLog.imageUrl} 
-                      alt="Ảnh chấm công" 
-                      style={{ 
-                        maxWidth: '220px', 
-                        maxHeight: '220px', 
-                        borderRadius: '8px', 
-                        border: '1px solid var(--card-border)',
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
-                      }} 
-                    />
-                  </div>
-                </Descriptions.Item>
-              )}
             </Descriptions>
+
+            {/* Ảnh chụp quẹt thẻ hiển thị trước JSON */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontWeight: 600, marginBottom: 6, color: 'var(--text-primary)' }}>
+                Ảnh chụp xác thực khuôn mặt:
+              </div>
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center',
+                padding: '12px',
+                background: 'var(--bg-primary)',
+                border: '1px solid var(--card-border)',
+                borderRadius: 8,
+                minHeight: '120px'
+              }}>
+                {selectedLog.imageUrl ? (
+                  <img 
+                    src={selectedLog.imageUrl} 
+                    alt="Ảnh chấm công" 
+                    style={{ 
+                      maxWidth: '100%', 
+                      maxHeight: '260px', 
+                      borderRadius: '6px', 
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
+                    }} 
+                  />
+                ) : (
+                  <div style={{ color: 'var(--text-secondary)', fontSize: 13, textAlign: 'center' }}>
+                    📷 Không nhận được dữ liệu ảnh khuôn mặt từ thiết bị cho sự kiện này
+                  </div>
+                )}
+              </div>
+            </div>
 
             {selectedLog.rawPayload && (
               <div>
