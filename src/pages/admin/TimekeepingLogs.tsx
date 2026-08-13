@@ -97,6 +97,9 @@ export default function TimekeepingLogs() {
   const [verifyMethod, setVerifyMethod] = useState<string | undefined>(undefined);
   const [matchStatus, setMatchStatus] = useState<'all' | 'matched' | 'unmatched'>('all');
   const [role, setRole] = useState<'all' | 'student' | 'teacher' | 'unmatched'>('all');
+  const [classes, setClasses] = useState<any[]>([]);
+  const [sessionMatchStatus, setSessionMatchStatus] = useState<'all' | 'matched' | 'unmatched'>('all');
+  const [selectedClassId, setSelectedClassId] = useState<string | undefined>(undefined);
   const [selectedLog, setSelectedLog] = useState<TimekeepingLog | null>(null);
 
   // Sync States & Handlers
@@ -139,6 +142,8 @@ export default function TimekeepingLogs() {
           verifyMethod: verifyMethod || undefined,
           matchStatus: matchStatus !== 'all' ? matchStatus : undefined,
           role: role !== 'all' ? role : undefined,
+          sessionMatchStatus: sessionMatchStatus !== 'all' ? sessionMatchStatus : undefined,
+          classId: selectedClassId || undefined,
         },
       });
       setLogs(response.data.logs || []);
@@ -148,7 +153,17 @@ export default function TimekeepingLogs() {
     } finally {
       setLogsLoading(false);
     }
-  }, [logsPage, logsSearch, startDate, endDate, verifyMethod, matchStatus, role, message]);
+  }, [logsPage, logsSearch, startDate, endDate, verifyMethod, matchStatus, role, sessionMatchStatus, selectedClassId, message]);
+
+  // Fetch classes for class filter dropdown
+  useEffect(() => {
+    api.get('/classes?limit=1000')
+      .then((res) => {
+        const classList = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+        setClasses(classList);
+      })
+      .catch(() => {});
+  }, []);
 
   // 2. Fetch Devices
   const fetchDevices = useCallback(async () => {
@@ -181,6 +196,8 @@ export default function TimekeepingLogs() {
     setVerifyMethod(undefined);
     setMatchStatus('all');
     setRole('all');
+    setSessionMatchStatus('all');
+    setSelectedClassId(undefined);
     setLogsPage(1);
   };
 
@@ -416,7 +433,7 @@ export default function TimekeepingLogs() {
                   bodyStyle={{ padding: '8px 12px' }}
                 >
                   <Row gutter={[12, 12]} align="middle">
-                    <Col xs={24} md={4}>
+                    <Col xs={12} md={3}>
                       <Input
                         placeholder="Tìm theo mã số, Họ và tên..."
                         prefix={<SearchOutlined style={{ color: '#6b7280' }} />}
@@ -444,7 +461,7 @@ export default function TimekeepingLogs() {
                         format="DD/MM/YYYY"
                       />
                     </Col>
-                    <Col xs={12} md={3}>
+                    <Col xs={12} md={2}>
                       <Select
                         placeholder="Hình thức"
                         style={{ width: '100%' }}
@@ -461,9 +478,9 @@ export default function TimekeepingLogs() {
                         <Select.Option value="pin">Mật khẩu PIN</Select.Option>
                       </Select>
                     </Col>
-                    <Col xs={12} md={3}>
+                    <Col xs={12} md={2}>
                       <Select
-                        placeholder="Trạng thái khớp"
+                        placeholder="Khớp học sinh"
                         style={{ width: '100%' }}
                         value={matchStatus}
                         onChange={(val) => {
@@ -471,12 +488,12 @@ export default function TimekeepingLogs() {
                           setLogsPage(1);
                         }}
                       >
-                        <Select.Option value="all">Tất cả trạng thái</Select.Option>
+                        <Select.Option value="all">Khớp học sinh (Tất cả)</Select.Option>
                         <Select.Option value="matched">Đã khớp học sinh</Select.Option>
                         <Select.Option value="unmatched">Chưa khớp học sinh</Select.Option>
                       </Select>
                     </Col>
-                    <Col xs={12} md={3}>
+                    <Col xs={12} md={2}>
                       <Select
                         placeholder="Vai trò"
                         style={{ width: '100%' }}
@@ -492,7 +509,42 @@ export default function TimekeepingLogs() {
                         <Select.Option value="unmatched">Chưa đối khớp</Select.Option>
                       </Select>
                     </Col>
-                    <Col xs={24} md={7} style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                    <Col xs={12} md={3}>
+                      <Select
+                        placeholder="Khớp ca học"
+                        style={{ width: '100%' }}
+                        value={sessionMatchStatus}
+                        onChange={(val) => {
+                          setSessionMatchStatus(val);
+                          setLogsPage(1);
+                        }}
+                      >
+                        <Select.Option value="all">Khớp ca học (Tất cả)</Select.Option>
+                        <Select.Option value="matched">Đã khớp ca học</Select.Option>
+                        <Select.Option value="unmatched">Không khớp ca học</Select.Option>
+                      </Select>
+                    </Col>
+                    <Col xs={12} md={4}>
+                      <Select
+                        placeholder="Lọc theo Lớp học"
+                        style={{ width: '100%' }}
+                        value={selectedClassId}
+                        onChange={(val) => {
+                          setSelectedClassId(val);
+                          setLogsPage(1);
+                        }}
+                        allowClear
+                        showSearch
+                        optionFilterProp="children"
+                      >
+                        {classes.map((c: any) => (
+                          <Select.Option key={c.id} value={c.id}>
+                            {c.className || c.classname}
+                          </Select.Option>
+                        ))}
+                      </Select>
+                    </Col>
+                    <Col xs={24} md={4} style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                       <Button 
                         type="default" 
                         icon={<SyncOutlined />} 
@@ -502,7 +554,7 @@ export default function TimekeepingLogs() {
                         }}
                         style={{ color: '#1677ff', borderColor: '#1677ff' }}
                       >
-                        Đồng bộ thủ công
+                        Đồng bộ
                       </Button>
                       <Button icon={<ReloadOutlined />} onClick={handleResetFilters}>
                         Reset
