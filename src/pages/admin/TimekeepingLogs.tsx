@@ -478,22 +478,7 @@ export default function TimekeepingLogs() {
                         <Select.Option value="pin">Mật khẩu PIN</Select.Option>
                       </Select>
                     </Col>
-                    <Col xs={12} md={2}>
-                      <Select
-                        placeholder="Khớp học sinh"
-                        style={{ width: '100%' }}
-                        value={matchStatus}
-                        onChange={(val) => {
-                          setMatchStatus(val);
-                          setLogsPage(1);
-                        }}
-                      >
-                        <Select.Option value="all">Khớp học sinh (Tất cả)</Select.Option>
-                        <Select.Option value="matched">Đã khớp học sinh</Select.Option>
-                        <Select.Option value="unmatched">Chưa khớp học sinh</Select.Option>
-                      </Select>
-                    </Col>
-                    <Col xs={12} md={2}>
+                    <Col xs={12} md={3}>
                       <Select
                         placeholder="Vai trò"
                         style={{ width: '100%' }}
