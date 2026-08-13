@@ -29,6 +29,8 @@ interface StudentAttendance {
   note?: string;
   evaluationScore?: string | null;
   evaluationComment?: string | null;
+  attendanceType?: string;
+  verifyMethod?: string | null;
   student?: {
     name: string;
     user?: { email: string };
@@ -1291,6 +1293,29 @@ const ClassDetailInner: React.FC = () => {
                           )}
                         </div>
                       ),
+                    },
+                    {
+                      title: 'Hình thức',
+                      dataIndex: 'attendanceType',
+                      key: 'attendanceType',
+                      width: 120,
+                      render: (type, record) => {
+                        if (!record.isPresent) {
+                          if (type === 'manual') {
+                            return <Tag>Thủ công</Tag>;
+                          }
+                          return <span style={{ color: 'rgba(0,0,0,0.25)' }}>—</span>;
+                        }
+                        if (type === 'machine') {
+                          let methodText = 'Máy chấm công';
+                          if (record.verifyMethod === 'face') methodText = 'Khuôn mặt';
+                          else if (record.verifyMethod === 'fingerprint') methodText = 'Vân tay';
+                          else if (record.verifyMethod === 'card') methodText = 'Thẻ';
+                          else if (record.verifyMethod === 'pin') methodText = 'Mã PIN';
+                          return <Tag color="blue">{methodText}</Tag>;
+                        }
+                        return <Tag color="orange">Thủ công</Tag>;
+                      }
                     },
                     {
                       title: 'Lý do vắng mặt / Ghi chú',

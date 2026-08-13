@@ -11,6 +11,8 @@ interface StudentAttendance {
   note?: string;
   evaluationScore?: string | null;
   evaluationComment?: string | null;
+  attendanceType?: string;
+  verifyMethod?: string | null;
   student: {
     id: string;
     studentId: string;
@@ -214,6 +216,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
                     <th>Mã HS</th>
                     <th>Họ và Tên</th>
                     <th style={{ textAlign: 'center' }}>Điểm danh</th>
+                    <th style={{ textAlign: 'center', width: '120px' }}>Hình thức</th>
                     <th style={{ width: '25%' }}>Lý do vắng mặt / Ghi chú</th>
                     <th style={{ width: '10%', textAlign: 'center' }}>Điểm số</th>
                     <th style={{ width: '45%' }}>Nhận xét</th>
@@ -239,7 +242,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
                                   item.studentId === a.studentId 
                                     ? { ...item, isPresent: checked, reason: checked ? "" : "Nghỉ có phép" } 
                                     : item
-                                ));
+                                  ));
                               }}
                             />
                             {a.isPresent ? (
@@ -248,6 +251,54 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
                               <span style={{ fontSize: '0.82rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', fontWeight: 'bold', border: '1px solid rgba(239, 68, 68, 0.3)' }}>Vắng</span>
                             )}
                           </div>
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          {a.isPresent ? (
+                            a.attendanceType === 'machine' ? (
+                              <span style={{ 
+                                fontSize: '0.82rem', 
+                                padding: '2px 6px', 
+                                borderRadius: '4px', 
+                                background: 'rgba(59, 130, 246, 0.15)', 
+                                color: '#3b82f6', 
+                                fontWeight: 'bold', 
+                                border: '1px solid rgba(59, 130, 246, 0.3)',
+                                display: 'inline-block'
+                              }}>
+                                {a.verifyMethod === 'face' ? 'Khuôn mặt' : a.verifyMethod === 'fingerprint' ? 'Vân tay' : a.verifyMethod === 'card' ? 'Thẻ' : a.verifyMethod === 'pin' ? 'Mã PIN' : 'Máy'}
+                              </span>
+                            ) : (
+                              <span style={{ 
+                                fontSize: '0.82rem', 
+                                padding: '2px 6px', 
+                                borderRadius: '4px', 
+                                background: 'rgba(249, 115, 22, 0.15)', 
+                                color: '#f97316', 
+                                fontWeight: 'bold', 
+                                border: '1px solid rgba(249, 115, 22, 0.3)',
+                                display: 'inline-block'
+                              }}>
+                                Thủ công
+                              </span>
+                            )
+                          ) : (
+                            a.attendanceType === 'manual' ? (
+                              <span style={{ 
+                                fontSize: '0.82rem', 
+                                padding: '2px 6px', 
+                                borderRadius: '4px', 
+                                background: 'rgba(156, 163, 175, 0.15)', 
+                                color: '#9ca3af', 
+                                fontWeight: 'bold', 
+                                border: '1px solid rgba(156, 163, 175, 0.3)',
+                                display: 'inline-block'
+                              }}>
+                                Thủ công
+                              </span>
+                            ) : (
+                              <span style={{ color: 'var(--text-muted)' }}>—</span>
+                            )
+                          )}
                         </td>
                         <td>
                           {!a.isPresent ? (
