@@ -1189,6 +1189,11 @@ const ReportsInner: React.FC = () => {
           const { data } = await api.get('/reports/revenue', config);
           setRevenueData(data);
           setRevenueLoading(false);
+          if (data && data.byMonth && data.byMonth.length > 0 && !startMonth && !endMonth) {
+            const sorted = [...data.byMonth].map((m: any) => m.month).sort();
+            setStartMonth(sorted[0]);
+            setEndMonth(sorted[sorted.length - 1]);
+          }
           break;
         }
         case 'salary': {
@@ -1196,6 +1201,11 @@ const ReportsInner: React.FC = () => {
           const { data } = await api.get('/reports/salary', config);
           setSalaryData(data);
           setSalaryLoading(false);
+          if (data && data.byMonth && data.byMonth.length > 0 && !startMonth && !endMonth) {
+            const sorted = [...data.byMonth].map((m: any) => m.month).sort();
+            setStartMonth(sorted[0]);
+            setEndMonth(sorted[sorted.length - 1]);
+          }
           break;
         }
         case 'attendance': {
@@ -1203,6 +1213,11 @@ const ReportsInner: React.FC = () => {
           const { data } = await api.get('/reports/attendance', config);
           setAttendanceData(data);
           setAttendanceLoading(false);
+          if (data && data.byMonth && data.byMonth.length > 0 && !startMonth && !endMonth) {
+            const sorted = [...data.byMonth].map((m: any) => m.month).sort();
+            setStartMonth(sorted[0]);
+            setEndMonth(sorted[sorted.length - 1]);
+          }
           break;
         }
         case 'assignments': {
@@ -1217,6 +1232,11 @@ const ReportsInner: React.FC = () => {
           const { data } = await api.get('/reports/students', config);
           setStudentsData(data);
           setStudentsLoading(false);
+          if (data && data.byMonth && data.byMonth.length > 0 && !startMonth && !endMonth) {
+            const sorted = [...data.byMonth].map((m: any) => m.month).sort();
+            setStartMonth(sorted[0]);
+            setEndMonth(sorted[sorted.length - 1]);
+          }
           break;
         }
         case 'class-students-stats': {
@@ -1268,7 +1288,12 @@ const ReportsInner: React.FC = () => {
       setStudentAttendanceLoading(false);
       setStudentDebtsLoading(false);
     }
-  }, [activeTab, buildParams, message]);
+  }, [activeTab, buildParams, startMonth, endMonth, message]);
+
+  useEffect(() => {
+    fetchReport();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   const currentLoading = activeTab === 'revenue' ? revenueLoading
     : activeTab === 'salary' ? salaryLoading
