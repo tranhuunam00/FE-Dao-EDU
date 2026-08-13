@@ -176,7 +176,6 @@ const TeacherListInner: React.FC = () => {
       key: 'timekeepingSync',
       width: '150px',
       render: (_: any, record: TeacherData) => {
-        const numericId = record.teacherId.replace(/\D/g, '').replace(/^0+/, '');
         if (record.isSyncedToDevice) {
           return (
             <Tooltip title="Nhấn để bỏ đồng bộ giáo viên này khỏi danh sách máy chấm công">

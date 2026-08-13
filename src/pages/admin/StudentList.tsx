@@ -323,7 +323,6 @@ const StudentListInner: React.FC = () => {
       key: 'timekeepingSync',
       width: colWidths.timekeepingSync || 150,
       render: (_: any, record: StudentData) => {
-        const numericId = record.studentId.replace(/\D/g, '').replace(/^0+/, '');
         if (record.isSyncedToDevice) {
           return (
             <Tooltip title="Nhấn để bỏ đồng bộ học sinh này khỏi danh sách máy chấm công">
