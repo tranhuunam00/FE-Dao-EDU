@@ -159,7 +159,7 @@ export default function TimekeepingLogs() {
   useEffect(() => {
     api.get('/classes?limit=1000')
       .then((res) => {
-        const classList = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+        const classList = res.data?.classes || (Array.isArray(res.data) ? res.data : []);
         setClasses(classList);
       })
       .catch(() => {});
