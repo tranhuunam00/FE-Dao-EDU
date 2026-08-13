@@ -13,6 +13,7 @@ import {
 import dayjs from 'dayjs';
 import api from '../../services/api';
 import { PROVINCE_OPTIONS } from '../../assets/vietnam_divisions';
+import { getTeacherEmployeeNo, TIMEKEEPING_TEACHER_PREFIX } from '../../utils/timekeeping';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -159,7 +160,7 @@ const TeacherListInner: React.FC = () => {
             <div style={{ fontSize: 12, lineHeight: 1.6 }}>
               <div style={{ fontWeight: 700, marginBottom: 4 }}>📋 Cách tạo ID khớp trên máy chấm công:</div>
               <div>1. Vào giao diện quản trị máy chấm công (IP nội bộ)</div>
-              <div>2. Tạo mới nhân viên → nhập <b>Employee No</b> = <b>222</b> + <b>Phần số</b> của Mã GV (VD: Mã GV là <b>GV-2026-001</b> thì nhập <b>2222026001</b>)</div>
+              <div>2. Tạo mới nhân viên → nhập <b>Employee No</b> = <b>{TIMEKEEPING_TEACHER_PREFIX}</b> + <b>Phần số</b> của Mã GV (VD: Mã GV là <b>GV-2026-001</b> thì nhập <b>{getTeacherEmployeeNo('GV-2026-001')}</b>)</div>
               <div>3. Đăng ký khuôn mặt / vân tay cho giáo viên đó trên máy</div>
               <div>4. Bật toggle "Đồng bộ" ở đây để hệ thống ghi nhận giáo viên sẵn sàng</div>
             </div>
@@ -202,7 +203,7 @@ const TeacherListInner: React.FC = () => {
           );
         }
         return (
-          <Tooltip title={`Bấm để đánh dấu ${record.lastName} ${record.firstName} đã được tạo trên máy chấm công với Employee No = 222${numericId} (tiền tố 222 + phần số của mã ${record.teacherId})`}>
+          <Tooltip title={`Bấm để đánh dấu ${record.lastName} ${record.firstName} đã được tạo trên máy chấm công với Employee No = ${getTeacherEmployeeNo(record.teacherId)} (tiền tố ${TIMEKEEPING_TEACHER_PREFIX} + phần số của mã ${record.teacherId})`}>
             <Button
               type="primary"
               size="small"
