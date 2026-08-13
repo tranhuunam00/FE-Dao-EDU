@@ -605,7 +605,7 @@ export default function TimekeepingLogs() {
                   />
                 ) : (
                   <div style={{ color: 'var(--text-secondary)', fontSize: 13, textAlign: 'center' }}>
-                    📷 Không nhận được dữ liệu ảnh khuôn mặt từ thiết bị cho sự kiện này
+                    📷 Ảnh lưu trên thiết bị. Vui lòng liên hệ kỹ thuật để trích xuất khi cần.
                   </div>
                 )}
               </div>
