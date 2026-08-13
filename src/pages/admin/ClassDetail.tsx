@@ -825,6 +825,16 @@ const ClassDetailInner: React.FC = () => {
     });
   };
 
+  const handleDeleteSession = async (sessionId: string) => {
+    try {
+      await api.delete(`/classes/sessions/${sessionId}`);
+      message.success('Đã xóa buổi học thành công!');
+      await loadAllData();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi xóa buổi học');
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
@@ -920,7 +930,9 @@ const ClassDetailInner: React.FC = () => {
                 handleGenerateSessions={handleGenerateSessions} 
                 handleGenerateSessionsFromStart={handleGenerateSessionsFromStart}
                 openSessionDetail={openSessionDetail}
-                openCreateAdhocModal={openCreateAdhocModal} 
+                openCreateAdhocModal={openCreateAdhocModal}
+                handleDeleteSession={handleDeleteSession}
+                isAdmin={isAdmin}
               />
             )
           },

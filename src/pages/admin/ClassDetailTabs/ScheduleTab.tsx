@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Typography, Button, Table, Tag } from 'antd';
-import { CalendarOutlined, PlusOutlined } from '@ant-design/icons';
+import { Card, Typography, Button, Table, Tag, Popconfirm } from 'antd';
+import { CalendarOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -27,6 +27,8 @@ interface ScheduleTabProps {
   handleGenerateSessionsFromStart: () => void;
   openSessionDetail: (session: ClassSession) => void;
   openCreateAdhocModal: () => void;
+  handleDeleteSession: (sessionId: string) => Promise<void>;
+  isAdmin?: boolean;
 }
 
 export const ScheduleTab: React.FC<ScheduleTabProps> = ({ 
@@ -34,7 +36,9 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
   handleGenerateSessions, 
   handleGenerateSessionsFromStart,
   openSessionDetail,
-  openCreateAdhocModal
+  openCreateAdhocModal,
+  handleDeleteSession,
+  isAdmin
 }) => {
   const sessionColumns = [
     {
@@ -112,16 +116,37 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
     {
       title: 'Hành động',
       key: 'action',
-      width: '180px',
+      width: '240px',
       render: (_: any, record: ClassSession) => (
-        <Button
-          type="primary"
-          size="small"
-          style={{ background: 'rgba(99, 102, 241, 0.2)', border: '1px solid rgba(99, 102, 241, 0.4)', color: '#a5b4fc' }}
-          onClick={() => openSessionDetail(record)}
-        >
-          {record.status === 'Completed' ? 'Xem điểm danh' : 'Điểm danh / Đổi lịch'}
-        </Button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <Button
+            type="primary"
+            size="small"
+            style={{ background: 'rgba(99, 102, 241, 0.2)', border: '1px solid rgba(99, 102, 241, 0.4)', color: '#a5b4fc' }}
+            onClick={() => openSessionDetail(record)}
+          >
+            {record.status === 'Completed' ? 'Xem điểm danh' : 'Điểm danh / Đổi lịch'}
+          </Button>
+
+          {isAdmin && record.status === 'Scheduled' && !record.attendanceLocked && (
+            <Popconfirm
+              title="Xác nhận xóa buổi học"
+              description="Bạn có chắc chắn muốn xóa buổi học này? Bản ghi điểm danh học sinh cũng sẽ bị xóa."
+              onConfirm={() => handleDeleteSession(record.id)}
+              okText="Đồng ý"
+              cancelText="Hủy"
+              okButtonProps={{ danger: true }}
+            >
+              <Button
+                type="primary"
+                danger
+                size="small"
+                icon={<DeleteOutlined />}
+                title="Xóa buổi học"
+              />
+            </Popconfirm>
+          )}
+        </div>
       ),
     },
   ];
