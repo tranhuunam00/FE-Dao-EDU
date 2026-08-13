@@ -28,6 +28,7 @@ import {
   HistoryOutlined,
   FileTextOutlined,
   ApiOutlined,
+  SyncOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
@@ -97,6 +98,25 @@ export default function TimekeepingLogs() {
   const [matchStatus, setMatchStatus] = useState<'all' | 'matched' | 'unmatched'>('all');
   const [role, setRole] = useState<'all' | 'student' | 'teacher' | 'unmatched'>('all');
   const [selectedLog, setSelectedLog] = useState<TimekeepingLog | null>(null);
+
+  // Sync States & Handlers
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [syncDate, setSyncDate] = useState(dayjs().format('YYYY-MM-DD'));
+  const [syncing, setSyncing] = useState(false);
+
+  const handleManualSync = async () => {
+    setSyncing(true);
+    try {
+      const response = await api.post('/timekeeping/manual-reconcile', { date: syncDate });
+      message.success(`Đồng bộ thủ công thành công! Đã đối soát ${response.data.eventsProcessed} sự kiện.`);
+      setIsSyncModalOpen(false);
+      fetchLogs();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Đồng bộ thủ công thất bại.');
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   // Devices States
   const [devices, setDevices] = useState<TimekeepingDevice[]>([]);
@@ -396,7 +416,7 @@ export default function TimekeepingLogs() {
                   bodyStyle={{ padding: '8px 12px' }}
                 >
                   <Row gutter={[12, 12]} align="middle">
-                    <Col xs={24} md={5}>
+                    <Col xs={24} md={4}>
                       <Input
                         placeholder="Tìm theo mã số, Họ và tên..."
                         prefix={<SearchOutlined style={{ color: '#6b7280' }} />}
@@ -406,7 +426,7 @@ export default function TimekeepingLogs() {
                         allowClear
                       />
                     </Col>
-                    <Col xs={24} md={5}>
+                    <Col xs={24} md={4}>
                       <DatePicker.RangePicker
                         placeholder={['Từ ngày', 'Đến ngày']}
                         style={{ width: '100%' }}
@@ -441,7 +461,7 @@ export default function TimekeepingLogs() {
                         <Select.Option value="pin">Mật khẩu PIN</Select.Option>
                       </Select>
                     </Col>
-                    <Col xs={12} md={4}>
+                    <Col xs={12} md={3}>
                       <Select
                         placeholder="Trạng thái khớp"
                         style={{ width: '100%' }}
@@ -472,7 +492,18 @@ export default function TimekeepingLogs() {
                         <Select.Option value="unmatched">Chưa đối khớp</Select.Option>
                       </Select>
                     </Col>
-                    <Col xs={24} md={4} style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                    <Col xs={24} md={7} style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                      <Button 
+                        type="default" 
+                        icon={<SyncOutlined />} 
+                        onClick={() => {
+                          setSyncDate(startDate || dayjs().format('YYYY-MM-DD'));
+                          setIsSyncModalOpen(true);
+                        }}
+                        style={{ color: '#1677ff', borderColor: '#1677ff' }}
+                      >
+                        Đồng bộ thủ công
+                      </Button>
                       <Button icon={<ReloadOutlined />} onClick={handleResetFilters}>
                         Reset
                       </Button>
@@ -697,6 +728,38 @@ export default function TimekeepingLogs() {
             </Col>
           </Row>
         </Form>
+      </Modal>
+
+      {/* Manual Sync Modal */}
+      <Modal
+        title={
+          <Space>
+            <SyncOutlined style={{ color: '#1677ff' }} />
+            <span>Đồng bộ thủ công chấm công</span>
+          </Space>
+        }
+        open={isSyncModalOpen}
+        onCancel={() => setIsSyncModalOpen(false)}
+        onOk={handleManualSync}
+        confirmLoading={syncing}
+        destroyOnClose
+        okText="Bắt đầu đồng bộ"
+        cancelText="Hủy"
+      >
+        <div style={{ padding: '12px 0' }}>
+          <div style={{ marginBottom: 12, color: 'var(--text-secondary)', fontSize: 13 }}>
+            Chọn ngày cần đồng bộ lại các lượt quẹt chấm công của học sinh. Hệ thống sẽ kiểm tra toàn bộ nhật ký trong cơ sở dữ liệu của ngày này và tính toán lại trạng thái điểm danh phù hợp với danh sách học sinh và ca học hiện tại.
+          </div>
+          <DatePicker
+            style={{ width: '100%' }}
+            value={syncDate ? dayjs(syncDate) : null}
+            onChange={(date) => {
+              setSyncDate(date ? date.format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'));
+            }}
+            format="DD/MM/YYYY"
+            allowClear={false}
+          />
+        </div>
       </Modal>
     </div>
   );
