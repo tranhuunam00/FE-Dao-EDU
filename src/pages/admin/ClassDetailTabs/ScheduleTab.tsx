@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Typography, Button, Table, Tag, Popconfirm } from 'antd';
-import { CalendarOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, SyncOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -23,8 +23,7 @@ interface ClassSession {
 
 interface ScheduleTabProps {
   sessions: ClassSession[];
-  handleGenerateSessions: () => void;
-  handleGenerateSessionsFromStart: () => void;
+  openGenerateSessionsModal: () => void;
   openSessionDetail: (session: ClassSession) => void;
   openCreateAdhocModal: () => void;
   handleDeleteSession: (sessionId: string) => Promise<void>;
@@ -33,8 +32,7 @@ interface ScheduleTabProps {
 
 export const ScheduleTab: React.FC<ScheduleTabProps> = ({ 
   sessions, 
-  handleGenerateSessions, 
-  handleGenerateSessionsFromStart,
+  openGenerateSessionsModal, 
   openSessionDetail,
   openCreateAdhocModal,
   handleDeleteSession,
@@ -163,19 +161,11 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
         <div style={{ display: 'flex', gap: 8 }}>
           <Button
             type="dashed"
-            icon={<CalendarOutlined />}
-            onClick={handleGenerateSessions}
+            icon={<SyncOutlined />}
+            onClick={openGenerateSessionsModal}
             style={{ color: '#a5b4fc', borderColor: '#6366f1' }}
           >
-            {sessions.length === 0 ? 'Sinh các buổi học' : 'Sinh lại / Đồng bộ buổi học tương lai'}
-          </Button>
-          <Button
-            type="dashed"
-            icon={<CalendarOutlined />}
-            onClick={handleGenerateSessionsFromStart}
-            style={{ color: '#fdba74', borderColor: '#f97316' }}
-          >
-            Sinh từ ngày khai giảng
+            {sessions.length === 0 ? 'Sinh danh sách buổi học' : 'Sinh lại / Đồng bộ lịch học'}
           </Button>
           <Button
             type="primary"
