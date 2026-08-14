@@ -1,5 +1,5 @@
 export const TIMEKEEPING_STUDENT_PREFIX = '1111';
-export const TIMEKEEPING_TEACHER_PREFIX = '2222';
+export const TIMEKEEPING_TEACHER_PREFIX = '222';
 
 export function getNumericId(id: string): string {
   if (!id) return '';
