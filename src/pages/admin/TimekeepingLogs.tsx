@@ -17,6 +17,7 @@ import {
   Col,
   Row,
   Select,
+  Image,
 } from 'antd';
 import {
   SearchOutlined,
@@ -296,6 +297,26 @@ export default function TimekeepingLogs() {
             </div>
           );
         }
+      },
+    },
+    {
+      title: 'Ảnh chụp',
+      key: 'imageUrl',
+      dataIndex: 'imageUrl',
+      width: 100,
+      render: (val) => {
+        if (val) {
+          return (
+            <Image
+              src={val}
+              alt="Ảnh chấm công"
+              width={50}
+              height={50}
+              style={{ objectFit: 'cover', borderRadius: 4 }}
+            />
+          );
+        }
+        return <Text type="secondary" style={{ fontSize: 11 }}>Không có</Text>;
       },
     },
     {
