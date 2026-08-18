@@ -33,10 +33,20 @@ function cleanUrlsRecursively(data: any): any {
     // Match any IP (e.g. 103.90.227.173), excluding loopback 127.0.0.1
     const ipRegex = /^https?:\/\/(?!(127\.0\.0\.1))(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d+)?/i;
     const newDomain = 'https://imgeducare.home-care.vn';
-    if (ipRegex.test(data)) {
-      return data.replace(ipRegex, newDomain);
+    let cleanUrl = data;
+    let isReplaced = false;
+
+    if (ipRegex.test(cleanUrl)) {
+      cleanUrl = cleanUrl.replace(ipRegex, newDomain);
+      isReplaced = true;
     }
-    return data;
+
+    if (isReplaced || cleanUrl.startsWith(newDomain) || cleanUrl.startsWith('http://imgeducare.home-care.vn')) {
+      if (cleanUrl.includes('?')) {
+        cleanUrl = cleanUrl.split('?')[0];
+      }
+    }
+    return cleanUrl;
   }
   if (Array.isArray(data)) {
     return data.map(item => cleanUrlsRecursively(item));
