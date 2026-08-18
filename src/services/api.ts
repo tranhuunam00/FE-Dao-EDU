@@ -27,9 +27,40 @@ api.interceptors.request.use(
   }
 );
 
+function cleanUrlsRecursively(data: any): any {
+  if (!data) return data;
+  if (typeof data === 'string') {
+    // Match any IP (e.g. 103.90.227.173), excluding loopback 127.0.0.1
+    const ipRegex = /^https?:\/\/(?!(127\.0\.0\.1))(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d+)?/i;
+    const newDomain = 'https://imgeducare.home-care.vn';
+    if (ipRegex.test(data)) {
+      return data.replace(ipRegex, newDomain);
+    }
+    return data;
+  }
+  if (Array.isArray(data)) {
+    return data.map(item => cleanUrlsRecursively(item));
+  }
+  if (typeof data === 'object') {
+    const cleaned: any = {};
+    for (const key in data) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
+        cleaned[key] = cleanUrlsRecursively(data[key]);
+      }
+    }
+    return cleaned;
+  }
+  return data;
+}
+
 // Response interceptor to handle token refresh on 401 Unauthorized
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response.data) {
+      response.data = cleanUrlsRecursively(response.data);
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 
