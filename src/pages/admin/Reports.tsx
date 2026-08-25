@@ -776,7 +776,7 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
       const headers = [
         'STT', 'Mã HS', 'Họ tên', 'SĐT liên hệ',
         ...sessionDates,
-        'Tổng số buổi', 'Đơn giá/buổi', 'Tổng học phí', 'Điểm ĐG trung bình', 'Trạng thái TT'
+        'Tổng số buổi', 'Đơn giá/buổi', 'Tổng học phí', 'Điểm ĐG trung bình'
       ];
       sheetData.push(headers);
 
@@ -798,7 +798,14 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
 
           (cls.sessions || []).forEach((sess: any) => {
             const sessionData = s.attendance[sess.sessionId];
-            row.push(!sessionData ? '—' : (sessionData.isPresent ? sessionData.rate : 0));
+            if (!sessionData) {
+              row.push('—');
+            } else {
+              const amount = sessionData.isPresent ? sessionData.rate : 0;
+              const isPaid = sessionData.paymentStatus === 'Paid';
+              const statusText = isPaid ? 'Đã thu' : 'Chưa thu';
+              row.push(`${amount.toLocaleString('vi-VN')} ₫ (${statusText})`);
+            }
           });
 
           const evals = (cls.sessions || [])
@@ -815,8 +822,7 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
             s.presentCount,
             s.pricePerSession,
             s.totalTuition,
-            avgScore === '—' ? '—' : Number(avgScore),
-            s.paymentStatus === 'Paid' ? 'Đã thu' : s.paymentStatus === 'Unpaid' ? 'Chưa thu' : (s.paymentStatus === 'Partially_Paid' || s.paymentStatus === 'Partially Paid') ? 'Thu một phần' : '—'
+            avgScore === '—' ? '—' : Number(avgScore)
           );
 
           totalTuitionSum += s.totalTuition || 0;
@@ -838,14 +844,13 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
         '', // Price Per Session
         totalTuitionSum, // Total Tuition
         '', // Average Score
-        '' // Payment Status
       ];
       sheetData.push(totalRow);
 
       const ws = XLSX.utils.aoa_to_sheet(sheetData);
 
       // --- Styling Configurations for Excel ---
-      const totalColumns = 9 + sessionDates.length;
+      const totalColumns = 8 + sessionDates.length;
       const numSessions = sessionDates.length;
 
       // 1. Merges
@@ -982,22 +987,30 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
               title: dayjs(sess.date).format('DD/MM'),
               dataIndex: ['attendance', sess.sessionId],
               key: sess.sessionId,
-              width: 70,
+              width: 80,
               align: 'center' as const,
               render: (sessionData: any) => {
                 if (!sessionData) return '—';
                 const score = sessionData.evaluationScore;
                 const comment = sessionData.evaluationComment;
                 const tooltipText = comment ? `Điểm: ${score ?? '—'} | Nhận xét: ${comment}` : score !== null && score !== undefined ? `Điểm: ${score}` : '';
+
+                const isPaid = sessionData.paymentStatus === 'Paid';
+                const paymentStatusText = isPaid ? 'Đã thu' : 'Chưa thu';
+                const paymentStatusColor = isPaid ? '#10b981' : '#ef4444';
+
                 return (
-                  <div title={tooltipText} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div title={tooltipText} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                     {sessionData.isPresent ? (
                       <span style={{ color: '#10b981', fontWeight: 600 }}>{fmtVND(sessionData.rate)}</span>
                     ) : (
                       <span style={{ color: '#ef4444', fontWeight: 600 }}>0 ₫</span>
                     )}
+                    <span style={{ fontSize: '11px', color: paymentStatusColor, fontWeight: 500, lineHeight: 1.2 }}>
+                      {paymentStatusText}
+                    </span>
                     {score !== null && score !== undefined && (
-                      <span style={{ fontSize: '10px', color: 'var(--primary, #6366f1)', marginTop: 2, background: 'rgba(99,102,241,0.1)', padding: '0px 4px', borderRadius: 4, whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: '10px', color: 'var(--primary, #6366f1)', marginTop: 1, background: 'rgba(99,102,241,0.1)', padding: '0px 4px', borderRadius: 4, whiteSpace: 'nowrap' }}>
                         ★ {score}
                       </span>
                     )}
@@ -1027,13 +1040,6 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
                   if (evals.length === 0) return '—';
                   const avg = evals.reduce((sum: number, val: number) => sum + val, 0) / evals.length;
                   return <b>{avg.toFixed(1)}</b>;
-                }
-              },
-              { title: 'Trạng thái TT', dataIndex: 'paymentStatus', key: 'paymentStatus', width: 130, render: (v: string) => {
-                  if (v === 'Paid') return <Tag color="green">Đã thu</Tag>;
-                  if (v === 'Unpaid') return <Tag color="red">Chưa thu</Tag>;
-                  if (v === 'Partially_Paid' || v === 'Partially Paid') return <Tag color="orange">Thu một phần</Tag>;
-                  return <Tag color="default">—</Tag>;
                 }
               },
             ];
