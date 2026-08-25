@@ -19,17 +19,18 @@ export interface PricingData {
 }
 
 /**
- * Sắp xếp các cấu hình giá theo thứ tự ưu tiên: thời gian sửa/tạo mới nhất lên đầu.
+ * Sắp xếp các cấu hình giá theo thứ tự ưu tiên: thời gian tạo bản ghi mới nhất lên đầu.
  * Tiêu chí:
- * 1. Thời gian cập nhật/sửa (updatedAt) hoặc tạo (createdAt) giảm dần (DESC)
- * 2. ID giảm dần (DESC) để giải quyết các bản ghi có cùng thời gian
- * 3. Ngày bắt đầu áp dụng (effectiveFrom) giảm dần (DESC)
+ * 1. Thời gian tạo bản ghi (createdAt) giảm dần (DESC)
+ * 2. Thời gian cập nhật (updatedAt) giảm dần (DESC)
+ * 3. ID giảm dần (DESC) để giải quyết các bản ghi có cùng thời gian
+ * 4. Ngày bắt đầu áp dụng (effectiveFrom) giảm dần (DESC)
  */
 export const sortPricingNewestFirst = (pricingList: PricingData[]): PricingData[] => {
   return [...pricingList].sort((a, b) => {
     const getTimestamp = (p: PricingData) => {
-      if (p.updatedAt) return new Date(p.updatedAt).getTime();
       if (p.createdAt) return new Date(p.createdAt).getTime();
+      if (p.updatedAt) return new Date(p.updatedAt).getTime();
       return 0;
     };
     const tA = getTimestamp(a);

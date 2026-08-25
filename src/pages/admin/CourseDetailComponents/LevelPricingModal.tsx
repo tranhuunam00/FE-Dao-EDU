@@ -450,6 +450,17 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
                         ),
                       },
                       {
+                        title: 'Thời gian tạo',
+                        dataIndex: 'createdAt',
+                        key: 'createdAt',
+                        width: 140,
+                        render: (v: string) => v ? (
+                          <Text style={{ fontSize: '12px', color: '#94a3b8' }}>
+                            {dayjs(v).format('DD/MM/YYYY HH:mm')}
+                          </Text>
+                        ) : '-',
+                      },
+                      {
                         title: 'Thao tác',
                         key: 'action',
                         align: 'right',
@@ -554,6 +565,17 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
                         ),
                       },
                       {
+                        title: 'Thời gian tạo',
+                        dataIndex: 'createdAt',
+                        key: 'createdAt',
+                        width: 140,
+                        render: (v: string) => v ? (
+                          <Text style={{ fontSize: '12px', color: '#94a3b8' }}>
+                            {dayjs(v).format('DD/MM/YYYY HH:mm')}
+                          </Text>
+                        ) : '-',
+                      },
+                      {
                         title: 'Thao tác',
                         key: 'action',
                         align: 'right',
@@ -656,6 +678,17 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
                             {dayjs(record.effectiveFrom).format('DD/MM/YYYY')} - {record.effectiveTo ? dayjs(record.effectiveTo).format('DD/MM/YYYY') : 'Nay'}
                           </Text>
                         ),
+                      },
+                      {
+                        title: 'Thời gian tạo',
+                        dataIndex: 'createdAt',
+                        key: 'createdAt',
+                        width: 140,
+                        render: (v: string) => v ? (
+                          <Text style={{ fontSize: '12px', color: '#94a3b8' }}>
+                            {dayjs(v).format('DD/MM/YYYY HH:mm')}
+                          </Text>
+                        ) : '-',
                       },
                       {
                         title: 'Thao tác',

@@ -352,6 +352,17 @@ const CourseDetailInner: React.FC = () => {
                         dataIndex: 'effectiveTo',
                         render: (v: string | null) => v ? dayjs(v).format('DD/MM/YYYY') : <Tag color="green">Hiện hành</Tag>,
                       },
+                      {
+                        title: 'Thời gian tạo',
+                        dataIndex: 'createdAt',
+                        key: 'createdAt',
+                        width: 140,
+                        render: (v: string) => v ? (
+                          <Text style={{ fontSize: '12px', color: '#94a3b8' }}>
+                            {dayjs(v).format('DD/MM/YYYY HH:mm')}
+                          </Text>
+                        ) : '-',
+                      },
                     ]}
                   />
                 ) : (
