@@ -800,11 +800,13 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
             const sessionData = s.attendance[sess.sessionId];
             if (!sessionData) {
               row.push('—');
-            } else {
-              const amount = sessionData.isPresent ? sessionData.rate : 0;
+            } else if (sessionData.isPresent) {
+              const amount = sessionData.rate || 0;
               const isPaid = sessionData.paymentStatus === 'Paid';
               const statusText = isPaid ? 'Đã thu' : 'Chưa thu';
               row.push(`${amount.toLocaleString('vi-VN')} ₫ (${statusText})`);
+            } else {
+              row.push('0 ₫');
             }
           });
 
@@ -859,11 +861,15 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
       ];
 
       // 2. Column widths
-      const colWidths = Array(totalColumns).fill({ wch: 10 });
+      const colWidths = Array(totalColumns).fill({ wch: 18 });
       colWidths[0] = { wch: 6 };  // STT
       colWidths[1] = { wch: 12 }; // Student Code
       colWidths[2] = { wch: 22 }; // Student Name
       colWidths[3] = { wch: 14 }; // Mobile
+      colWidths[4 + numSessions] = { wch: 12 }; // Present count
+      colWidths[4 + numSessions + 1] = { wch: 14 }; // Price per session
+      colWidths[4 + numSessions + 2] = { wch: 15 }; // Total tuition
+      colWidths[4 + numSessions + 3] = { wch: 18 }; // Avg evaluation
       ws['!cols'] = colWidths;
 
       // 3. Cells style declaration
@@ -1006,9 +1012,11 @@ const ClassAttendanceTab: React.FC<{ data: any[] | null; loading: boolean }> = (
                     ) : (
                       <span style={{ color: '#ef4444', fontWeight: 600 }}>0 ₫</span>
                     )}
-                    <span style={{ fontSize: '11px', color: paymentStatusColor, fontWeight: 500, lineHeight: 1.2 }}>
-                      {paymentStatusText}
-                    </span>
+                    {sessionData.isPresent && (
+                      <span style={{ fontSize: '11px', color: paymentStatusColor, fontWeight: 500, lineHeight: 1.2 }}>
+                        ({paymentStatusText})
+                      </span>
+                    )}
                     {score !== null && score !== undefined && (
                       <span style={{ fontSize: '10px', color: 'var(--primary, #6366f1)', marginTop: 1, background: 'rgba(99,102,241,0.1)', padding: '0px 4px', borderRadius: 4, whiteSpace: 'nowrap' }}>
                         ★ {score}
