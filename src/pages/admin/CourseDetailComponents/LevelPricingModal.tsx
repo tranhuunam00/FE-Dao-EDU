@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, InputNumber, DatePicker, Table, Typography, Button, App, Tabs } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Modal, Form, InputNumber, DatePicker, Table, Typography, Button, App, Tabs, Space, Tooltip, Popconfirm } from 'antd';
+import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../../services/api';
 import { sortPricingNewestFirst } from '../../../utils/pricing';
@@ -187,6 +187,16 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
 
   const [editState, setEditState] = useState<EditModalState>({ open: false, mode: null, record: null });
 
+  const handleDeletePricing = async (pricingId: string) => {
+    try {
+      await api.delete(`/courses/pricing/${pricingId}`);
+      message.success('Xóa bản ghi đơn giá thành công!');
+      onSuccess();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Không thể xóa bản ghi đơn giá.');
+    }
+  };
+
   useEffect(() => {
     if (open && selectedLevel) {
       const todayStr = dayjs().format('YYYY-MM-DD');
@@ -250,7 +260,6 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
       }
     }
   }, [editState, editForm]);
-
 
   const handleEditPricingSubmit = async (values: any) => {
     if (!editState.mode) return;
@@ -332,7 +341,6 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
       setSubmittingEditPricing(false);
     }
   };
-
 
   const getEditModalTitle = () => {
     const isCreate = !editState.record;
@@ -428,6 +436,47 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
                           </Text>
                         ),
                       },
+                      {
+                        title: 'Thao tác',
+                        key: 'action',
+                        align: 'right',
+                        render: (_: any, record: PricingData) => {
+                          const isLocked = record.isStudentPriceLocked || (lastStudentBillDate && record.effectiveFrom <= lastStudentBillDate);
+                          return (
+                            <Space size="small">
+                              <Button
+                                size="small"
+                                icon={<EditOutlined />}
+                                onClick={() => setEditState({ open: true, mode: 'price', record })}
+                              >
+                                Sửa
+                              </Button>
+                              {isLocked ? (
+                                <Tooltip title="Đã có học viên đóng tiền trong khoảng thời gian này, không thể xóa">
+                                  <span>
+                                    <Button size="small" danger icon={<DeleteOutlined />} disabled>
+                                      Xóa
+                                    </Button>
+                                  </span>
+                                </Tooltip>
+                              ) : (
+                                <Popconfirm
+                                  title="Xóa bản ghi đơn giá này?"
+                                  description="Bạn có chắc chắn muốn xóa bản ghi đơn giá này không?"
+                                  onConfirm={() => handleDeletePricing(record.id)}
+                                  okText="Xóa"
+                                  cancelText="Hủy"
+                                  okButtonProps={{ danger: true }}
+                                >
+                                  <Button size="small" danger icon={<DeleteOutlined />}>
+                                    Xóa
+                                  </Button>
+                                </Popconfirm>
+                              )}
+                            </Space>
+                          );
+                        },
+                      },
                     ]}
                   />
                 </div>
@@ -478,6 +527,47 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
                           </Text>
                         ),
                       },
+                      {
+                        title: 'Thao tác',
+                        key: 'action',
+                        align: 'right',
+                        render: (_: any, record: PricingData) => {
+                          const isLocked = record.isTeacherWageLocked || (lastTeacherWageDate && record.effectiveFrom <= lastTeacherWageDate);
+                          return (
+                            <Space size="small">
+                              <Button
+                                size="small"
+                                icon={<EditOutlined />}
+                                onClick={() => setEditState({ open: true, mode: 'teacherWage', record })}
+                              >
+                                Sửa
+                              </Button>
+                              {isLocked ? (
+                                <Tooltip title="Đã chốt lương giáo viên trong khoảng thời gian này, không thể xóa">
+                                  <span>
+                                    <Button size="small" danger icon={<DeleteOutlined />} disabled>
+                                      Xóa
+                                    </Button>
+                                  </span>
+                                </Tooltip>
+                              ) : (
+                                <Popconfirm
+                                  title="Xóa bản ghi lương này?"
+                                  description="Bạn có chắc chắn muốn xóa bản ghi cấu hình lương giáo viên này không?"
+                                  onConfirm={() => handleDeletePricing(record.id)}
+                                  okText="Xóa"
+                                  cancelText="Hủy"
+                                  okButtonProps={{ danger: true }}
+                                >
+                                  <Button size="small" danger icon={<DeleteOutlined />}>
+                                    Xóa
+                                  </Button>
+                                </Popconfirm>
+                              )}
+                            </Space>
+                          );
+                        },
+                      },
                     ]}
                   />
                 </div>
@@ -527,6 +617,47 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
                             {dayjs(record.effectiveFrom).format('DD/MM/YYYY')} - {record.effectiveTo ? dayjs(record.effectiveTo).format('DD/MM/YYYY') : 'Nay'}
                           </Text>
                         ),
+                      },
+                      {
+                        title: 'Thao tác',
+                        key: 'action',
+                        align: 'right',
+                        render: (_: any, record: PricingData) => {
+                          const isLocked = record.isTaWageLocked || (lastAssistantWageDate && record.effectiveFrom <= lastAssistantWageDate);
+                          return (
+                            <Space size="small">
+                              <Button
+                                size="small"
+                                icon={<EditOutlined />}
+                                onClick={() => setEditState({ open: true, mode: 'taWage', record })}
+                              >
+                                Sửa
+                              </Button>
+                              {isLocked ? (
+                                <Tooltip title="Đã chốt lương trợ giảng trong khoảng thời gian này, không thể xóa">
+                                  <span>
+                                    <Button size="small" danger icon={<DeleteOutlined />} disabled>
+                                      Xóa
+                                    </Button>
+                                  </span>
+                                </Tooltip>
+                              ) : (
+                                <Popconfirm
+                                  title="Xóa bản ghi lương này?"
+                                  description="Bạn có chắc chắn muốn xóa bản ghi cấu hình lương trợ giảng này không?"
+                                  onConfirm={() => handleDeletePricing(record.id)}
+                                  okText="Xóa"
+                                  cancelText="Hủy"
+                                  okButtonProps={{ danger: true }}
+                                >
+                                  <Button size="small" danger icon={<DeleteOutlined />}>
+                                    Xóa
+                                  </Button>
+                                </Popconfirm>
+                              )}
+                            </Space>
+                          );
+                        },
                       },
                     ]}
                   />
@@ -682,7 +813,19 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
               }),
             ]}
           >
-            <DatePicker disabled={editState.record?.isDateRangeLocked} style={{ width: '100%' }} format="DD/MM/YYYY" />
+            <DatePicker
+              disabled={editState.record?.isDateRangeLocked}
+              style={{ width: '100%' }}
+              format="DD/MM/YYYY"
+              disabledDate={(current) => {
+                let limitDateStr: string | null = null;
+                if (editState.mode === 'price') limitDateStr = lastStudentBillDate;
+                else if (editState.mode === 'teacherWage') limitDateStr = lastTeacherWageDate;
+                else if (editState.mode === 'taWage') limitDateStr = lastAssistantWageDate;
+                if (!limitDateStr) return false;
+                return current && current <= dayjs(limitDateStr).endOf('day');
+              }}
+            />
           </Form.Item>
 
           <Form.Item
@@ -717,7 +860,20 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
               }),
             ]}
           >
-            <DatePicker disabled={editState.record?.isDateRangeLocked} style={{ width: '100%' }} format="DD/MM/YYYY" placeholder="Để trống nếu hiện hành" />
+            <DatePicker
+              disabled={editState.record?.isDateRangeLocked}
+              style={{ width: '100%' }}
+              format="DD/MM/YYYY"
+              placeholder="Để trống nếu hiện hành"
+              disabledDate={(current) => {
+                let limitDateStr: string | null = null;
+                if (editState.mode === 'price') limitDateStr = lastStudentBillDate;
+                else if (editState.mode === 'teacherWage') limitDateStr = lastTeacherWageDate;
+                else if (editState.mode === 'taWage') limitDateStr = lastAssistantWageDate;
+                if (!limitDateStr) return false;
+                return current && current <= dayjs(limitDateStr).endOf('day');
+              }}
+            />
           </Form.Item>
         </Form>
       </Modal>
