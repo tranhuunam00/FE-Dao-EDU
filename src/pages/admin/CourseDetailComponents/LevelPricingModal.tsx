@@ -416,6 +416,19 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
                     size="small"
                     columns={[
                       {
+                        title: 'ID',
+                        dataIndex: 'id',
+                        key: 'id',
+                        width: 110,
+                        render: (id: string) => (
+                          <Tooltip title={id}>
+                            <Text copyable={{ text: id }} style={{ fontFamily: 'monospace', fontSize: '12px', color: '#94a3b8' }}>
+                              {id ? (id.length > 8 ? `${id.slice(0, 8)}...` : id) : '-'}
+                            </Text>
+                          </Tooltip>
+                        ),
+                      },
+                      {
                         title: 'Đơn giá / buổi',
                         dataIndex: 'pricePerSession',
                         render: (v: number, record: PricingData) => (
@@ -507,6 +520,19 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
                     size="small"
                     columns={[
                       {
+                        title: 'ID',
+                        dataIndex: 'id',
+                        key: 'id',
+                        width: 110,
+                        render: (id: string) => (
+                          <Tooltip title={id}>
+                            <Text copyable={{ text: id }} style={{ fontFamily: 'monospace', fontSize: '12px', color: '#94a3b8' }}>
+                              {id ? (id.length > 8 ? `${id.slice(0, 8)}...` : id) : '-'}
+                            </Text>
+                          </Tooltip>
+                        ),
+                      },
+                      {
                         title: 'Lương giáo viên / buổi',
                         dataIndex: 'teacherWagePerSession',
                         render: (v: number, record: PricingData) => (
@@ -597,6 +623,19 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
                     pagination={false}
                     size="small"
                     columns={[
+                      {
+                        title: 'ID',
+                        dataIndex: 'id',
+                        key: 'id',
+                        width: 110,
+                        render: (id: string) => (
+                          <Tooltip title={id}>
+                            <Text copyable={{ text: id }} style={{ fontFamily: 'monospace', fontSize: '12px', color: '#94a3b8' }}>
+                              {id ? (id.length > 8 ? `${id.slice(0, 8)}...` : id) : '-'}
+                            </Text>
+                          </Tooltip>
+                        ),
+                      },
                       {
                         title: 'Lương trợ giảng / buổi',
                         dataIndex: 'taWagePerSession',

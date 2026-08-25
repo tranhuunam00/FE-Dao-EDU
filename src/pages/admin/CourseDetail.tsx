@@ -315,6 +315,19 @@ const CourseDetailInner: React.FC = () => {
                     size="small"
                     columns={[
                       {
+                        title: 'ID',
+                        dataIndex: 'id',
+                        key: 'id',
+                        width: 120,
+                        render: (id: string) => (
+                          <Tooltip title={id}>
+                            <Text copyable={{ text: id }} style={{ fontFamily: 'monospace', fontSize: '12px', color: '#94a3b8' }}>
+                              {id ? (id.length > 8 ? `${id.slice(0, 8)}...` : id) : '-'}
+                            </Text>
+                          </Tooltip>
+                        ),
+                      },
+                      {
                         title: 'Đơn giá học viên / buổi',
                         dataIndex: 'pricePerSession',
                         render: (v: number) => <Text strong style={{ color: '#34d399' }}>{Number(v).toLocaleString()}đ</Text>,
