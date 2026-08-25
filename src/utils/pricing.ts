@@ -19,6 +19,41 @@ export interface PricingData {
 }
 
 /**
+ * Format timestamp sang múi giờ Việt Nam (UTC+7 / GMT+7) chuẩn xác.
+ * Tự động chuyển đổi UTC sang +7h và hiển thị dạng DD/MM/YYYY HH:mm.
+ */
+export const formatVietnamDateTime = (dateVal: string | Date | undefined | null): string => {
+  if (!dateVal) return '-';
+  let d: Date;
+  if (typeof dateVal === 'string') {
+    let s = dateVal.trim();
+    // Nếu chuỗi timestamp không có offset múi giờ (từ PostgreSQL UTC mà thiếu Z), gắn thêm Z
+    if (!s.endsWith('Z') && !s.includes('+') && !s.includes('T')) {
+      s = s.replace(' ', 'T') + 'Z';
+    } else if (!s.endsWith('Z') && !s.includes('+')) {
+      s = s + 'Z';
+    }
+    d = new Date(s);
+  } else {
+    d = new Date(dateVal);
+  }
+
+  if (isNaN(d.getTime())) return '-';
+
+  return new Intl.DateTimeFormat('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+    .format(d)
+    .replace(',', '');
+};
+
+/**
  * Sắp xếp các cấu hình giá theo thứ tự ưu tiên: thời gian tạo bản ghi mới nhất lên đầu.
  * Tiêu chí:
  * 1. Thời gian tạo bản ghi (createdAt) giảm dần (DESC)
@@ -51,16 +86,17 @@ export const getActiveRate = (
   rateField: 'pricePerSession' | 'teacherWagePerSession' | 'taWagePerSession'
 ): number => {
   if (!pricingList || pricingList.length === 0) return 0;
+  const targetDate = String(date || '').slice(0, 10);
 
   // 1. Lọc các record có giá trị đơn giá/lương lớn hơn 0
   const activePricing = pricingList.filter(p => Number((p as any)[rateField]) > 0);
 
   // 2. Tìm các record bao phủ ngày được chỉ định
   const covering = activePricing.filter(p => {
-    const pFrom = p.effectiveFrom;
-    const pTo = p.effectiveTo;
-    if (pTo !== null && pTo < pFrom) return false; // bỏ qua nếu ngày kết thúc trước ngày bắt đầu
-    return pFrom <= date && (pTo === null || pTo >= date);
+    const pFrom = String(p.effectiveFrom || '').slice(0, 10);
+    const pTo = p.effectiveTo ? String(p.effectiveTo).slice(0, 10) : null;
+    if (pTo !== null && pTo < pFrom) return false;
+    return pFrom <= targetDate && (pTo === null || pTo >= targetDate);
   });
 
   if (covering.length === 0) return 0;

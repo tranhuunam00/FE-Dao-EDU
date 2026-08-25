@@ -3,7 +3,7 @@ import { Modal, Form, InputNumber, DatePicker, Table, Typography, Button, App, T
 import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../../services/api';
-import { sortPricingNewestFirst } from '../../../utils/pricing';
+import { sortPricingNewestFirst, formatVietnamDateTime } from '../../../utils/pricing';
 
 const { Text } = Typography;
 
@@ -454,11 +454,11 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
                         dataIndex: 'createdAt',
                         key: 'createdAt',
                         width: 140,
-                        render: (v: string) => v ? (
+                        render: (v: string) => (
                           <Text style={{ fontSize: '12px', color: '#94a3b8' }}>
-                            {dayjs(v).format('DD/MM/YYYY HH:mm')}
+                            {formatVietnamDateTime(v)}
                           </Text>
-                        ) : '-',
+                        ),
                       },
                       {
                         title: 'Thao tác',
@@ -569,11 +569,11 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
                         dataIndex: 'createdAt',
                         key: 'createdAt',
                         width: 140,
-                        render: (v: string) => v ? (
+                        render: (v: string) => (
                           <Text style={{ fontSize: '12px', color: '#94a3b8' }}>
-                            {dayjs(v).format('DD/MM/YYYY HH:mm')}
+                            {formatVietnamDateTime(v)}
                           </Text>
-                        ) : '-',
+                        ),
                       },
                       {
                         title: 'Thao tác',
@@ -684,11 +684,11 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
                         dataIndex: 'createdAt',
                         key: 'createdAt',
                         width: 140,
-                        render: (v: string) => v ? (
+                        render: (v: string) => (
                           <Text style={{ fontSize: '12px', color: '#94a3b8' }}>
-                            {dayjs(v).format('DD/MM/YYYY HH:mm')}
+                            {formatVietnamDateTime(v)}
                           </Text>
-                        ) : '-',
+                        ),
                       },
                       {
                         title: 'Thao tác',

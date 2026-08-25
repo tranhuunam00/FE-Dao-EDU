@@ -7,7 +7,7 @@ import { ArrowLeftOutlined, BookOutlined, DollarOutlined, PlusOutlined, EditOutl
 import dayjs from 'dayjs';
 import api from '../../services/api';
 import LevelPricingModal, { renderPricingTimeline, type PricingData } from './CourseDetailComponents/LevelPricingModal';
-import { getActiveRate, sortPricingNewestFirst } from '../../utils/pricing';
+import { getActiveRate, sortPricingNewestFirst, formatVietnamDateTime } from '../../utils/pricing';
 import { AddLevelModal, EditLevelModal } from './CourseDetailComponents/LevelModal';
 
 const { Title, Text } = Typography;
@@ -357,11 +357,11 @@ const CourseDetailInner: React.FC = () => {
                         dataIndex: 'createdAt',
                         key: 'createdAt',
                         width: 140,
-                        render: (v: string) => v ? (
+                        render: (v: string) => (
                           <Text style={{ fontSize: '12px', color: '#94a3b8' }}>
-                            {dayjs(v).format('DD/MM/YYYY HH:mm')}
+                            {formatVietnamDateTime(v)}
                           </Text>
-                        ) : '-',
+                        ),
                       },
                     ]}
                   />
