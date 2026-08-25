@@ -1234,6 +1234,13 @@ const ClassDetailInner: React.FC = () => {
                   size="small"
                   columns={[
                     {
+                      title: 'STT',
+                      key: 'index',
+                      width: 50,
+                      align: 'center' as const,
+                      render: (_text: any, _record: any, index: number) => index + 1,
+                    },
+                    {
                       title: 'Học sinh',
                       dataIndex: ['student', 'name'],
                       key: 'name',

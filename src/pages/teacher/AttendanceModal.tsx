@@ -213,6 +213,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
               <table className="custom-table">
                 <thead>
                   <tr>
+                    <th style={{ width: '50px', textAlign: 'center' }}>STT</th>
                     <th>Mã HS</th>
                     <th>Họ và Tên</th>
                     <th style={{ textAlign: 'center' }}>Điểm danh</th>
@@ -223,13 +224,14 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({ session, onClo
                   </tr>
                 </thead>
                 <tbody>
-                  {attendances.map(a => {
+                  {attendances.map((a, index) => {
                     const isExcusedDefault = a.reason === 'Nghỉ có phép';
                     const isUnexcused = !a.reason || a.reason.trim() === '';
                     const selectValue = isExcusedDefault ? 'Nghỉ có phép' : isUnexcused ? 'Nghỉ không phép' : 'custom';
 
                     return (
                       <tr key={a.id} style={{ opacity: (attendanceLocked || sessionStatus === 'Scheduled') ? 0.7 : 1 }}>
+                        <td style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>{index + 1}</td>
                         <td style={{ color: 'var(--text-secondary)' }}>{a.student?.studentId}</td>
                         <td style={{ fontWeight: 500 }}>{a.student?.lastName} {a.student?.firstName}</td>
                         <td style={{ textAlign: 'center' }}>
