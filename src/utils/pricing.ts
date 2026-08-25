@@ -8,18 +8,27 @@ export interface PricingData {
   effectiveFrom: string;
   effectiveTo: string | null;
   createdAt?: string | Date;
+  updatedAt?: string | Date;
+  isStudentPriceLocked?: boolean;
+  isTeacherWageLocked?: boolean;
+  isTaWageLocked?: boolean;
+  isDateRangeLocked?: boolean;
+  lastStudentBillDate?: string | null;
+  lastTeacherWageDate?: string | null;
+  lastAssistantWageDate?: string | null;
 }
 
 /**
- * Sắp xếp các cấu hình giá theo thứ tự ưu tiên: cấu hình mới nhất lên đầu.
+ * Sắp xếp các cấu hình giá theo thứ tự ưu tiên: thời gian sửa/tạo mới nhất lên đầu.
  * Tiêu chí:
- * 1. Thời gian tạo cấu hình (createdAt) giảm dần (DESC)
- * 2. ID giảm dần (DESC) để giải quyết các bản ghi có cùng thời gian tạo
+ * 1. Thời gian cập nhật/sửa (updatedAt) hoặc tạo (createdAt) giảm dần (DESC)
+ * 2. ID giảm dần (DESC) để giải quyết các bản ghi có cùng thời gian
  * 3. Ngày bắt đầu áp dụng (effectiveFrom) giảm dần (DESC)
  */
 export const sortPricingNewestFirst = (pricingList: PricingData[]): PricingData[] => {
   return [...pricingList].sort((a, b) => {
     const getTimestamp = (p: PricingData) => {
+      if (p.updatedAt) return new Date(p.updatedAt).getTime();
       if (p.createdAt) return new Date(p.createdAt).getTime();
       return 0;
     };

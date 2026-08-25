@@ -7,7 +7,7 @@ import { ArrowLeftOutlined, BookOutlined, DollarOutlined, PlusOutlined, EditOutl
 import dayjs from 'dayjs';
 import api from '../../services/api';
 import LevelPricingModal, { renderPricingTimeline, type PricingData } from './CourseDetailComponents/LevelPricingModal';
-import { getActiveRate } from '../../utils/pricing';
+import { getActiveRate, sortPricingNewestFirst } from '../../utils/pricing';
 import { AddLevelModal, EditLevelModal } from './CourseDetailComponents/LevelModal';
 
 const { Title, Text } = Typography;
@@ -309,7 +309,7 @@ const CourseDetailInner: React.FC = () => {
 
                 {record.pricing && record.pricing.length > 0 ? (
                   <Table
-                    dataSource={record.pricing}
+                    dataSource={sortPricingNewestFirst(record.pricing)}
                     rowKey="id"
                     pagination={false}
                     size="small"
