@@ -3,6 +3,7 @@ import { Card, Row, Col, DatePicker, Button, Table, Typography, Space, Tag, Inpu
 import { SearchOutlined, UserOutlined, DownloadOutlined, CheckSquareOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../../services/api';
+import { exportToExcel } from '../../../utils/export';
 
 const { Text } = Typography;
 
@@ -24,14 +25,6 @@ const statusLabel: Record<string, string> = {
   Active: 'Đang dạy',
   Inactive: 'Nghỉ việc',
   'On Leave': 'Tạm nghỉ',
-};
-
-const exportCSV = (data: any[], filename: string, headers: string[], keys: string[]) => {
-  const rows = [headers.join(','), ...data.map(r => keys.map(k => `"${r[k] ?? ''}"`).join(','))];
-  const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
 };
 
 const cardStyle = { border: 'none', background: 'var(--card-bg)' };
@@ -142,15 +135,16 @@ export const TuitionTab: React.FC<TuitionTabProps> = ({ onSuccess }) => {
           {tuitionPreviewData.length > 0 && (
             <Button
               icon={<DownloadOutlined />}
-              onClick={() => exportCSV(
+              onClick={() => exportToExcel(
                 tuitionPreviewData,
-                `Danh_sach_thu_hoc_phi_${tuitionMonth?.format('YYYY_MM')}.csv`,
+                `Danh_sach_thu_hoc_phi_${tuitionMonth?.format('YYYY_MM')}.xlsx`,
                 ['Mã HS', 'Họ tên', 'SĐT', 'Trạng thái', 'Tổng học phí (₫)'],
-                ['studentCode', 'name', 'mobile', 'status', 'totalAmount']
+                ['studentCode', 'name', 'mobile', 'status', 'totalAmount'],
+                'Danh sách thu học phí'
               )}
               style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}
             >
-              Xuất CSV
+              Xuất Excel
             </Button>
           )}
         </Space>

@@ -3,6 +3,7 @@ import { Card, Row, Col, DatePicker, Button, Table, Typography, Space, Tag, Inpu
 import { SearchOutlined, TeamOutlined, DownloadOutlined, CheckSquareOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../../services/api';
+import { exportToExcel } from '../../../utils/export';
 
 
 const { Text } = Typography;
@@ -25,14 +26,6 @@ const statusLabel: Record<string, string> = {
   Active: 'Đang dạy',
   Inactive: 'Nghỉ việc',
   'On Leave': 'Tạm nghỉ',
-};
-
-const exportCSV = (data: any[], filename: string, headers: string[], keys: string[]) => {
-  const rows = [headers.join(','), ...data.map(r => keys.map(k => `"${r[k] ?? ''}"`).join(','))];
-  const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
 };
 
 const cardStyle = { border: 'none', background: 'var(--card-bg)' };
@@ -156,16 +149,17 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
                     net,
                   };
                 });
-                exportCSV(
+                exportToExcel(
                   mappedPreview,
-                  `Danh_sach_luong_gv_${salaryMonth?.format('YYYY_MM')}.csv`,
+                  `Danh_sach_luong_gv_${salaryMonth?.format('YYYY_MM')}.xlsx`,
                   ['Mã GV', 'Họ tên', 'SĐT', 'Trạng thái', 'Tổng lương (Gross) (₫)', 'Thuế TNCN (10%) (₫)', 'Thực nhận (Net) (₫)'],
-                  ['teacherCode', 'name', 'mobile', 'status', 'gross', 'tax', 'net']
+                  ['teacherCode', 'name', 'mobile', 'status', 'gross', 'tax', 'net'],
+                  'Danh sách lương GV'
                 );
               }}
               style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}
             >
-              Xuất CSV
+              Xuất Excel
             </Button>
           )}
         </Space>
