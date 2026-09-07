@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  Form, Input, Select, DatePicker, Button, Card, Typography, Row, Col, Upload, Tabs, App, Space, Spin, Alert, Avatar, Table, Tag
+  Form, Input, Select, DatePicker, Button, Card, Typography, Row, Col, Upload, Tabs, App, Space, Spin, Alert, Avatar, Table, Tag, Checkbox
 } from 'antd';
 import { CameraOutlined, ArrowLeftOutlined, SaveOutlined, LockOutlined, UserOutlined, EnvironmentOutlined, DollarOutlined, SearchOutlined, ReadOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../services/api';
 import { PROVINCE_OPTIONS, getDistrictsOrWards } from '../../assets/vietnam_divisions';
 import { FormErrorAlert } from '../../components/FormErrorAlert';
+import { calculateSalaryBreakdown } from '../../utils/salary';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -60,6 +61,7 @@ const TeacherDetailInner: React.FC = () => {
           primaryAddress: data.primaryAddress,
           status: data.status,
           loginEmail: data.loginEmail,
+          hasCommissionSalary: data.hasCommissionSalary,
         });
         if (data.avatar) {
           setAvatarPreview(data.avatar);
@@ -166,6 +168,7 @@ const TeacherDetailInner: React.FC = () => {
         districtWard: values.districtWard || undefined,
         primaryAddress: values.primaryAddress?.trim() || undefined,
         status: values.status,
+        hasCommissionSalary: values.hasCommissionSalary || false,
       };
 
       payload.loginEmail = values.loginEmail?.trim() || undefined;
@@ -289,6 +292,11 @@ const TeacherDetailInner: React.FC = () => {
                   <Option value="Suspended">Tạm nghỉ</Option>
                   <Option value="Resigned">Đã nghỉ việc</Option>
                 </Select>
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item name="hasCommissionSalary" valuePropName="checked" style={{ marginTop: '38px' }}>
+                <Checkbox>Tính lương lũy tiến theo doanh thu học viện</Checkbox>
               </Form.Item>
             </Col>
           </Row>
@@ -611,7 +619,7 @@ const TeacherDetailInner: React.FC = () => {
                           <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)', textAlign: 'center' }}>
                             <div style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: 4 }}>Tổng lương đã nhận</div>
                             <div style={{ color: '#10b981', fontSize: '24px', fontWeight: 700 }}>
-                              {wagesReport.reduce((sum, w) => sum + (w.paidAmount || 0), 0).toLocaleString('vi-VN')}&nbsp;₫
+                              {wagesReport.reduce((sum, w) => sum + (w.status === 'Paid' ? calculateSalaryBreakdown(w.paidAmount || 0).net : 0), 0).toLocaleString('vi-VN')}&nbsp;₫
                             </div>
                           </Card>
                         </Col>
@@ -683,7 +691,7 @@ const TeacherDetailInner: React.FC = () => {
                             },
                             {
                               title: 'Thực nhận', dataIndex: 'paidAmount', key: 'paidAmount', width: 150, align: 'right',
-                              render: (v) => <Text strong style={{ color: '#f59e0b', fontSize: '14px' }}>{v.toLocaleString('vi-VN')}&nbsp;₫</Text>
+                              render: (v) => <Text strong style={{ color: '#f59e0b', fontSize: '14px' }}>{calculateSalaryBreakdown(v || 0).net.toLocaleString('vi-VN')}&nbsp;₫</Text>
                             },
                           ]}
                         />

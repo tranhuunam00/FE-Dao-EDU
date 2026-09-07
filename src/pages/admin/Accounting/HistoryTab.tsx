@@ -4,6 +4,7 @@ import { LockOutlined, UnlockOutlined, CheckCircleOutlined, DeleteOutlined, Clos
 import dayjs from 'dayjs';
 import api from '../../../services/api';
 
+
 const { Text } = Typography;
 
 const cardStyle = { border: 'none', background: 'var(--card-bg)' };
@@ -35,6 +36,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
   const [detailVisible, setDetailVisible] = useState(false);
   const [detailTitle, setDetailTitle] = useState('');
   const [detailItems, setDetailItems] = useState<any[]>([]);
+  const [detailSessions, setDetailSessions] = useState<any[]>([]);
   const [detailAuditLogs, setDetailAuditLogs] = useState<any[]>([]);
   const [detailType, setDetailType] = useState<'student' | 'teacher'>('student');
 
@@ -235,6 +237,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
     setDetailType(type === 'tuition' ? 'student' : 'teacher');
     setDetailTitle(`${record.code} - ${record.name}`);
     setDetailItems(record.items || []);
+    setDetailSessions(record.sessions || []);
 
     setDetailAuditLogs(record.auditLogs || []);
 
@@ -475,16 +478,34 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
             onClick={() => {
               if (!periodDetail) return;
               const isTuition = periodDetail.period.type === 'tuition';
-              exportCSV(
-                periodDetail.orders,
-                `${periodDetail.period.name}.csv`,
-                isTuition
-                  ? ['Mã HS', 'Họ tên', 'SĐT', 'Tổng học phí (₫)', 'Thực thu (₫)', 'Trạng thái', 'Ngày thu', 'Ghi chú']
-                  : ['Mã GV', 'Họ tên', 'SĐT', 'Loại', 'Tổng lương (₫)', 'Thực chi (₫)', 'Trạng thái', 'Ngày chi', 'Ghi chú'],
-                isTuition
-                  ? ['code', 'name', 'mobile', 'totalAmount', 'paidAmount', 'status', 'paymentDate', 'note']
-                  : ['code', 'name', 'mobile', 'type', 'totalAmount', 'paidAmount', 'status', 'paymentDate', 'note']
-              );
+              if (isTuition) {
+                exportCSV(
+                  periodDetail.orders,
+                  `${periodDetail.period.name}.csv`,
+                  ['Mã HS', 'Họ tên', 'SĐT', 'Tổng học phí (₫)', 'Thực thu (₫)', 'Trạng thái', 'Ngày thu', 'Ghi chú'],
+                  ['code', 'name', 'mobile', 'totalAmount', 'paidAmount', 'status', 'paymentDate', 'note']
+                );
+              } else {
+                const mappedOrders = periodDetail.orders.map((o: any) => {
+                  const net = o.totalAmount || 0;
+                  const gross = Math.round(net / 0.9);
+                  const tax = Math.round((net * 0.1) / 0.9);
+                  const netPaid = o.status === 'Paid' ? (o.paidAmount || 0) : 0;
+                  return {
+                    ...o,
+                    gross,
+                    tax,
+                    net,
+                    netPaid,
+                  };
+                });
+                exportCSV(
+                  mappedOrders,
+                  `${periodDetail.period.name}.csv`,
+                  ['Mã GV', 'Họ tên', 'SĐT', 'Loại', 'Tổng lương (Gross) (₫)', 'Thuế TNCN (10%) (₫)', 'Thực nhận (Net) (₫)', 'Thực chi (Thực trả) (₫)', 'Trạng thái', 'Ngày chi', 'Ghi chú'],
+                  ['code', 'name', 'mobile', 'type', 'gross', 'tax', 'net', 'netPaid', 'status', 'paymentDate', 'note']
+                );
+              }
             }}
             style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}
           >
@@ -509,29 +530,40 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
               </Col>
               <Col xs={12} md={6}>
                 <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
-                  <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 4 }}>Tổng tiền trong kỳ</div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 4 }}>
+                    {periodDetail.period.type === 'tuition' ? 'Tổng tiền trong kỳ' : 'Tổng lương Gross'}
+                  </div>
                   <div style={{ color: '#38bdf8', fontSize: 20, fontWeight: 700 }}>
-                    {periodDetail.orders.reduce((sum: number, o: any) => sum + o.totalAmount, 0).toLocaleString('vi-VN')} ₫
+                    {(() => {
+                      const total = periodDetail.orders.reduce((sum: number, o: any) => sum + (periodDetail.period.type === 'salary' ? o.totalAmount / 0.9 : o.totalAmount), 0);
+                      return `${Math.round(total).toLocaleString('vi-VN')} ₫`;
+                    })()}
                   </div>
                 </Card>
               </Col>
               <Col xs={12} md={6}>
                 <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
                   <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 4 }}>
-                    {periodDetail.period.type === 'tuition' ? 'Đã thu tiền' : 'Đã chi trả'}
+                    {periodDetail.period.type === 'tuition' ? 'Đã thu tiền' : 'Đã chi trả (Thực trả)'}
                   </div>
                   <div style={{ color: '#10b981', fontSize: 20, fontWeight: 700 }}>
-                    {periodDetail.orders.reduce((sum: number, o: any) => sum + o.paidAmount, 0).toLocaleString('vi-VN')} ₫
+                    {(() => {
+                      const total = periodDetail.orders.reduce((sum: number, o: any) => sum + o.paidAmount, 0);
+                      return `${total.toLocaleString('vi-VN')} ₫`;
+                    })()}
                   </div>
                 </Card>
               </Col>
               <Col xs={12} md={6}>
                 <Card className="glass-panel" style={{ ...cardStyle, textAlign: 'center' }}>
                   <div style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 4 }}>
-                    {periodDetail.period.type === 'tuition' ? 'Chưa thu' : 'Chưa chi'}
+                    {periodDetail.period.type === 'tuition' ? 'Chưa thu' : 'Chưa chi (Cần chi)'}
                   </div>
                   <div style={{ color: '#f87171', fontSize: 20, fontWeight: 700 }}>
-                    {periodDetail.orders.reduce((sum: number, o: any) => sum + Math.max(0, o.totalAmount - o.paidAmount), 0).toLocaleString('vi-VN')} ₫
+                    {(() => {
+                      const total = periodDetail.orders.reduce((sum: number, o: any) => sum + Math.max(0, o.totalAmount - o.paidAmount), 0);
+                      return `${total.toLocaleString('vi-VN')} ₫`;
+                    })()}
                   </div>
                 </Card>
               </Col>
@@ -633,6 +665,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                     dataIndex: 'code',
                     key: 'code',
                     width: 110,
+                    fixed: 'left' as const,
                     render: (v: string) => <Text style={{ color: '#818cf8', fontWeight: 600 }}>{v}</Text>
                   },
                   {
@@ -640,6 +673,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                     dataIndex: 'name',
                     key: 'name',
                     width: 220,
+                    fixed: 'left' as const,
                     render: (v: string, r: any) => (
                       <div>
                         <Text style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{v}</Text>
@@ -648,21 +682,54 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                     )
                   },
                   { title: 'SĐT', dataIndex: 'mobile', key: 'mobile', width: 130, render: (v: string) => <Text type="secondary">{v}</Text> },
+                  ...(periodDetail.period.type === 'tuition' ? [
+                    {
+                      title: 'Tổng số tiền',
+                      dataIndex: 'totalAmount',
+                      key: 'totalAmount',
+                      width: 150,
+                      align: 'right' as const,
+                      render: (v: number) => <Text style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{v.toLocaleString('vi-VN')} ₫</Text>
+                    }
+                  ] : [
+                    {
+                      title: 'Tổng lương (Gross)',
+                      dataIndex: 'totalAmount',
+                      key: 'totalAmount',
+                      width: 150,
+                      align: 'right' as const,
+                      render: (v: number) => {
+                        const gross = Math.round(v / 0.9);
+                        return <Text style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{gross.toLocaleString('vi-VN')} ₫</Text>;
+                      }
+                    },
+                    {
+                      title: 'Thuế TNCN (10%)',
+                      key: 'taxAmount',
+                      width: 130,
+                      align: 'right' as const,
+                      render: (_: any, r: any) => {
+                        const tax = Math.round((r.totalAmount * 0.1) / 0.9);
+                        return <Text type="secondary">-{tax.toLocaleString('vi-VN')} ₫</Text>;
+                      }
+                    },
+                    {
+                      title: 'Thực nhận (Net)',
+                      key: 'netAmount',
+                      width: 150,
+                      align: 'right' as const,
+                      render: (_: any, r: any) => <Text strong style={{ color: '#f59e0b' }}>{r.totalAmount.toLocaleString('vi-VN')} ₫</Text>
+                    }
+                  ]),
                   {
-                    title: 'Tổng số tiền',
-                    dataIndex: 'totalAmount',
-                    key: 'totalAmount',
-                    width: 150,
-                    align: 'right' as const,
-                    render: (v: number) => <Text style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{v.toLocaleString('vi-VN')} ₫</Text>
-                  },
-                  {
-                    title: periodDetail.period.type === 'tuition' ? 'Đã thu' : 'Đã chi',
+                    title: periodDetail.period.type === 'tuition' ? 'Đã thu' : 'Đã chi (Thực trả)',
                     dataIndex: 'paidAmount',
                     key: 'paidAmount',
                     width: 150,
                     align: 'right' as const,
-                    render: (v: number) => <Text style={{ color: v > 0 ? '#10b981' : 'var(--text-muted)' }}>{v.toLocaleString('vi-VN')} ₫</Text>
+                    render: (v: number) => {
+                      return <Text style={{ color: v > 0 ? '#10b981' : 'var(--text-muted)' }}>{v.toLocaleString('vi-VN')} ₫</Text>;
+                    }
                   },
                   {
                     title: 'Trạng thái',
@@ -968,33 +1035,130 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
               width={750}
               styles={{ body: { background: 'var(--bg-secondary)', color: 'var(--text-primary)' } }}
             >
-              <Table
-                dataSource={detailItems}
-                rowKey={(r, index) => r.classId || String(index)}
-                pagination={false}
-                size="small"
-                columns={[
-                  {
-                    title: 'Ngày học',
-                    dataIndex: 'className',
-                    key: 'sessionDate',
-                    align: 'center',
-                    render: (v) => {
-                      const match = v?.match(/\(Buổi (.*?)\)/);
-                      return match ? match[1] : '-';
+              {(() => {
+                const getDisplayItems = () => {
+                  if (detailSessions && detailSessions.length > 0) {
+                    const grouped = new Map<string, any>();
+                    for (const s of detailSessions) {
+                      const key = detailType === 'student'
+                        ? `${s.classId}_${s.rate}`
+                        : `${s.classId}_${s.rate}_${s.role || 'teacher'}`;
+                      if (!grouped.has(key)) {
+                        grouped.set(key, {
+                          classId: s.classId,
+                          className: s.className,
+                          rate: s.rate,
+                          sessionsCount: 0,
+                          totalAmount: 0,
+                          role: s.role,
+                        });
+                      }
+                      const item = grouped.get(key);
+                      if (detailType === 'student') {
+                        if (s.isPresent) {
+                          item.sessionsCount += 1;
+                        }
+                      } else {
+                        item.sessionsCount += 1;
+                      }
+                      item.totalAmount += s.amount;
                     }
-                  },
-                  {
-                    title: 'Lớp học',
-                    dataIndex: 'className',
-                    key: 'className',
-                    render: (v) => v?.replace(/\(Buổi .*?\)/, '').trim() || v
-                  },
-                  { title: 'Số buổi', dataIndex: 'sessionsCount', key: 'sessionsCount', align: 'center' },
-                  { title: 'Đơn giá', dataIndex: 'rate', key: 'rate', align: 'right', render: (v) => `${Number(v).toLocaleString('vi-VN')} ₫` },
-                  { title: 'Thành tiền', dataIndex: 'totalAmount', key: 'totalAmount', align: 'right', render: (v) => `${Number(v).toLocaleString('vi-VN')} ₫` }
-                ]}
+                    return Array.from(grouped.values());
+                  }
+                  return detailItems.filter((item) => Number(item.rate) > 0);
+                };
+                const displayItems = getDisplayItems();
+
+                return (
+                  <Table
+                    dataSource={displayItems}
+                    rowKey={(r, index) => `${r.classId}_${r.rate}_${r.role || ''}_${index}`}
+                    pagination={false}
+                    size="small"
+                    columns={[
+                      {
+                        title: 'Lớp học',
+                        dataIndex: 'className',
+                        key: 'className',
+                        render: (v, r: any) => {
+                          const baseName = v?.replace(/\(Buổi .*?\)/, '').trim() || v;
+                          if (detailType === 'teacher' && r.role === 'assistant') {
+                            return `${baseName} (Trợ giảng)`;
+                          }
+                          return baseName;
+                        }
+                      },
+                      { title: detailType === 'student' ? 'Số buổi có mặt' : 'Số buổi dạy', dataIndex: 'sessionsCount', key: 'sessionsCount', align: 'center' },
+                      { title: 'Đơn giá', dataIndex: 'rate', key: 'rate', align: 'right', render: (v) => `${Number(v).toLocaleString('vi-VN')} ₫` },
+                      { title: 'Tổng cộng', dataIndex: 'totalAmount', key: 'totalAmount', align: 'right', render: (v) => `${Number(v).toLocaleString('vi-VN')} ₫` }
+                    ]}
+                    expandable={{
+                      defaultExpandAllRows: true,
+                  expandedRowRender: (record) => {
+                    const classSessions = detailSessions.filter(
+                      (s: any) =>
+                        s.classId === record.classId &&
+                        Number(s.rate) === Number(record.rate),
+                    );
+                    return (
+                      <div style={{ padding: '8px 16px', background: 'var(--bg-tertiary)', borderRadius: 8, margin: '4px 0' }}>
+                        <div style={{ fontWeight: 600, marginBottom: 8, color: 'var(--text-secondary)', fontSize: 11, letterSpacing: '0.5px' }}>
+                          CHI TIẾT TỪNG BUỔI HỌC & ĐIỂM DANH:
+                        </div>
+                        <Table
+                          dataSource={classSessions}
+                          rowKey="id"
+                          pagination={false}
+                          size="small"
+                          bordered
+                          columns={[
+                            {
+                              title: 'Ngày học',
+                              dataIndex: 'date',
+                              key: 'date',
+                              render: (d) => dayjs(d).format('DD/MM/YYYY')
+                            },
+                            {
+                              title: 'Thời gian',
+                              key: 'time',
+                              render: (_, s) => `${s.startTime || ''} - ${s.endTime || ''}`
+                            },
+                            {
+                              title: 'Trạng thái',
+                              key: 'status',
+                              align: 'center',
+                              render: (_, s) => {
+                                if (detailType === 'teacher') {
+                                  return <Tag color="blue">{s.role === 'teacher' ? 'Giáo viên chính' : 'Trợ giảng'}</Tag>;
+                                }
+                                return s.isPresent 
+                                  ? <Tag color="green">Có mặt</Tag> 
+                                  : <Tag color="red">Vắng mặt {s.reason ? `(${s.reason})` : ''}</Tag>;
+                              }
+                            },
+                            {
+                              title: 'Đơn giá',
+                              dataIndex: 'rate',
+                              key: 'rate',
+                              align: 'right',
+                              render: (v) => `${Number(v).toLocaleString('vi-VN')} ₫`
+                            },
+                            {
+                              title: 'Thành tiền',
+                              dataIndex: 'amount',
+                              key: 'amount',
+                              align: 'right',
+                              render: (v) => <Text strong style={{ color: v > 0 ? '#10b981' : 'var(--text-muted)' }}>{Number(v).toLocaleString('vi-VN')} ₫</Text>
+                            }
+                          ]}
+                        />
+                      </div>
+                    );
+                  }
+                }}
               />
+                );
+              })()}
               {detailAuditLogs.length > 0 && (
                 <div style={{ marginTop: 18 }}>
                   <Text strong style={{ color: 'var(--text-primary)' }}>Nhật ký kế toán</Text>

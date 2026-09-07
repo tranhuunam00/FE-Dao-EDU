@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Table, Input, Select, Button, Card, Tag, Typography, Row, Col, Tooltip, App
+  Table, Input, Select, Button, Card, Tag, Typography, Row, Col, Tooltip, App, Space
 } from 'antd';
 import {
   SearchOutlined,
@@ -13,6 +13,7 @@ import {
 import dayjs from 'dayjs';
 import api from '../../services/api';
 import { PROVINCE_OPTIONS } from '../../assets/vietnam_divisions';
+import { getTeacherEmployeeNo, TIMEKEEPING_TEACHER_PREFIX } from '../../utils/timekeeping';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -30,6 +31,8 @@ interface TeacherData {
   province?: string;
   createdAt: string;
   userId?: string;
+  hasCommissionSalary?: boolean;
+  isSyncedToDevice?: boolean;
 }
 
 const TeacherListInner: React.FC = () => {
@@ -41,6 +44,7 @@ const TeacherListInner: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [syncingId, setSyncingId] = useState<string | null>(null);
   
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<string | undefined>(undefined);
@@ -111,10 +115,14 @@ const TeacherListInner: React.FC = () => {
       dataIndex: 'type',
       key: 'type',
       width: '120px',
-      render: (type: string) => {
-        if (type === 'Teacher') return <Tag color="blue">Giáo viên</Tag>;
-        if (type === 'TeachingAssistant') return <Tag color="purple">Trợ giảng</Tag>;
-        return <Tag>{type}</Tag>;
+      render: (type: string, record: TeacherData) => {
+        const typeTag = type === 'Teacher' ? <Tag color="blue">Giáo viên</Tag> : (type === 'TeachingAssistant' ? <Tag color="purple">Trợ giảng</Tag> : <Tag>{type}</Tag>);
+        return (
+          <Space size={4}>
+            {typeTag}
+            {record.hasCommissionSalary && <Tag color="gold">Lũy tiến</Tag>}
+          </Space>
+        );
       },
     },
     {
@@ -143,6 +151,79 @@ const TeacherListInner: React.FC = () => {
           color = 'red'; label = 'Đã nghỉ';
         }
         return <Tag color={color}>{label}</Tag>;
+      },
+    },
+    {
+      title: (
+        <Tooltip
+          title={
+            <div style={{ fontSize: 12, lineHeight: 1.6 }}>
+              <div style={{ fontWeight: 700, marginBottom: 4 }}>📋 Cách tạo ID khớp trên máy chấm công:</div>
+              <div>1. Vào giao diện quản trị máy chấm công (IP nội bộ)</div>
+              <div>2. Tạo mới nhân viên → nhập <b>Employee No</b> = <b>{TIMEKEEPING_TEACHER_PREFIX}</b> + <b>Phần số</b> của Mã GV (VD: Mã GV là <b>GV-2026-001</b> thì nhập <b>{getTeacherEmployeeNo('GV-2026-001')}</b>)</div>
+              <div>3. Đăng ký khuôn mặt / vân tay cho giáo viên đó trên máy</div>
+              <div>4. Bật toggle "Đồng bộ" ở đây để hệ thống ghi nhận giáo viên sẵn sàng</div>
+            </div>
+          }
+          placement="topLeft"
+          overlayStyle={{ maxWidth: 360 }}
+        >
+          <span style={{ cursor: 'help', borderBottom: '1px dashed currentColor' }}>
+            Máy chấm công ℹ️
+          </span>
+        </Tooltip>
+      ),
+      key: 'timekeepingSync',
+      width: '150px',
+      render: (_: any, record: TeacherData) => {
+        if (record.isSyncedToDevice) {
+          return (
+            <Tooltip title="Nhấn để bỏ đồng bộ giáo viên này khỏi danh sách máy chấm công">
+              <Tag
+                color="success"
+                closable
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                onClose={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setSyncingId(record.id);
+                  api.post(`/timekeeping/sync-teacher/${record.id}`, { status: false })
+                    .then(res => {
+                      message.success(`Đã bỏ đồng bộ giáo viên ${record.lastName} ${record.firstName}.`);
+                      setTeachers(prev => prev.map(t => t.id === record.id ? { ...t, isSyncedToDevice: res.data.isSyncedToDevice } : t));
+                    })
+                    .catch((err: any) => message.error(err.response?.data?.message || 'Thao tác thất bại.'))
+                    .finally(() => setSyncingId(null));
+                }}
+              >
+                <CheckCircleFilled /> Đã đồng bộ
+              </Tag>
+            </Tooltip>
+          );
+        }
+        return (
+          <Tooltip title={`Bấm để đánh dấu ${record.lastName} ${record.firstName} đã được tạo trên máy chấm công với Employee No = ${getTeacherEmployeeNo(record.teacherId)} (tiền tố ${TIMEKEEPING_TEACHER_PREFIX} + phần số của mã ${record.teacherId})`}>
+            <Button
+              type="primary"
+              size="small"
+              style={{ fontSize: '11px', background: 'var(--primary)', border: 'none' }}
+              loading={syncingId === record.id}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSyncingId(record.id);
+                api.post(`/timekeeping/sync-teacher/${record.id}`, { status: true })
+                  .then(res => {
+                    message.success(`Đã đồng bộ giáo viên ${record.lastName} ${record.firstName}.`);
+                    setTeachers(prev => prev.map(t => t.id === record.id ? { ...t, isSyncedToDevice: res.data.isSyncedToDevice } : t));
+                  })
+                  .catch((err: any) => message.error(err.response?.data?.message || 'Thao tác thất bại.'))
+                  .finally(() => setSyncingId(null));
+              }}
+            >
+              Đồng bộ
+            </Button>
+          </Tooltip>
+        );
       },
     },
     {

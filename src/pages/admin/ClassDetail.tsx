@@ -18,6 +18,7 @@ import { StudentsTab } from './ClassDetailTabs/StudentsTab';
 import { ScheduleTab } from './ClassDetailTabs/ScheduleTab';
 import { AssignmentsTab } from './ClassDetailTabs/AssignmentsTab';
 import { MaterialsTab } from './ClassDetailTabs/MaterialsTab';
+import { GenerateSessionsModal, type GenerateSessionMode } from './ClassDetailTabs/GenerateSessionsModal';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -29,6 +30,8 @@ interface StudentAttendance {
   note?: string;
   evaluationScore?: string | null;
   evaluationComment?: string | null;
+  attendanceType?: string;
+  verifyMethod?: string | null;
   student?: {
     name: string;
     user?: { email: string };
@@ -540,6 +543,9 @@ const ClassDetailInner: React.FC = () => {
       const { data } = await api.get(`/classes/sessions/${session.id}/attendance`);
       const mapped = (classData?.students || [])
         .filter((cs: any) => {
+          const hasRecord = data.some((d: any) => d.studentId === cs.studentId);
+          if (hasRecord) return true;
+
           const joined = dayjs(cs.joinedDate);
           const sess = dayjs(session.date);
           const isJoined = joined.isBefore(sess) || joined.isSame(sess, 'day');
@@ -547,8 +553,8 @@ const ClassDetailInner: React.FC = () => {
             return isJoined;
           }
           if (cs.status === 'Dropped') {
-            const left = dayjs(cs.updatedAt);
-            return isJoined && (sess.isBefore(left) || sess.isSame(left, 'day'));
+            const leftDate = cs.updatedAt ? cs.updatedAt.split('T')[0] : cs.joinedDate;
+            return isJoined && session.date < leftDate;
           }
           return false;
         })
@@ -778,48 +784,38 @@ const ClassDetailInner: React.FC = () => {
     });
   };
 
-  const handleGenerateSessions = async () => {
+  const [isGenerateModalVisible, setIsGenerateModalVisible] = useState(false);
+  const [generatingSessions, setGeneratingSessions] = useState(false);
+
+  const handleConfirmGenerateSessions = async (mode: GenerateSessionMode, customDate?: string) => {
     if (!id) return;
-    const isRegenerate = sessions.length > 0;
-    modal.confirm({
-      title: isRegenerate ? 'Xác nhận sinh lại & đồng bộ buổi học' : 'Xác nhận sinh các buổi học',
-      content: isRegenerate 
-        ? 'Hệ thống sẽ xóa các buổi học tương lai chưa diễn ra (chưa khóa điểm danh) và sinh lại theo lịch học cố định hiện tại, đồng thời cập nhật giáo viên chính cho các buổi học này. Bạn có chắc chắn muốn tiếp tục?'
-        : 'Hệ thống sẽ sinh tự động danh sách các buổi học từ ngày Khai giảng đến ngày Kết thúc dự kiến dựa trên Lịch học cố định. Bạn có chắc chắn muốn tiếp tục?',
-      okText: 'Đồng ý',
-      cancelText: 'Hủy',
-      onOk: async () => {
-        try {
-          await api.post(`/classes/${id}/generate-sessions`);
-          message.success(isRegenerate 
-            ? 'Đã sinh lại và đồng bộ các buổi học tương lai thành công!' 
-            : 'Đã sinh danh sách buổi học thành công!'
-          );
-          await loadAllData();
-        } catch (err: any) {
-          message.error(err.response?.data?.message || 'Lỗi khi sinh buổi học');
-        }
+    setGeneratingSessions(true);
+    try {
+      const body: any = {};
+      if (mode === 'startDate') {
+        body.fromStartDate = true;
+      } else if (mode === 'custom' && customDate) {
+        body.fromDate = customDate;
       }
-    });
+      await api.post(`/classes/${id}/generate-sessions`, body);
+      message.success('Đã sinh lại và đồng bộ danh sách buổi học thành công!');
+      setIsGenerateModalVisible(false);
+      await loadAllData();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi sinh buổi học');
+    } finally {
+      setGeneratingSessions(false);
+    }
   };
 
-  const handleGenerateSessionsFromStart = async () => {
-    if (!id) return;
-    modal.confirm({
-      title: 'Xác nhận sinh lại toàn bộ buổi học từ ngày khai giảng',
-      content: 'Hệ thống sẽ xóa toàn bộ các buổi học chưa diễn ra (chưa khóa điểm danh, bao gồm cả các buổi trong quá khứ) và sinh lại theo lịch học cố định tính từ ngày Khai giảng lớp học. Bạn có chắc chắn muốn tiếp tục?',
-      okText: 'Đồng ý',
-      cancelText: 'Hủy',
-      onOk: async () => {
-        try {
-          await api.post(`/classes/${id}/generate-sessions?fromStartDate=true`);
-          message.success('Đã sinh lại và đồng bộ các buổi học từ ngày khai giảng thành công!');
-          await loadAllData();
-        } catch (err: any) {
-          message.error(err.response?.data?.message || 'Lỗi khi sinh buổi học');
-        }
-      }
-    });
+  const handleDeleteSession = async (sessionId: string) => {
+    try {
+      await api.delete(`/classes/sessions/${sessionId}`);
+      message.success('Đã xóa buổi học thành công!');
+      await loadAllData();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi xóa buổi học');
+    }
   };
 
   if (loading) {
@@ -914,10 +910,11 @@ const ClassDetailInner: React.FC = () => {
             children: (
               <ScheduleTab 
                 sessions={sessions} 
-                handleGenerateSessions={handleGenerateSessions} 
-                handleGenerateSessionsFromStart={handleGenerateSessionsFromStart}
+                openGenerateSessionsModal={() => setIsGenerateModalVisible(true)}
                 openSessionDetail={openSessionDetail}
-                openCreateAdhocModal={openCreateAdhocModal} 
+                openCreateAdhocModal={openCreateAdhocModal}
+                handleDeleteSession={handleDeleteSession}
+                isAdmin={isAdmin}
               />
             )
           },
@@ -1237,6 +1234,13 @@ const ClassDetailInner: React.FC = () => {
                   size="small"
                   columns={[
                     {
+                      title: 'STT',
+                      key: 'index',
+                      width: 50,
+                      align: 'center' as const,
+                      render: (_text: any, _record: any, index: number) => index + 1,
+                    },
+                    {
                       title: 'Học sinh',
                       dataIndex: ['student', 'name'],
                       key: 'name',
@@ -1276,6 +1280,29 @@ const ClassDetailInner: React.FC = () => {
                           )}
                         </div>
                       ),
+                    },
+                    {
+                      title: 'Hình thức',
+                      dataIndex: 'attendanceType',
+                      key: 'attendanceType',
+                      width: 120,
+                      render: (type, record) => {
+                        if (!record.isPresent) {
+                          if (type === 'manual') {
+                            return <Tag>Thủ công</Tag>;
+                          }
+                          return <span style={{ color: 'rgba(0,0,0,0.25)' }}>—</span>;
+                        }
+                        if (type === 'machine') {
+                          let methodText = 'Máy chấm công';
+                          if (record.verifyMethod === 'face') methodText = 'Khuôn mặt';
+                          else if (record.verifyMethod === 'fingerprint') methodText = 'Vân tay';
+                          else if (record.verifyMethod === 'card') methodText = 'Thẻ';
+                          else if (record.verifyMethod === 'pin') methodText = 'Mã PIN';
+                          return <Tag color="blue">{methodText}</Tag>;
+                        }
+                        return <Tag color="orange">Thủ công</Tag>;
+                      }
                     },
                     {
                       title: 'Lý do vắng mặt / Ghi chú',
@@ -1771,6 +1798,17 @@ const ClassDetailInner: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* Modal Tùy Chọn Sinh Lại / Đồng Bộ Buổi Học */}
+      <GenerateSessionsModal
+        open={isGenerateModalVisible}
+        onCancel={() => setIsGenerateModalVisible(false)}
+        onConfirm={handleConfirmGenerateSessions}
+        confirmLoading={generatingSessions}
+        classStartDate={classData.startDate}
+        classFinishDate={classData.finishDate}
+        hasExistingSessions={sessions.length > 0}
+      />
     </div>
   );
 };

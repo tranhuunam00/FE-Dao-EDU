@@ -54,8 +54,8 @@ const CourseListInner: React.FC = () => {
       const { data } = await api.get('/courses', {
         params: { page, limit, search: search || undefined, status, category },
       });
-      setCourses(data.courses);
-      setTotal(data.total);
+      setCourses(data.courses || data.items || []);
+      setTotal(data.total || 0);
     } catch (err: any) {
       message.error(err.response?.data?.message || 'Lỗi khi lấy danh sách chương trình');
     } finally {

@@ -3,6 +3,8 @@ import { Card, Row, Col, DatePicker, Button, Table, Typography, Space, Tag, Inpu
 import { SearchOutlined, TeamOutlined, DownloadOutlined, CheckSquareOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../../services/api';
+import { exportToExcel } from '../../../utils/export';
+
 
 const { Text } = Typography;
 
@@ -24,14 +26,6 @@ const statusLabel: Record<string, string> = {
   Active: 'Đang dạy',
   Inactive: 'Nghỉ việc',
   'On Leave': 'Tạm nghỉ',
-};
-
-const exportCSV = (data: any[], filename: string, headers: string[], keys: string[]) => {
-  const rows = [headers.join(','), ...data.map(r => keys.map(k => `"${r[k] ?? ''}"`).join(','))];
-  const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
 };
 
 const cardStyle = { border: 'none', background: 'var(--card-bg)' };
@@ -62,8 +56,9 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
     setSalaryPreviewLoading(true);
     try {
       const endStr = salaryEndDate.format('YYYY-MM-DD');
+      const monthStr = salaryMonth ? salaryMonth.format('YYYY-MM') : undefined;
       const { data } = await api.get('/payment-periods/preview/salary', {
-        params: { endDate: endStr }
+        params: { endDate: endStr, month: monthStr }
       });
       const list = data.teachers || [];
       setSalaryPreviewData(list);
@@ -142,15 +137,29 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
           {salaryPreviewData.length > 0 && (
             <Button
               icon={<DownloadOutlined />}
-              onClick={() => exportCSV(
-                salaryPreviewData,
-                `Danh_sach_luong_gv_${salaryMonth?.format('YYYY_MM')}.csv`,
-                ['Mã GV', 'Họ tên', 'SĐT', 'Trạng thái', 'Tổng lương (₫)'],
-                ['teacherCode', 'name', 'mobile', 'status', 'totalAmount']
-              )}
+              onClick={() => {
+                const mappedPreview = salaryPreviewData.map((item) => {
+                  const gross = item.adjustedAmount ?? item.totalAmount;
+                  const tax = gross * 0.1;
+                  const net = gross * 0.9;
+                  return {
+                    ...item,
+                    gross,
+                    tax,
+                    net,
+                  };
+                });
+                exportToExcel(
+                  mappedPreview,
+                  `Danh_sach_luong_gv_${salaryMonth?.format('YYYY_MM')}.xlsx`,
+                  ['Mã GV', 'Họ tên', 'SĐT', 'Trạng thái', 'Tổng lương (Gross) (₫)', 'Thuế TNCN (10%) (₫)', 'Thực nhận (Net) (₫)'],
+                  ['teacherCode', 'name', 'mobile', 'status', 'gross', 'tax', 'net'],
+                  'Danh sách lương GV'
+                );
+              }}
               style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}
             >
-              Xuất CSV
+              Xuất Excel
             </Button>
           )}
         </Space>
@@ -233,27 +242,65 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
                 { title: 'SĐT', dataIndex: 'mobile', key: 'mobile', width: 130, render: (v: string) => <Text type="secondary">{v}</Text> },
                 { title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 130, render: (v: string) => <Tag color={statusColor[v] || 'default'}>{statusLabel[v] || v}</Tag> },
                 { title: 'Số buổi', dataIndex: 'totalSessions', key: 'totalSessions', width: 100, align: 'center', render: (v: number) => <Text style={{ color: '#10b981', fontWeight: 600 }}>{v}</Text> },
-                { title: 'Lương cần trả', dataIndex: 'totalAmount', key: 'totalAmount', width: 160, align: 'right', render: (v: number) => <Text strong style={{ color: '#f59e0b', fontSize: 14 }}>{v.toLocaleString('vi-VN')} ₫</Text> },
                 {
-                  title: 'Điều chỉnh trước chốt',
+                  title: 'Tổng lương (Gross)',
+                  dataIndex: 'totalAmount',
+                  key: 'totalAmount',
+                  width: 150,
+                  align: 'right' as const,
+                  render: (v: number, r: any) => {
+                    const net = r.adjustedAmount ?? v;
+                    const gross = Math.round(net / 0.9);
+                    return <Text style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{gross.toLocaleString('vi-VN')} ₫</Text>;
+                  }
+                },
+                {
+                  title: 'Thuế TNCN (10%)',
+                  key: 'taxAmount',
+                  width: 130,
+                  align: 'right' as const,
+                  render: (_: any, r: any) => {
+                    const net = r.adjustedAmount ?? r.totalAmount;
+                    const tax = Math.round((net * 0.1) / 0.9);
+                    return <Text type="secondary">-{tax.toLocaleString('vi-VN')} ₫</Text>;
+                  }
+                },
+                {
+                  title: 'Thực nhận (Net)',
+                  key: 'netAmount',
+                  width: 150,
+                  align: 'right' as const,
+                  render: (_: any, r: any) => {
+                    const net = r.adjustedAmount ?? r.totalAmount;
+                    return <Text strong style={{ color: '#f59e0b', fontSize: 14 }}>{net.toLocaleString('vi-VN')} ₫</Text>;
+                  }
+                },
+                {
+                  title: 'Điều chỉnh thực nhận',
                   key: 'adjustment',
                   width: 320,
-                  render: (_, r: any) => (
-                    <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                      <InputNumber
-                        min={0}
-                        precision={0}
-                        value={r.adjustedAmount ?? r.totalAmount}
-                        onChange={(value) => updatePreviewRow(r.teacherId, { adjustedAmount: value ?? r.totalAmount })}
-                        style={{ width: '100%' }}
-                      />
-                      <Input
-                        placeholder="Lý do nếu thay đổi số tiền"
-                        value={r.adjustmentReason}
-                        onChange={(event) => updatePreviewRow(r.teacherId, { adjustmentReason: event.target.value })}
-                      />
-                    </Space>
-                  ),
+                  render: (_, r: any) => {
+                    const currentNet = r.adjustedAmount ?? r.totalAmount;
+                    return (
+                      <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                        <InputNumber
+                          min={0}
+                          precision={0}
+                          value={currentNet}
+                          onChange={(value) => {
+                            const newNet = value ?? r.totalAmount;
+                            updatePreviewRow(r.teacherId, { adjustedAmount: newNet });
+                          }}
+                          style={{ width: '100%' }}
+                        />
+                        <Input
+                          placeholder="Lý do nếu thay đổi số tiền"
+                          value={r.adjustmentReason}
+                          onChange={(event) => updatePreviewRow(r.teacherId, { adjustmentReason: event.target.value })}
+                        />
+                      </Space>
+                    );
+                  }
                 },
               ]}
             />

@@ -15,6 +15,7 @@ import {
   Divider,
   Avatar,
   Upload,
+  Modal,
 } from 'antd';
 import {
   SaveOutlined,
@@ -80,14 +81,13 @@ export const CreateStudent: React.FC = () => {
       .catch(() => setSubmittable(false));
   }, [form, values]);
 
-  const handleSubmit = async (values: any) => {
+  const proceedSubmit = async (values: any) => {
     setLoading(true);
     setFormError(null);
     try {
       const payload = {
         ...values,
         birthdate: values.birthdate ? values.birthdate.format('YYYY-MM-DD') : undefined,
-        // Trim standard string fields
         firstName: values.firstName?.trim(),
         lastName: values.lastName?.trim(),
         nickName: values.nickName?.trim() || undefined,
@@ -109,7 +109,6 @@ export const CreateStudent: React.FC = () => {
         primaryAddress: values.primaryAddress?.trim(),
         oldAddress: values.oldAddress?.trim() || undefined,
         status: values.status || 'Waiting for class',
-        // Optional login account
         loginEmail: values.loginEmail?.trim() || undefined,
         loginPassword: values.loginPassword || undefined,
         avatar: avatarBase64 || undefined,
@@ -130,6 +129,35 @@ export const CreateStudent: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (values: any) => {
+    if (values.mobile) {
+      try {
+        const checkRes = await api.get(`/students/check-mobile?mobile=${values.mobile.trim()}`);
+        if (checkRes.data.exists) {
+          const names = checkRes.data.students.map((s: any) => {
+            const ageStr = s.age !== null && s.age !== undefined ? `${s.age} tuổi, ` : '';
+            return `${s.lastName} ${s.firstName} (${ageStr}${s.studentId})`;
+          }).join(', ');
+          
+          Modal.confirm({
+            title: 'Số điện thoại này đã được sử dụng!',
+            content: `Số điện thoại này đang được dùng bởi các học sinh sau: ${names}. Bạn có muốn tiếp tục tạo học sinh này và cho dùng chung tài khoản đăng nhập của phụ huynh không?`,
+            okText: 'Đồng ý dùng chung',
+            cancelText: 'Hủy bỏ',
+            onOk: async () => {
+              await proceedSubmit(values);
+            }
+          });
+          return;
+        }
+      } catch (checkErr) {
+        console.error('Lỗi check trùng số điện thoại:', checkErr);
+      }
+    }
+    
+    await proceedSubmit(values);
   };
 
   const handleCancel = () => {
@@ -474,31 +502,24 @@ export const CreateStudent: React.FC = () => {
                 label: <span style={{ fontSize: '1rem', fontWeight: 500 }}><LockOutlined /> Student Login</span>,
                 children: (
                   <Card
-                    title={<span style={{ fontFamily: 'Outfit' }}><LockOutlined /> Tạo tài khoản đăng nhập học sinh</span>}
+                    title={<span style={{ fontFamily: 'Outfit' }}><LockOutlined /> Tài khoản đăng nhập học sinh</span>}
                     className="glass-panel"
                     style={{ maxWidth: '600px', margin: '0 auto', border: 'none', background: 'var(--card-bg)' }}
                   >
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', fontSize: '0.9rem' }}>
-                      Điền email và mật khẩu nếu bạn muốn tạo tài khoản đăng nhập cho học sinh này ngay lập tức. Học sinh có thể dùng tài khoản này để xem điểm, thời khóa biểu và tài liệu.
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', fontSize: '0.95rem', lineHeight: '1.6' }}>
+                      Tài khoản đăng nhập của học sinh sẽ được <strong>tự động tạo lập</strong> sau khi lưu hồ sơ:
                     </p>
-
-                    <Form.Item
-                      name="loginEmail"
-                      label="Tài khoản đăng nhập (SĐT / Email)"
-                      rules={[
-                        { required: true, message: 'Vui lòng điền SĐT hoặc email đăng nhập' },
-                      ]}
-                    >
-                      <Input placeholder="Nhập số điện thoại hoặc email..." prefix={<MailOutlined style={{ color: '#6b7280' }} />} />
-                    </Form.Item>
-
-                    <Form.Item
-                      name="loginPassword"
-                      label="Mật khẩu đăng nhập"
-                      rules={[{ required: true, message: 'Vui lòng điền mật khẩu đăng nhập' }]}
-                    >
-                      <Input.Password placeholder="Mật khẩu (mặc định: student123)" prefix={<LockOutlined style={{ color: '#6b7280' }} />} />
-                    </Form.Item>
+                    <div style={{ padding: '16px', background: 'var(--bg-tertiary)', borderRadius: '8px', marginBottom: '20px' }}>
+                      <p style={{ margin: '0 0 8px 0', color: 'var(--text-primary)' }}>
+                        <strong>Tên đăng nhập:</strong> Số điện thoại chính của học sinh
+                      </p>
+                      <p style={{ margin: 0, color: 'var(--text-primary)' }}>
+                        <strong>Mật khẩu mặc định:</strong> 123456
+                      </p>
+                    </div>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                      Học sinh có thể dùng tài khoản này để đăng nhập hệ thống, xem thời khóa biểu, điểm danh, kết quả học tập và hóa đơn học phí.
+                    </p>
                   </Card>
                 ),
               },

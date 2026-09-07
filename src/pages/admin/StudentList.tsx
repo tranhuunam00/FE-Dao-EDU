@@ -25,6 +25,7 @@ import type { ResizeCallbackData } from 'react-resizable';
 import dayjs from 'dayjs';
 import api from '../../services/api';
 import { PROVINCE_OPTIONS } from '../../assets/vietnam_divisions';
+import { getStudentEmployeeNo, TIMEKEEPING_STUDENT_PREFIX } from '../../utils/timekeeping';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -46,6 +47,8 @@ interface StudentData {
   createdAt: string;
   userId?: string;
   loginEmail?: string;
+  siblings?: string[];
+  isSyncedToDevice?: boolean;
 }
 
 const ResizableTitle = (props: any) => {
@@ -85,6 +88,21 @@ const StudentListInner: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+
+  const [syncingId, setSyncingId] = useState<string | null>(null);
+
+  const handleSyncStudent = async (student: StudentData) => {
+    setSyncingId(student.id);
+    try {
+      await api.post(`/timekeeping/sync-student/${student.id}`);
+      message.success(`Đã đồng bộ tài khoản học viên ${student.lastName} ${student.firstName} lên thiết bị.`);
+      fetchStudents();
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Đồng bộ học viên thất bại.');
+    } finally {
+      setSyncingId(null);
+    }
+  };
   
   // Filter states
   const [search, setSearch] = useState('');
@@ -100,10 +118,12 @@ const StudentListInner: React.FC = () => {
       gender: 100,
       birthdate: 120,
       mobile: 150,
+      siblings: 180,
       province: 160,
       status: 140,
       primaryAddress: 300,
-      createdAt: 120
+      createdAt: 120,
+      timekeepingSync: 140
     };
   });
 
@@ -174,17 +194,19 @@ const StudentListInner: React.FC = () => {
       dataIndex: 'studentId',
       key: 'studentId',
       width: colWidths.studentId,
+      fixed: 'left' as const,
       render: (text: string, record: StudentData) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Text strong style={{ color: 'var(--primary)' }}>{text}</Text>
           {record.userId ? (
-            <Tooltip title="Đã có tài khoản đăng nhập">
-              <CheckCircleFilled style={{ color: '#10b981' }} />
-            </Tooltip>
+            <Tooltip title="Đã có tài khoản đăng nhập"><CheckCircleFilled style={{ color: '#10b981' }} /></Tooltip>
           ) : (
-            <Tooltip title="Chưa có tài khoản">
-              <CloseCircleFilled style={{ color: '#6b7280' }} />
-            </Tooltip>
+            <Tooltip title="Chưa có tài khoản đăng nhập"><CloseCircleFilled style={{ color: '#6b7280' }} /></Tooltip>
+          )}
+          {record.isSyncedToDevice ? (
+            <Tooltip title="Đã đồng bộ tài khoản lên máy chấm công"><CheckCircleFilled style={{ color: '#3b82f6' }} /></Tooltip>
+          ) : (
+            <Tooltip title="Chưa đồng bộ tài khoản lên máy chấm công"><CloseCircleFilled style={{ color: '#ef4444' }} /></Tooltip>
           )}
         </div>
       ),
@@ -194,14 +216,11 @@ const StudentListInner: React.FC = () => {
       key: 'fullName',
       dataIndex: 'fullName',
       width: colWidths.fullName,
+      fixed: 'left' as const,
       render: (_: any, record: StudentData) => (
         <div>
           <Text style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{`${record.lastName} ${record.firstName}`}</Text>
-          {record.nickName && (
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-              ({record.nickName})
-            </div>
-          )}
+          {record.nickName && <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>({record.nickName})</div>}
         </div>
       ),
     },
@@ -229,6 +248,21 @@ const StudentListInner: React.FC = () => {
       key: 'mobile',
       width: colWidths.mobile,
       render: (text: string) => <Text type="secondary">{text}</Text>,
+    },
+    {
+      title: 'Cùng tài khoản',
+      key: 'siblings',
+      width: colWidths.siblings || 180,
+      render: (_: any, record: StudentData) => {
+        if (record.siblings && record.siblings.length > 0) {
+          return (
+            <Tooltip title={`Dùng chung tài khoản với: ${record.siblings.join(', ')}`}>
+              <Tag color="cyan" style={{ cursor: 'pointer' }}>{record.siblings.join(', ')}</Tag>
+            </Tooltip>
+          );
+        }
+        return <Text type="secondary">—</Text>;
+      },
     },
     {
       title: 'Tỉnh / Thành',
@@ -264,6 +298,73 @@ const StudentListInner: React.FC = () => {
       key: 'createdAt',
       width: colWidths.createdAt,
       render: (text: string) => dayjs(text).format('DD/MM/YYYY'),
+    },
+    {
+      title: (
+        <Tooltip
+          title={
+            <div style={{ fontSize: 12, lineHeight: 1.6 }}>
+              <div style={{ fontWeight: 700, marginBottom: 4 }}>📋 Cách tạo ID khớp trên máy chấm công:</div>
+              <div>1. Vào giao diện quản trị máy chấm công (IP nội bộ)</div>
+              <div>2. Tạo mới nhân viên → nhập <b>Employee No</b> = <b>{TIMEKEEPING_STUDENT_PREFIX}</b> + <b>Phần số</b> của Mã HS (VD: Mã HS là <b>STU-1080</b> thì nhập <b>{getStudentEmployeeNo('STU-1080')}</b>)</div>
+              <div>3. Đăng ký khuôn mặt / vân tay cho học sinh đó trên máy</div>
+              <div>4. Bật toggle "Đồng bộ" ở đây để hệ thống ghi nhận học sinh sẵn sàng</div>
+              <div style={{ marginTop: 4, color: '#fbbf24' }}>⚡ Khi học sinh quét thẻ, webhook từ máy gửi về BE sẽ tự khớp theo Employee No → studentId</div>
+            </div>
+          }
+          placement="topLeft"
+          overlayStyle={{ maxWidth: 360 }}
+        >
+          <span style={{ cursor: 'help', borderBottom: '1px dashed currentColor' }}>
+            Máy chấm công ℹ️
+          </span>
+        </Tooltip>
+      ),
+      key: 'timekeepingSync',
+      width: colWidths.timekeepingSync || 150,
+      render: (_: any, record: StudentData) => {
+        if (record.isSyncedToDevice) {
+          return (
+            <Tooltip title="Nhấn để bỏ đồng bộ học sinh này khỏi danh sách máy chấm công">
+              <Tag
+                color="success"
+                closable
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                onClose={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setSyncingId(record.id);
+                  api.post(`/timekeeping/sync-student/${record.id}`, { status: false })
+                    .then(res => {
+                      message.success(`Đã bỏ đồng bộ học viên ${record.lastName} ${record.firstName}.`);
+                      setStudents(prev => prev.map(s => s.id === record.id ? { ...s, isSyncedToDevice: res.data.isSyncedToDevice } : s));
+                    })
+                    .catch((err: any) => message.error(err.response?.data?.message || 'Thao tác thất bại.'))
+                    .finally(() => setSyncingId(null));
+                }}
+              >
+                <CheckCircleFilled /> Đã đồng bộ
+              </Tag>
+            </Tooltip>
+          );
+        }
+        return (
+          <Tooltip title={`Bấm để đánh dấu ${record.lastName} ${record.firstName} đã được tạo trên máy chấm công với Employee No = ${getStudentEmployeeNo(record.studentId)} (tiền tố ${TIMEKEEPING_STUDENT_PREFIX} + phần số của mã ${record.studentId})`}>
+            <Button
+              type="primary"
+              size="small"
+              style={{ fontSize: '11px', background: 'var(--primary)', border: 'none' }}
+              loading={syncingId === record.id}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSyncStudent(record);
+              }}
+            >
+              Đồng bộ
+            </Button>
+          </Tooltip>
+        );
+      },
     },
   ].map(col => ({
     ...col,

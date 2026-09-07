@@ -208,7 +208,7 @@ const ClassListInner: React.FC = () => {
   // Fetch filter options
   useEffect(() => {
     api.get('/centers?page=1&limit=100').then(({ data }) => setCenters(data.centers || [])).catch(() => {});
-    api.get('/courses?page=1&limit=100').then(({ data }) => setCourses(data.courses || [])).catch(() => {});
+    api.get('/courses?page=1&limit=100').then(({ data }) => setCourses(data.courses || data.items || [])).catch(() => {});
   }, []);
 
   const fetchClasses = useCallback(async () => {

@@ -3,10 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { BookOpen, LogOut, User as UserIcon, Settings, X } from 'lucide-react';
 import { useAuth, Role } from '../../context/AuthContext';
 import { SidebarNav } from './SidebarNav';
+import { Avatar, Select } from 'antd';
 
 interface MobileSidebarProps {
   open: boolean;
   onClose: () => void;
+  profiles?: any[];
+  activeProfile?: any;
 }
 
 function getRoleBadge(role: Role) {
@@ -31,7 +34,7 @@ function getAppTitle(role?: Role) {
   }
 }
 
-export const MobileSidebar: React.FC<MobileSidebarProps> = ({ open, onClose }) => {
+export const MobileSidebar: React.FC<MobileSidebarProps> = ({ open, onClose, profiles = [], activeProfile = null }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -127,24 +130,56 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({ open, onClose }) =
             display: 'flex', flexDirection: 'column', gap: '10px',
             background: 'rgba(255, 255, 255, 0.02)', marginTop: '12px',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{
-                width: '40px', height: '40px', borderRadius: '50%',
-                backgroundColor: 'var(--bg-tertiary)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'var(--primary)', border: '1px solid var(--card-border)', flexShrink: 0,
-              }}>
-                <UserIcon size={18} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%' }}>
+              <div style={{ flexShrink: 0 }}>
+                {user.role === Role.STUDENT && activeProfile?.avatar ? (
+                  <Avatar size={40} src={activeProfile.avatar} />
+                ) : (
+                  <div style={{
+                    width: '40px', height: '40px', borderRadius: '50%',
+                    backgroundColor: 'var(--bg-tertiary)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'var(--primary)', border: '1px solid var(--card-border)',
+                  }}>
+                    <UserIcon size={18} />
+                  </div>
+                )}
               </div>
-              <div style={{ overflow: 'hidden' }}>
+              <div style={{ overflow: 'hidden', flex: 1 }}>
                 <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                  {user.name}
+                  {user.role === Role.STUDENT && activeProfile
+                    ? `${activeProfile.lastName} ${activeProfile.firstName}`
+                    : user.name}
                 </div>
                 <div style={{ marginTop: '3px' }}>
                   {getRoleBadge(user.role)}
                 </div>
               </div>
             </div>
+
+            {user.role === Role.STUDENT && profiles.length > 1 && (
+              <div style={{ marginTop: '4px', width: '100%' }}>
+                <Select
+                  size="small"
+                  style={{ width: '100%' }}
+                  dropdownStyle={{ zIndex: 1050 }}
+                  value={activeProfile?.id}
+                  onChange={(val) => {
+                    localStorage.setItem('activeStudentId', val);
+                    window.location.reload();
+                  }}
+                  options={profiles.map(p => ({
+                    value: p.id,
+                    label: `${p.lastName} ${p.firstName}`
+                  }))}
+                />
+              </div>
+            )}
+            {user.role === Role.STUDENT && profiles.length <= 1 && activeProfile && (
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                Học sinh: {activeProfile.lastName} {activeProfile.firstName}
+              </div>
+            )}
 
             <button
               onClick={() => { navigate(settingsPath); onClose(); }}

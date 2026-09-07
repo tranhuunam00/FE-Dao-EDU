@@ -46,6 +46,7 @@ import StudentLeaveRequests from './pages/student/StudentLeaveRequests';
 import Settings from './pages/Settings';
 import Notifications from './pages/Notifications';
 import NotificationLogs from './pages/admin/NotificationLogs';
+import TimekeepingLogs from './pages/admin/TimekeepingLogs';
 import HolidaySettings from './pages/admin/HolidaySettings';
 import ContactRequests from './pages/admin/ContactRequests';
 import FacebookLeads from './pages/admin/FacebookLeads';
@@ -95,6 +96,7 @@ function App() {
                     <Route path="settings" element={<Settings />} />
                     <Route path="notifications" element={<Notifications />} />
                     <Route path="logs" element={<NotificationLogs />} />
+                    <Route path="timekeeping" element={<TimekeepingLogs />} />
                     <Route path="holidays" element={<HolidaySettings />} />
                     <Route path="contact-requests" element={<ContactRequests />} />
                     <Route path="facebook-leads" element={<FacebookLeads />} />
