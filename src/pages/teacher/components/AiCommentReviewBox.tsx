@@ -86,7 +86,7 @@ export const AiCommentReviewBox: React.FC<AiCommentReviewBoxProps> = ({
           <button
             type="button"
             title={isApproved ? 'Click để hủy duyệt nhận xét này' : 'Click để duyệt nhận xét này'}
-            disabled={disabled || !comment || comment.trim() === ''}
+            disabled={disabled}
             onClick={() => onApproveChange(!isApproved)}
             style={{
               display: 'inline-flex',
@@ -99,7 +99,7 @@ export const AiCommentReviewBox: React.FC<AiCommentReviewBoxProps> = ({
               border: isApproved ? '1px solid rgba(16, 185, 129, 0.5)' : '1px solid var(--card-border, rgba(255,255,255,0.15))',
               backgroundColor: isApproved ? 'rgba(16, 185, 129, 0.18)' : 'transparent',
               color: isApproved ? '#10b981' : 'var(--text-secondary)',
-              cursor: disabled || !comment || comment.trim() === '' ? 'not-allowed' : 'pointer',
+              cursor: disabled ? 'not-allowed' : 'pointer',
             }}
           >
             {isApproved ? <CheckCircle2 size={13} /> : <Check size={13} />}

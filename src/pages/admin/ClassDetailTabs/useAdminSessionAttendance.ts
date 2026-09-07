@@ -136,17 +136,54 @@ export const useAdminSessionAttendance = ({
     studentId: string,
     patch: Partial<StudentSessionEvaluationItem>
   ) => {
-    setSessionEvaluations((prev) => ({
-      ...prev,
-      [studentId]: {
-        ...(prev[studentId] || {
-          studentId,
-          classSessionId: currentSession.id,
-          criteria: {},
-        }),
+    let nextItem: StudentSessionEvaluationItem;
+    setSessionEvaluations((prev) => {
+      const existing = prev[studentId] || {
+        studentId,
+        classSessionId: currentSession.id,
+        criteria: {},
+      };
+      nextItem = {
+        ...existing,
         ...patch,
-      },
-    }));
+      };
+      return {
+        ...prev,
+        [studentId]: nextItem,
+      };
+    });
+
+    // Nếu người dùng bấm duyệt / hủy duyệt từng học sinh -> lưu thực tế ngay xuống server
+    if (patch.isApprovedByTeacher !== undefined && currentSession?.id) {
+      const existing = sessionEvaluations[studentId] || {
+        studentId,
+        classSessionId: currentSession.id,
+        criteria: {},
+      };
+      const toSave = { ...existing, ...patch };
+      evaluationService
+        .saveSessionEvaluations(currentSession.id, {
+          evaluations: [
+            {
+              studentId,
+              criteria: toSave.criteria || {},
+              evaluationScore: toSave.evaluationScore || null,
+              evaluationComment: toSave.evaluationComment || null,
+              isAiGenerated: !!toSave.isAiGenerated,
+              isApprovedByTeacher: !!patch.isApprovedByTeacher,
+            },
+          ],
+        })
+        .then(() => {
+          message.success(
+            patch.isApprovedByTeacher ? 'Đã duyệt đánh giá của học sinh.' : 'Đã hủy duyệt đánh giá.',
+          );
+        })
+        .catch((err) => {
+          console.error('Lỗi lưu duyệt:', err);
+          message.error('Không thể lưu trạng thái duyệt vào hệ thống.');
+        });
+    }
   };
 
   const handleSingleGenerateAi = async (studentId: string, studentName: string) => {
@@ -225,31 +262,53 @@ export const useAdminSessionAttendance = ({
     }
   };
 
-  const handleApproveAll = () => {
-    const validEntries = Object.entries(sessionEvaluations).filter(
-      ([, v]) => v.evaluationComment && v.evaluationComment.trim() !== ''
-    );
-    if (validEntries.length === 0) {
-      message.warning('Chưa có nhận xét nào để duyệt.');
+  const handleApproveAll = async () => {
+    const studentKeys = sessionAttendance.map((a) => a.studentId);
+    if (studentKeys.length === 0) {
+      message.warning('Chưa có học sinh nào trong buổi học này.');
       return;
     }
 
-    const isAllApproved = validEntries.every(([, v]) => v.isApprovedByTeacher);
+    const isAllApproved = studentKeys.every(
+      (id) => sessionEvaluations[id]?.isApprovedByTeacher
+    );
 
-    setSessionEvaluations((prev) => {
-      const next = { ...prev };
-      for (const [k, v] of Object.entries(next)) {
-        if (v.evaluationComment && v.evaluationComment.trim() !== '') {
-          next[k] = { ...v, isApprovedByTeacher: !isAllApproved };
-        }
+    const nextEvaluations = { ...sessionEvaluations };
+    for (const a of sessionAttendance) {
+      const existing = nextEvaluations[a.studentId] || {
+        studentId: a.studentId,
+        classSessionId: currentSession.id,
+        criteria: {},
+      };
+      nextEvaluations[a.studentId] = {
+        ...existing,
+        isApprovedByTeacher: !isAllApproved,
+      };
+    }
+    setSessionEvaluations(nextEvaluations);
+
+    // Lưu thực tế ngay lập tức xuống backend!
+    try {
+      const evalPayloadList = Object.values(nextEvaluations).map((e) => ({
+        studentId: e.studentId,
+        criteria: e.criteria || {},
+        evaluationScore: e.evaluationScore || null,
+        evaluationComment: e.evaluationComment || null,
+        isAiGenerated: !!e.isAiGenerated,
+        isApprovedByTeacher: !isAllApproved,
+      }));
+      if (evalPayloadList.length > 0) {
+        await evaluationService.saveSessionEvaluations(currentSession.id, {
+          evaluations: evalPayloadList,
+        });
       }
-      return next;
-    });
-
-    if (isAllApproved) {
-      message.info('Đã hủy duyệt tất cả nhận xét.');
-    } else {
-      message.success('Đã duyệt tất cả nhận xét hợp lệ.');
+      if (isAllApproved) {
+        message.info('Đã hủy duyệt tất cả đánh giá.');
+      } else {
+        message.success('Đã duyệt và lưu thành công tất cả đánh giá!');
+      }
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi lưu duyệt hàng loạt.');
     }
   };
 
@@ -313,10 +372,7 @@ export const useAdminSessionAttendance = ({
         try {
           await api.post(`/classes/sessions/${currentSession.id}/attendance`, {
             attendance: sessionAttendance.map((a) => ({
-              studentId: a.studentId,
-              isPresent: a.isPresent,
-              reason: a.reason,
-              note: a.note,
+              studentId: a.studentId, isPresent: a.isPresent, reason: a.reason, note: a.note,
             })),
           });
           await saveEvaluationsInternal();
@@ -344,10 +400,7 @@ export const useAdminSessionAttendance = ({
         try {
           await api.post(`/classes/sessions/${currentSession.id}/attendance-override`, {
             attendance: sessionAttendance.map((a) => ({
-              studentId: a.studentId,
-              isPresent: a.isPresent,
-              reason: a.reason,
-              note: a.note,
+              studentId: a.studentId, isPresent: a.isPresent, reason: a.reason, note: a.note,
             })),
           });
           await saveEvaluationsInternal();
