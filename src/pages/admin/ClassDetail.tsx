@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   App, Tag, Button, Spin,
-  Tabs, Modal, Form, Select, DatePicker, TimePicker, Switch, Input, Divider, Alert, Typography, Descriptions, Row, Col, Table, InputNumber
+  Tabs, Modal, Form, Select, DatePicker, TimePicker, Switch, Input, Divider, Alert, Typography, Row, Col, Table, InputNumber
 } from 'antd';
 import {
-  ArrowLeftOutlined, TeamOutlined, CalendarOutlined,
-  CheckCircleOutlined, StopOutlined, EditOutlined, SaveOutlined,
+  ArrowLeftOutlined, TeamOutlined, EditOutlined,
   PlusOutlined, DeleteOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -19,24 +18,11 @@ import { ScheduleTab } from './ClassDetailTabs/ScheduleTab';
 import { AssignmentsTab } from './ClassDetailTabs/AssignmentsTab';
 import { MaterialsTab } from './ClassDetailTabs/MaterialsTab';
 import { GenerateSessionsModal, type GenerateSessionMode } from './ClassDetailTabs/GenerateSessionsModal';
+import { AdminSessionAttendanceModal } from './ClassDetailTabs/AdminSessionAttendanceModal';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-interface StudentAttendance {
-  studentId: string;
-  isPresent: boolean;
-  reason?: string;
-  note?: string;
-  evaluationScore?: string | null;
-  evaluationComment?: string | null;
-  attendanceType?: string;
-  verifyMethod?: string | null;
-  student?: {
-    name: string;
-    user?: { email: string };
-  };
-}
 
 interface ClassSession {
   id: string;
@@ -76,14 +62,10 @@ const ClassDetailInner: React.FC = () => {
 
   const [isSessionModalVisible, setIsSessionModalVisible] = useState(false);
   const [currentSession, setCurrentSession] = useState<ClassSession | null>(null);
-  const [sessionAttendance, setSessionAttendance] = useState<StudentAttendance[]>([]);
-  const [savingAttendance, setSavingAttendance] = useState(false);
-  const [isOverrideMode, setIsOverrideMode] = useState(false);
 
   // Editing Session details
   const [isEditSessionVisible, setIsEditSessionVisible] = useState(false);
   const [sessionForm] = Form.useForm();
-
   // Editing Class details
   const [isEditClassVisible, setIsEditClassVisible] = useState(false);
   const [classForm] = Form.useForm();
@@ -536,176 +518,9 @@ const ClassDetailInner: React.FC = () => {
     }
   };
 
-  const openSessionDetail = async (session: ClassSession) => {
+  const openSessionDetail = (session: ClassSession) => {
     setCurrentSession(session);
     setIsSessionModalVisible(true);
-    try {
-      const { data } = await api.get(`/classes/sessions/${session.id}/attendance`);
-      const mapped = (classData?.students || [])
-        .filter((cs: any) => {
-          const hasRecord = data.some((d: any) => d.studentId === cs.studentId);
-          if (hasRecord) return true;
-
-          const joined = dayjs(cs.joinedDate);
-          const sess = dayjs(session.date);
-          const isJoined = joined.isBefore(sess) || joined.isSame(sess, 'day');
-          if (cs.status === 'Active') {
-            return isJoined;
-          }
-          if (cs.status === 'Dropped') {
-            const leftDate = cs.updatedAt ? cs.updatedAt.split('T')[0] : cs.joinedDate;
-            return isJoined && session.date < leftDate;
-          }
-          return false;
-        })
-        .map((cs: any) => {
-          const record = data.find((d: any) => d.studentId === cs.studentId);
-          return {
-            studentId: cs.studentId,
-            isPresent: record ? record.isPresent : false,
-            reason: record ? record.reason : '',
-            note: record ? record.note : '',
-            evaluationScore: record ? record.evaluationScore : null,
-            evaluationComment: record ? record.evaluationComment : '',
-            student: {
-              name: cs.student ? `${cs.student.lastName} ${cs.student.firstName}` : '-',
-              user: cs.student?.user,
-              firstName: cs.student?.firstName || '',
-              lastName: cs.student?.lastName || '',
-            }
-          };
-        });
-      setSessionAttendance(mapped);
-    } catch (err: any) {
-      message.error('Lỗi khi tải thông tin điểm danh.');
-    }
-  };
-
-  const handleStartAttendance = async () => {
-    if (!currentSession) return;
-    try {
-      const { data } = await api.post(`/classes/sessions/${currentSession.id}/start-attendance?bypassTimeCheck=true`);
-      message.success('Buổi học bắt đầu thành công. Trạng thái chuyển sang Đang học!');
-      setCurrentSession(data);
-      const sessionsRes = await api.get(`/classes/${id}/sessions`);
-      setSessions(sessionsRes.data);
-    } catch (err: any) {
-      message.error(err.response?.data?.message || 'Không thể bắt đầu điểm danh. Vui lòng kiểm tra thời gian buổi học.');
-    }
-  };
-
-  const handleSaveAttendance = async () => {
-    if (!currentSession) return;
-    setSavingAttendance(true);
-    try {
-      await api.post(`/classes/sessions/${currentSession.id}/attendance`, {
-        attendance: sessionAttendance.map(a => ({
-          studentId: a.studentId,
-          isPresent: a.isPresent,
-          reason: a.reason,
-          note: a.note,
-          evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore).trim() !== '' ? String(a.evaluationScore).trim() : null,
-          evaluationComment: a.evaluationComment || null,
-        })),
-      });
-      message.success('Lưu điểm danh thành công!');
-    } catch (err: any) {
-      message.error(err.response?.data?.message || 'Lỗi khi lưu điểm danh');
-    } finally {
-      setSavingAttendance(false);
-    }
-  };
-
-  const [savingEvaluations, setSavingEvaluations] = useState(false);
-  const handleSaveEvaluationsOnly = async () => {
-    if (!currentSession) return;
-    setSavingEvaluations(true);
-    try {
-      await api.post(`/classes/sessions/${currentSession.id}/evaluations`, {
-        evaluations: sessionAttendance.map(a => ({
-          studentId: a.studentId,
-          evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore).trim() !== '' ? String(a.evaluationScore).trim() : null,
-          evaluationComment: a.evaluationComment || null,
-        })),
-      });
-      message.success('Cập nhật đánh giá thành công!');
-      loadAllData();
-    } catch (err: any) {
-      message.error(err.response?.data?.message || 'Lỗi khi cập nhật đánh giá');
-    } finally {
-      setSavingEvaluations(false);
-    }
-  };
-
-  const handleCompleteSession = async () => {
-    if (!currentSession) return;
-    modal.confirm({
-      title: 'Xác nhận Kết thúc buổi học',
-      content: 'Khi kết thúc, trạng thái sẽ chuyển sang Hoàn thành và KHÓA bảng điểm danh buổi này. Hệ thống sẽ tính buổi học cho học viên có tham gia và buổi dạy cho giáo viên.',
-      okText: 'Đồng ý',
-      cancelText: 'Hủy',
-      onOk: async () => {
-        try {
-          await api.post(`/classes/sessions/${currentSession.id}/attendance`, {
-            attendance: sessionAttendance.map(a => ({
-              studentId: a.studentId,
-              isPresent: a.isPresent,
-              reason: a.reason,
-              note: a.note,
-              evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore).trim() !== '' ? String(a.evaluationScore).trim() : null,
-              evaluationComment: a.evaluationComment || null,
-            })),
-          });
-          const { data } = await api.post(`/classes/sessions/${currentSession.id}/complete`);
-          message.success('Đã kết thúc buổi học!');
-          setCurrentSession(data);
-          setIsSessionModalVisible(false);
-          loadAllData();
-        } catch (err: any) {
-          message.error(err.response?.data?.message || 'Lỗi khi hoàn thành buổi học');
-        }
-      }
-    });
-  };
-
-  const handleOverrideAttendance = () => {
-    if (!currentSession) return;
-    modal.confirm({
-      title: '⚠️ Xác nhận sửa điểm danh đã chốt',
-      content: (
-        <div>
-          <p>Bạn sắp <strong>sửa bảng điểm danh của buổi học đã kết thúc</strong>.</p>
-          <p style={{ color: '#ef4444' }}>Lưu ý: Chỉ được phép với các buổi <strong>chưa được đưa vào hóa đơn tính tiền</strong>. Hệ thống sẽ từ chối nếu bất kỳ học sinh nào đã được tính tiền.</p>
-          <p>Bạn có chắc chắn muốn tiếp tục không?</p>
-        </div>
-      ),
-      okText: 'Xác nhận sửa',
-      okButtonProps: { danger: true },
-      cancelText: 'Hủy',
-      onOk: async () => {
-        setSavingAttendance(true);
-        try {
-          await api.post(`/classes/sessions/${currentSession.id}/attendance-override`, {
-            attendance: sessionAttendance.map(a => ({
-              studentId: a.studentId,
-              isPresent: a.isPresent,
-              reason: a.reason,
-              note: a.note,
-              evaluationScore: a.evaluationScore !== undefined && a.evaluationScore !== null && String(a.evaluationScore).trim() !== '' ? String(a.evaluationScore).trim() : null,
-              evaluationComment: a.evaluationComment || null,
-            })),
-          });
-          message.success('Đã cập nhật điểm danh thành công!');
-          setIsOverrideMode(false);
-          setIsSessionModalVisible(false);
-          loadAllData();
-        } catch (err: any) {
-          message.error(err.response?.data?.message || 'Không thể sửa điểm danh.');
-        } finally {
-          setSavingAttendance(false);
-        }
-      },
-    });
   };
 
   const handleEditSessionSubmit = async () => {
@@ -732,59 +547,7 @@ const ClassDetailInner: React.FC = () => {
     }
   };
 
-  const handleCancelSession = async () => {
-    if (!currentSession) return;
-    modal.confirm({
-      title: 'Xác nhận cho nghỉ học',
-      content: 'Bạn có chắc chắn muốn cho lớp nghỉ buổi học này không?',
-      okText: 'Xác nhận',
-      cancelText: 'Hủy',
-      onOk: async () => {
-        try {
-          await api.put(`/classes/sessions/${currentSession.id}`, { status: 'Cancelled' });
-          message.success('Đã cập nhật trạng thái buổi học thành nghỉ học!');
-          setIsSessionModalVisible(false);
-          loadAllData();
-        } catch (err: any) {
-          message.error(err.response?.data?.message || 'Lỗi khi cập nhật buổi học');
-        }
-      }
-    });
-  };
-
-  const handleReopenSession = async () => {
-    if (!currentSession) return;
-    try {
-      await api.put(`/classes/sessions/${currentSession.id}`, { status: 'Scheduled' });
-      message.success('Đã mở lại buổi học thành công!');
-      setIsSessionModalVisible(false);
-      loadAllData();
-    } catch (err: any) {
-      message.error(err.response?.data?.message || 'Lỗi khi mở lại buổi học');
-    }
-  };
-
-  const handleRevertToScheduled = async () => {
-    if (!currentSession || !id) return;
-    modal.confirm({
-      title: 'Xác nhận hoàn tác trạng thái buổi học',
-      content: 'Hành động này sẽ hủy quá trình điểm danh hiện tại và đặt trạng thái buổi học trở lại "Chưa diễn ra", đồng thời đặt lại toàn bộ điểm danh về vắng mặt. Bạn có chắc chắn muốn tiếp tục?',
-      okText: 'Đồng ý',
-      cancelText: 'Hủy',
-      onOk: async () => {
-        try {
-          await api.post(`/classes/sessions/${currentSession.id}/revert-to-scheduled`);
-          message.success('Đã chuyển trạng thái buổi học trở lại "Chưa diễn ra"!');
-          setIsSessionModalVisible(false);
-          await loadAllData();
-        } catch (err: any) {
-          message.error(err.response?.data?.message || 'Lỗi khi hoàn tác trạng thái buổi học');
-        }
-      }
-    });
-  };
-
-  const [isGenerateModalVisible, setIsGenerateModalVisible] = useState(false);
+    const [isGenerateModalVisible, setIsGenerateModalVisible] = useState(false);
   const [generatingSessions, setGeneratingSessions] = useState(false);
 
   const handleConfirmGenerateSessions = async (mode: GenerateSessionMode, customDate?: string) => {
@@ -1075,334 +838,28 @@ const ClassDetailInner: React.FC = () => {
         </div>
       </Modal>
 
-      <Modal
-        title={
-          <div>
-            <CalendarOutlined style={{ color: '#6366f1', marginRight: 8 }} />
-            Buổi học ngày: {currentSession && dayjs(currentSession.date).format('DD/MM/YYYY')}
-          </div>
-        }
-        open={isSessionModalVisible}
-        width={1350}
-        onCancel={() => setIsSessionModalVisible(false)}
-        footer={null}
-      >
-        {currentSession && (
-          <div style={{ padding: '8px 0' }}>
-            <Descriptions size="small" bordered column={2} style={{ marginBottom: 16 }}>
-              <Descriptions.Item label="Thời gian">{currentSession.startTime.substring(0,5)} - {currentSession.endTime.substring(0,5)}</Descriptions.Item>
-              <Descriptions.Item label="Trạng thái">
-                {currentSession.status === 'Scheduled' && <Tag color="blue">Chưa diễn ra</Tag>}
-                {currentSession.status === 'In-Progress' && <Tag color="orange">Đang học</Tag>}
-                {currentSession.status === 'Completed' && <Tag color="green">Hoàn thành</Tag>}
-                {currentSession.status === 'Cancelled' && <Tag color="red">Nghỉ học</Tag>}
-              </Descriptions.Item>
-              <Descriptions.Item label="Giáo viên">
-                {currentSession.teacher ? `${currentSession.teacher.lastName} ${currentSession.teacher.firstName}` : <span style={{ color: 'var(--text-muted)' }}>Chưa phân công</span>}
-              </Descriptions.Item>
-              <Descriptions.Item label="Trợ giảng (TA)">
-                {currentSession.assistant ? `${currentSession.assistant.lastName} ${currentSession.assistant.firstName}` : <span style={{ color: 'var(--text-muted)' }}>Chưa phân công</span>}
-              </Descriptions.Item>
-            </Descriptions>
-
-            <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
-              {currentSession.attendanceLocked && currentSession.status !== 'Cancelled' && (
-                <Button type="primary" icon={<SaveOutlined />} onClick={handleSaveEvaluationsOnly} loading={savingEvaluations}>
-                  Cập nhật đánh giá
-                </Button>
-              )}
-              {!currentSession.attendanceLocked && (
-                <>
-                  {currentSession.status === 'Scheduled' && (
-                    <>
-                      <Button type="primary" icon={<CheckCircleOutlined />} onClick={handleStartAttendance}>
-                        Bắt đầu học (Điểm danh)
-                      </Button>
-                      <Button danger icon={<StopOutlined />} onClick={handleCancelSession}>
-                        Cho nghỉ học
-                      </Button>
-                    </>
-                  )}
-                  {currentSession.status === 'Cancelled' && (
-                    <Button type="primary" icon={<CheckCircleOutlined />} onClick={handleReopenSession}>
-                      Mở lại buổi học
-                    </Button>
-                  )}
-                  {currentSession.status === 'In-Progress' && (
-                    <Button type="primary" style={{ background: '#34d399', border: 'none' }} icon={<SaveOutlined />} onClick={handleSaveAttendance} loading={savingAttendance}>
-                      Lưu điểm danh
-                    </Button>
-                  )}
-                  {currentSession.status === 'In-Progress' && (
-                    <Button danger icon={<StopOutlined />} onClick={handleCompleteSession}>
-                      Kết thúc buổi học
-                    </Button>
-                  )}
-                  {currentSession.status === 'In-Progress' && (
-                    <Button type="dashed" danger onClick={handleRevertToScheduled}>
-                      Trở lại chưa diễn ra
-                    </Button>
-                  )}
-                </>
-              )}
-              {dayjs(currentSession.date).isAfter(dayjs().subtract(1, 'day')) && !currentSession.attendanceLocked && currentSession.status !== 'Cancelled' && (
-                <Button
-                  icon={<EditOutlined />}
-                  onClick={() => {
-                    sessionForm.setFieldsValue({
-                      date: dayjs(currentSession.date),
-                      startTime: dayjs(currentSession.startTime, 'HH:mm:ss'),
-                      endTime: dayjs(currentSession.endTime, 'HH:mm:ss'),
-                      roomId: currentSession.roomId,
-                      teacherId: currentSession.teacherId,
-                      assistantId: currentSession.assistantId,
-                      scope: 'single',
-                    });
-                    setIsEditSessionVisible(true);
-                  }}
-                >
-                  Đổi lịch / Giáo viên
-                </Button>
-              )}
-            </div>
-
-            {/* Admin override section */}
-            {currentSession.attendanceLocked && isAdmin && (
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8, padding: '8px 12px', background: 'rgba(239,68,68,0.08)', borderRadius: 8, border: '1px solid rgba(239,68,68,0.25)' }}>
-                {!isOverrideMode ? (
-                  <Button
-                    danger
-                    size="small"
-                    icon={<EditOutlined />}
-                    onClick={() => setIsOverrideMode(true)}
-                  >
-                    Sửa điểm danh (Admin)
-                  </Button>
-                ) : (
-                  <>
-                    <Button
-                      type="primary"
-                      danger
-                      size="small"
-                      icon={<SaveOutlined />}
-                      onClick={handleOverrideAttendance}
-                      loading={savingAttendance}
-                    >
-                      Lưu thay đổi
-                    </Button>
-                    <Button size="small" onClick={() => setIsOverrideMode(false)}>Hủy sửa</Button>
-                  </>
-                )}
-                <span style={{ color: '#ef4444', fontSize: 12 }}>⚠️ Chỉ admin — Chỉ áp dụng nếu buổi chưa tính tiền</span>
-              </div>
-            )}
-
-            <Divider style={{ margin: '16px 0' }}>Bảng điểm danh học sinh</Divider>
-
-            {currentSession.status === 'Scheduled' ? (
-              <div style={{ textAlign: 'center', padding: '24px 0', color: 'rgba(0,0,0,0.45)' }}>
-                Bấm "Bắt đầu học (Điểm danh)" để tiến hành điểm danh học sinh.
-              </div>
-            ) : (
-              <div>
-                <div style={{ marginBottom: 12, display: 'flex', gap: 8 }}>
-                  <Button
-                    size="small"
-                    onClick={() => {
-                      setSessionAttendance(prev => prev.map(a => ({ ...a, isPresent: true })));
-                    }}
-                    disabled={currentSession.attendanceLocked && !isOverrideMode}
-                    style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981' }}
-                  >
-                    Có mặt tất cả
-                  </Button>
-                  <Button
-                    size="small"
-                    onClick={() => {
-                      setSessionAttendance(prev => prev.map(a => ({ ...a, isPresent: false })));
-                    }}
-                    disabled={currentSession.attendanceLocked && !isOverrideMode}
-                    style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444' }}
-                  >
-                    Vắng mặt tất cả
-                  </Button>
-                </div>
-                <Table
-                  dataSource={sessionAttendance}
-                  rowKey="studentId"
-                  pagination={false}
-                  size="small"
-                  columns={[
-                    {
-                      title: 'STT',
-                      key: 'index',
-                      width: 50,
-                      align: 'center' as const,
-                      render: (_text: any, _record: any, index: number) => index + 1,
-                    },
-                    {
-                      title: 'Học sinh',
-                      dataIndex: ['student', 'name'],
-                      key: 'name',
-                      sorter: (a: any, b: any) => {
-                        const aFirst = a.student?.firstName || '';
-                        const bFirst = b.student?.firstName || '';
-                        const comp = aFirst.localeCompare(bFirst, 'vi', { sensitivity: 'base' });
-                        if (comp !== 0) return comp;
-                        const aLast = a.student?.lastName || '';
-                        const bLast = b.student?.lastName || '';
-                        return aLast.localeCompare(bLast, 'vi', { sensitivity: 'base' });
-                      },
-                      defaultSortOrder: 'ascend' as const,
-                    },
-                    {
-                      title: 'Có mặt?',
-                      dataIndex: 'isPresent',
-                      key: 'isPresent',
-                      width: 140,
-                      render: (val, record) => (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <Switch
-                            checked={val}
-                            disabled={currentSession.attendanceLocked && !isOverrideMode}
-                            onChange={(checked) => {
-                              setSessionAttendance(prev => prev.map(a => 
-                                a.studentId === record.studentId 
-                                  ? { ...a, isPresent: checked, reason: checked ? "" : "Nghỉ có phép" } 
-                                  : a
-                              ));
-                            }}
-                          />
-                          {val ? (
-                            <Tag color="success" style={{ margin: 0, fontWeight: 'bold' }}>Có mặt</Tag>
-                          ) : (
-                            <Tag color="error" style={{ margin: 0, fontWeight: 'bold' }}>Vắng</Tag>
-                          )}
-                        </div>
-                      ),
-                    },
-                    {
-                      title: 'Hình thức',
-                      dataIndex: 'attendanceType',
-                      key: 'attendanceType',
-                      width: 120,
-                      render: (type, record) => {
-                        if (!record.isPresent) {
-                          if (type === 'manual') {
-                            return <Tag>Thủ công</Tag>;
-                          }
-                          return <span style={{ color: 'rgba(0,0,0,0.25)' }}>—</span>;
-                        }
-                        if (type === 'machine') {
-                          let methodText = 'Máy chấm công';
-                          if (record.verifyMethod === 'face') methodText = 'Khuôn mặt';
-                          else if (record.verifyMethod === 'fingerprint') methodText = 'Vân tay';
-                          else if (record.verifyMethod === 'card') methodText = 'Thẻ';
-                          else if (record.verifyMethod === 'pin') methodText = 'Mã PIN';
-                          return <Tag color="blue">{methodText}</Tag>;
-                        }
-                        return <Tag color="orange">Thủ công</Tag>;
-                      }
-                    },
-                    {
-                      title: 'Lý do vắng mặt / Ghi chú',
-                      key: 'reason',
-                      width: 180,
-                      render: (_, record) => {
-                        if (record.isPresent) return <span style={{ color: 'var(--text-muted)' }}>—</span>;
-                        
-                        const isExcusedDefault = record.reason === 'Nghỉ có phép';
-                        const isUnexcused = !record.reason || record.reason.trim() === '';
-                        
-                        const selectValue = isExcusedDefault ? 'Nghỉ có phép' : isUnexcused ? 'Nghỉ không phép' : 'custom';
- 
-                        return (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%' }}>
-                            <Select
-                              value={selectValue}
-                              disabled={currentSession.attendanceLocked && !isOverrideMode}
-                              style={{ width: '100%' }}
-                              size="small"
-                              onChange={(val) => {
-                                let newReason = '';
-                                if (val === 'Nghỉ có phép') newReason = 'Nghỉ có phép';
-                                else if (val === 'Nghỉ không phép') newReason = '';
-                                else newReason = 'Lý do khác';
-                                
-                                setSessionAttendance(prev => prev.map(a => 
-                                  a.studentId === record.studentId ? { ...a, reason: newReason } : a
-                                ));
-                              }}
-                              options={[
-                                { value: 'Nghỉ có phép', label: 'Nghỉ có phép' },
-                                { value: 'Nghỉ không phép', label: 'Nghỉ không phép' },
-                                { value: 'custom', label: 'Khác (Nhập lý do)' },
-                              ]}
-                            />
-                            {selectValue === 'custom' && (
-                              <Input
-                                placeholder="Nhập lý do vắng..."
-                                value={record.reason}
-                                disabled={currentSession.attendanceLocked && !isOverrideMode}
-                                onChange={(e) => {
-                                  setSessionAttendance(prev => prev.map(a => 
-                                    a.studentId === record.studentId ? { ...a, reason: e.target.value } : a
-                                  ));
-                                }}
-                                size="small"
-                              />
-                            )}
-                          </div>
-                        );
-                      }
-                    },
-                    {
-                      title: 'Điểm số',
-                      key: 'evaluationScore',
-                      width: 110,
-                      align: 'center' as const,
-                      render: (_, record) => (
-                        <Input
-                          value={record.evaluationScore !== null && record.evaluationScore !== undefined ? record.evaluationScore : ''}
-                          placeholder="—"
-                          disabled={currentSession.status === 'Scheduled'}
-                          style={{ width: 80, textAlign: 'center' }}
-                          size="small"
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setSessionAttendance(prev => prev.map(a => 
-                              a.studentId === record.studentId ? { ...a, evaluationScore: val === '' ? null : val } : a
-                            ));
-                          }}
-                        />
-                      )
-                    },
-                    {
-                      title: 'Nhận xét',
-                      key: 'evaluationComment',
-                      width: 450,
-                      render: (_, record) => (
-                        <Input.TextArea
-                          placeholder="Nhận xét..."
-                          value={record.evaluationComment || ''}
-                          disabled={currentSession.status === 'Scheduled'}
-                          autoSize={{ minRows: 1, maxRows: 3 }}
-                          size="small"
-                          onChange={(e) => {
-                            setSessionAttendance(prev => prev.map(a => 
-                              a.studentId === record.studentId ? { ...a, evaluationComment: e.target.value } : a
-                            ));
-                          }}
-                        />
-                      )
-                    },
-                  ]}
-                />
-              </div>
-            )}
-          </div>
-        )}
-      </Modal>
+      <AdminSessionAttendanceModal
+        visible={isSessionModalVisible}
+        onClose={() => setIsSessionModalVisible(false)}
+        currentSession={currentSession}
+        setCurrentSession={setCurrentSession}
+        classData={classData}
+        isAdmin={isAdmin}
+        onReload={loadAllData}
+        onOpenEditSession={() => {
+          if (!currentSession) return;
+          sessionForm.setFieldsValue({
+            date: dayjs(currentSession.date),
+            startTime: dayjs(currentSession.startTime, "HH:mm:ss"),
+            endTime: dayjs(currentSession.endTime, "HH:mm:ss"),
+            roomId: currentSession.roomId,
+            teacherId: currentSession.teacherId,
+            assistantId: currentSession.assistantId,
+            scope: "single",
+          });
+          setIsEditSessionVisible(true);
+        }}
+      />
 
       <Modal
         title="Thay đổi lịch học hoặc Giáo viên / Phòng học"
