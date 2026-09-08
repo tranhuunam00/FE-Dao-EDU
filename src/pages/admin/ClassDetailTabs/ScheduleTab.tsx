@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Typography, Button, Table, Tag, Popconfirm } from 'antd';
+import { Card, Typography, Button, Table, Tag, Popconfirm, Tooltip } from 'antd';
 import { PlusOutlined, DeleteOutlined, SyncOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
@@ -10,6 +10,12 @@ interface ClassSession {
   roomId: string | null;
   teacherId: string | null;
   assistantId: string | null;
+  wageId?: string | null;
+  assistantWageId?: string | null;
+  billedTeacherWage?: number | null;
+  billedAssistantWage?: number | null;
+  isWageBilled?: boolean;
+  hasAttendance?: boolean;
   date: string;
   startTime: string;
   endTime: string;
@@ -115,37 +121,77 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
       title: 'Hành động',
       key: 'action',
       width: '240px',
-      render: (_: any, record: ClassSession) => (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <Button
-            type="primary"
-            size="small"
-            style={{ background: 'rgba(99, 102, 241, 0.2)', border: '1px solid rgba(99, 102, 241, 0.4)', color: '#a5b4fc' }}
-            onClick={() => openSessionDetail(record)}
-          >
-            {record.status === 'Completed' ? 'Xem điểm danh' : 'Điểm danh / Đổi lịch'}
-          </Button>
+      render: (_: any, record: ClassSession) => {
+        const isWageBilled = Boolean(
+          record.isWageBilled ||
+          record.wageId ||
+          record.assistantWageId ||
+          (record.billedTeacherWage !== undefined && record.billedTeacherWage !== null && Number(record.billedTeacherWage) > 0) ||
+          (record.billedAssistantWage !== undefined && record.billedAssistantWage !== null && Number(record.billedAssistantWage) > 0),
+        );
+        const hasAttendance = Boolean(record.hasAttendance || record.isBilled);
+        const isLocked = Boolean(record.attendanceLocked);
+        const isNotScheduled = record.status !== 'Scheduled';
 
-          {isAdmin && record.status === 'Scheduled' && !record.attendanceLocked && (
-            <Popconfirm
-              title="Xác nhận xóa buổi học"
-              description="Bạn có chắc chắn muốn xóa buổi học này? Bản ghi điểm danh học sinh cũng sẽ bị xóa."
-              onConfirm={() => handleDeleteSession(record.id)}
-              okText="Đồng ý"
-              cancelText="Hủy"
-              okButtonProps={{ danger: true }}
+        let deleteDisabledReason = '';
+        if (isWageBilled) {
+          deleteDisabledReason = 'Không thể xóa: Buổi học đã được tính thù lao giáo viên/trợ giảng.';
+        } else if (hasAttendance) {
+          deleteDisabledReason = 'Không thể xóa: Buổi học đã phát sinh dữ liệu điểm danh thực tế hoặc đã tính học phí.';
+        } else if (isLocked) {
+          deleteDisabledReason = 'Không thể xóa: Buổi học đã bị khóa điểm danh.';
+        } else if (isNotScheduled) {
+          deleteDisabledReason = `Không thể xóa: Buổi học đang ở trạng thái "${record.status}".`;
+        }
+
+        const canDelete = isAdmin && !deleteDisabledReason;
+
+        return (
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <Button
+              type="primary"
+              size="small"
+              style={{ background: 'rgba(99, 102, 241, 0.2)', border: '1px solid rgba(99, 102, 241, 0.4)', color: '#a5b4fc' }}
+              onClick={() => openSessionDetail(record)}
             >
-              <Button
-                type="primary"
-                danger
-                size="small"
-                icon={<DeleteOutlined />}
-                title="Xóa buổi học"
-              />
-            </Popconfirm>
-          )}
-        </div>
-      ),
+              {record.status === 'Completed' ? 'Xem điểm danh' : 'Điểm danh / Đổi lịch'}
+            </Button>
+
+            {isAdmin && (
+              canDelete ? (
+                <Popconfirm
+                  title="Xác nhận xóa buổi học"
+                  description="Bạn có chắc chắn muốn xóa buổi học này? Bản ghi điểm danh học sinh cũng sẽ bị xóa."
+                  onConfirm={() => handleDeleteSession(record.id)}
+                  okText="Đồng ý"
+                  cancelText="Hủy"
+                  okButtonProps={{ danger: true }}
+                >
+                  <Button
+                    type="primary"
+                    danger
+                    size="small"
+                    icon={<DeleteOutlined />}
+                    title="Xóa buổi học"
+                  />
+                </Popconfirm>
+              ) : (
+                <Tooltip title={deleteDisabledReason} placement="top">
+                  <span>
+                    <Button
+                      type="text"
+                      disabled
+                      size="small"
+                      icon={<DeleteOutlined />}
+                      style={{ opacity: 0.4, cursor: 'not-allowed' }}
+                    />
+                  </span>
+                </Tooltip>
+              )
+            )}
+          </div>
+        );
+      },
     },
   ];
 
