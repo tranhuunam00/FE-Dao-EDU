@@ -8,6 +8,7 @@ import { MobileSidebar } from './components/MobileSidebar';
 import { SidebarNav } from './components/SidebarNav';
 import api from '../services/api';
 import { Select, Modal, Avatar } from 'antd';
+import { ParentAiChatWidget } from '../components/ParentAiChatWidget';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -315,6 +316,11 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
           ))}
         </div>
       </Modal>
+
+      {/* Parent AI Chatbot Widget for Students/Parents */}
+      {user?.role === Role.STUDENT && (
+        <ParentAiChatWidget activeStudent={activeProfile} />
+      )}
     </div>
   );
 };

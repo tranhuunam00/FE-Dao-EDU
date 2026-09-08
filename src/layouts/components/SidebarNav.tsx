@@ -12,6 +12,7 @@ import {
   Search,
   BarChart2,
   Cpu,
+  Award,
 } from 'lucide-react';
 import { TeamOutlined as AntdTeamOutlined, BankOutlined as AntdBankOutlined } from '@ant-design/icons';
 import { Tooltip } from 'antd';
@@ -39,6 +40,7 @@ export function getNavigation(role: Role | undefined): NavItem[] {
         { name: 'Chương trình học', path: '/admin/courses', icon: <BookMarked size={20} /> },
         { name: 'Lớp học', path: '/admin/classes', icon: <AntdTeamOutlined style={{ fontSize: '20px' }} /> },
         { name: 'Theo dõi bài tập', path: '/admin/assignments', icon: <ClipboardList size={20} /> },
+        { name: 'Báo cáo tuần SQI', path: '/admin/weekly-reports', icon: <Award size={20} /> },
         { name: 'Đơn xin nghỉ', path: '/admin/leave-requests', icon: <CalendarOff size={20} /> },
         { name: 'Kế Toán', path: '/admin/accounting', icon: <DollarSign size={20} /> },
         { name: 'Báo cáo', path: '/admin/reports', icon: <BarChart2 size={20} /> },
@@ -54,12 +56,14 @@ export function getNavigation(role: Role | undefined): NavItem[] {
         { name: 'Lịch sử nhận lương', path: '/teacher/salary', icon: <DollarSign size={20} /> },
         { name: 'Lớp & Học sinh', path: '/teacher/students', icon: <Users size={20} /> },
         { name: 'Bài tập & Chấm điểm', path: '/teacher/grades', icon: <ClipboardList size={20} /> },
+        { name: 'Báo cáo tuần SQI', path: '/teacher/weekly-reports', icon: <Award size={20} /> },
         { name: 'Đơn xin nghỉ', path: '/teacher/leave-requests', icon: <CalendarOff size={20} /> },
         { name: 'Tài liệu học tập', path: '/teacher/materials', icon: <BookMarked size={20} /> },
       ];
     case Role.STUDENT:
       return [
         { name: 'Dashboard', path: '/student', icon: <LayoutDashboard size={20} /> },
+        { name: 'Báo cáo tuần SQI', path: '/student/weekly-reports', icon: <Award size={20} /> },
         { name: 'Bài tập', path: '/student/assignments', icon: <ClipboardList size={20} /> },
         { name: 'Đơn xin nghỉ', path: '/student/leave-requests', icon: <CalendarOff size={20} /> },
         { name: 'Học phí', path: '/student/tuition', icon: <DollarSign size={20} /> },

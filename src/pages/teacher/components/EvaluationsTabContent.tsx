@@ -45,15 +45,11 @@ export const EvaluationsTabContent: React.FC<EvaluationsTabContentProps> = ({
   cooldownMap,
   disabled,
 }) => {
-  const validCommentList = students.filter((s) => {
-    const item = evaluations[s.id] || evaluations[s.studentId];
-    return item?.evaluationComment && item.evaluationComment.trim() !== '';
-  });
   const isAllApproved =
-    validCommentList.length > 0 &&
-    validCommentList.every((s) => {
+    students.length > 0 &&
+    students.every((s) => {
       const item = evaluations[s.id] || evaluations[s.studentId];
-      return item?.isApprovedByTeacher;
+      return !!item?.isApprovedByTeacher;
     });
 
   return (
@@ -75,7 +71,7 @@ export const EvaluationsTabContent: React.FC<EvaluationsTabContentProps> = ({
           <button
             type="button"
             className="btn btn-outline"
-            disabled={disabled || batchGenerating || validCommentList.length === 0}
+            disabled={disabled || batchGenerating || students.length === 0}
             onClick={onApproveAll}
             title={isAllApproved ? 'Hủy duyệt tất cả nhận xét' : 'Duyệt tất cả nhận xét'}
             style={{

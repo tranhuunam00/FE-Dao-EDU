@@ -51,6 +51,9 @@ import HolidaySettings from './pages/admin/HolidaySettings';
 import ContactRequests from './pages/admin/ContactRequests';
 import FacebookLeads from './pages/admin/FacebookLeads';
 import { StudyMaterials } from './pages/StudyMaterials';
+import { AdminWeeklyReports } from './pages/admin/AdminWeeklyReports';
+import { TeacherWeeklyReports } from './pages/teacher/TeacherWeeklyReports';
+import { StudentWeeklyReports } from './pages/student/StudentWeeklyReports';
 
 function App() {
   return (
@@ -92,6 +95,7 @@ function App() {
                     <Route path="accounting" element={<Accounting />} />
                     <Route path="assignments" element={<AdminAssignments />} />
                     <Route path="reports" element={<Reports />} />
+                    <Route path="weekly-reports" element={<AdminWeeklyReports />} />
                     <Route path="leave-requests" element={<ManagedLeaveRequests />} />
                     <Route path="settings" element={<Settings />} />
                     <Route path="notifications" element={<Notifications />} />
@@ -117,6 +121,7 @@ function App() {
                     <Route path="salary" element={<TeacherSalaryHistory />} />
                     <Route path="students" element={<TeacherClasses />} />
                     <Route path="grades" element={<TeacherAssignments />} />
+                    <Route path="weekly-reports" element={<TeacherWeeklyReports />} />
                     <Route path="leave-requests" element={<ManagedLeaveRequests />} />
                     <Route path="settings" element={<Settings />} />
                     <Route path="notifications" element={<Notifications />} />
@@ -137,6 +142,7 @@ function App() {
                     <Route path="/" element={<StudentDashboard />} />
                     <Route path="profile" element={<Navigate to="/student/settings?tab=profile" replace />} />
                     <Route path="schedule" element={<StudentCalendar />} />
+                    <Route path="weekly-reports" element={<StudentWeeklyReports />} />
                     <Route path="tuition" element={<StudentTuition />} />
                     <Route path="assignments" element={<StudentAssignments />} />
                     <Route path="leave-requests" element={<StudentLeaveRequests />} />
