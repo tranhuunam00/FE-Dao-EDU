@@ -7,8 +7,9 @@ import { ArrowLeftOutlined, BookOutlined, DollarOutlined, PlusOutlined, EditOutl
 import dayjs from 'dayjs';
 import api from '../../services/api';
 import LevelPricingModal, { renderPricingTimeline, type PricingData } from './CourseDetailComponents/LevelPricingModal';
-import { getActiveRate, sortPricingNewestFirst, formatVietnamDateTime } from '../../utils/pricing';
+import { sortPricingNewestFirst, formatVietnamDateTime, getRateDisplayInfo } from '../../utils/pricing';
 import { AddLevelModal, EditLevelModal } from './CourseDetailComponents/LevelModal';
+import { RateDisplayCell } from './CourseDetailComponents/RateDisplayCell';
 
 const { Title, Text } = Typography;
 
@@ -135,39 +136,30 @@ const CourseDetailInner: React.FC = () => {
       render: (v: number) => `${Number(v).toLocaleString()}`,
     },
     {
-      title: 'Giá học viên hiện hành',
+      title: 'Đơn giá học viên',
       key: 'currentPrice',
-      width: 160,
+      width: 170,
       render: (_: any, record: LevelData) => {
-        const todayStr = dayjs().format('YYYY-MM-DD');
-        const rate = getActiveRate(record.pricing, todayStr, 'pricePerSession');
-        return rate > 0
-          ? <Text strong style={{ color: '#34d399' }}>{rate.toLocaleString()}đ / buổi</Text>
-          : <Text type="secondary">Chưa cấu hình</Text>;
+        const info = getRateDisplayInfo(record.pricing, 'pricePerSession');
+        return <RateDisplayCell info={info} color="#34d399" />;
       },
     },
     {
-      title: 'Lương giáo viên hiện hành',
+      title: 'Lương giáo viên',
       key: 'currentWage',
-      width: 160,
+      width: 170,
       render: (_: any, record: LevelData) => {
-        const todayStr = dayjs().format('YYYY-MM-DD');
-        const rate = getActiveRate(record.pricing, todayStr, 'teacherWagePerSession');
-        return rate > 0
-          ? <Text strong style={{ color: '#fbbf24' }}>{rate.toLocaleString()}đ / buổi</Text>
-          : <Text type="secondary">Chưa cấu hình</Text>;
+        const info = getRateDisplayInfo(record.pricing, 'teacherWagePerSession');
+        return <RateDisplayCell info={info} color="#fbbf24" />;
       },
     },
     {
-      title: 'Lương trợ giảng hiện hành',
+      title: 'Lương trợ giảng',
       key: 'currentTaWage',
-      width: 160,
+      width: 170,
       render: (_: any, record: LevelData) => {
-        const todayStr = dayjs().format('YYYY-MM-DD');
-        const rate = getActiveRate(record.pricing, todayStr, 'taWagePerSession');
-        return rate > 0
-          ? <Text strong style={{ color: '#60a5fa' }}>{rate.toLocaleString()}đ / buổi</Text>
-          : <Text type="secondary">Chưa cấu hình</Text>;
+        const info = getRateDisplayInfo(record.pricing, 'taWagePerSession');
+        return <RateDisplayCell info={info} color="#60a5fa" />;
       },
     },
     {

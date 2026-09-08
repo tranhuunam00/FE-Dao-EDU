@@ -105,3 +105,97 @@ export const getActiveRate = (
   const sorted = sortPricingNewestFirst(covering);
   return Number((sorted[0] as any)[rateField]);
 };
+
+export interface RateDisplayInfo {
+  rate: number;
+  status: 'active' | 'upcoming' | 'past' | 'none';
+  effectiveFrom?: string;
+  effectiveTo?: string | null;
+}
+
+/**
+ * Lấy thông tin hiển thị đơn giá/lương độc lập cho từng đối tượng (Học viên, Giáo viên, Trợ giảng).
+ * Ưu tiên:
+ * 1. Dải bao phủ ngày hôm nay (active)
+ * 2. Dải sắp áp dụng gần nhất trong tương lai (upcoming)
+ * 3. Dải đã áp dụng gần nhất trong quá khứ (past)
+ * 4. Không có bản ghi nào > 0 (none)
+ */
+export const getRateDisplayInfo = (
+  pricingList: PricingData[] | undefined,
+  rateField: 'pricePerSession' | 'teacherWagePerSession' | 'taWagePerSession',
+  targetDateStr?: string,
+): RateDisplayInfo => {
+  if (!pricingList || pricingList.length === 0) {
+    return { rate: 0, status: 'none' };
+  }
+  const today = (targetDateStr || dayjs().format('YYYY-MM-DD')).slice(0, 10);
+
+  // 1. Lọc các bản ghi có giá trị > 0 cho trường này
+  const validPricings = pricingList.filter((p) => Number((p as any)[rateField]) > 0);
+  if (validPricings.length === 0) {
+    return { rate: 0, status: 'none' };
+  }
+
+  // 2. Tìm dải bao phủ ngày mục tiêu (active)
+  const activeList = validPricings.filter((p) => {
+    const from = String(p.effectiveFrom || '').slice(0, 10);
+    const to = p.effectiveTo ? String(p.effectiveTo).slice(0, 10) : null;
+    return from <= today && (to === null || to >= today);
+  });
+
+  if (activeList.length > 0) {
+    const sorted = sortPricingNewestFirst(activeList);
+    const best = sorted[0];
+    return {
+      rate: Number((best as any)[rateField]),
+      status: 'active',
+      effectiveFrom: best.effectiveFrom,
+      effectiveTo: best.effectiveTo,
+    };
+  }
+
+  // 3. Tìm dải sắp tới trong tương lai (upcoming)
+  const upcomingList = validPricings
+    .filter((p) => String(p.effectiveFrom || '').slice(0, 10) > today)
+    .sort((a, b) => a.effectiveFrom.localeCompare(b.effectiveFrom));
+
+  if (upcomingList.length > 0) {
+    const best = upcomingList[0];
+    return {
+      rate: Number((best as any)[rateField]),
+      status: 'upcoming',
+      effectiveFrom: best.effectiveFrom,
+      effectiveTo: best.effectiveTo,
+    };
+  }
+
+  // 4. Tìm dải trong quá khứ gần nhất (past)
+  const pastList = validPricings
+    .filter((p) => {
+      const to = p.effectiveTo ? String(p.effectiveTo).slice(0, 10) : null;
+      return to !== null && to < today;
+    })
+    .sort((a, b) => (b.effectiveTo || '').localeCompare(a.effectiveTo || ''));
+
+  if (pastList.length > 0) {
+    const best = pastList[0];
+    return {
+      rate: Number((best as any)[rateField]),
+      status: 'past',
+      effectiveFrom: best.effectiveFrom,
+      effectiveTo: best.effectiveTo,
+    };
+  }
+
+  // 5. Fallback nếu có
+  const sorted = sortPricingNewestFirst(validPricings);
+  const best = sorted[0];
+  return {
+    rate: Number((best as any)[rateField]),
+    status: 'past',
+    effectiveFrom: best.effectiveFrom,
+    effectiveTo: best.effectiveTo,
+  };
+};
+

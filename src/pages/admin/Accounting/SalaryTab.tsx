@@ -139,9 +139,9 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
               icon={<DownloadOutlined />}
               onClick={() => {
                 const mappedPreview = salaryPreviewData.map((item) => {
-                  const gross = item.adjustedAmount ?? item.totalAmount;
-                  const tax = gross * 0.1;
-                  const net = gross * 0.9;
+                  const net = item.adjustedAmount ?? item.totalAmount;
+                  const gross = Math.round(net / 0.9);
+                  const tax = Math.round((net * 0.1) / 0.9);
                   return {
                     ...item,
                     gross,
