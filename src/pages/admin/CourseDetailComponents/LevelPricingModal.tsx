@@ -283,7 +283,7 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
             payload.taWagePerSession = Number(values.taWagePerSession || 0);
           }
           payload.effectiveFrom = values.effectiveFrom.format('YYYY-MM-DD');
-          payload.effectiveTo = values.effectiveTo ? values.effectiveTo.format('YYYY-MM-DD') : null;
+          payload.effectiveTo = values.effectiveTo.format('YYYY-MM-DD');
 
           if (isCreate) {
             await api.post(`/courses/levels/${selectedLevel?.id}/pricing`, payload);
@@ -902,11 +902,18 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
 
           <Form.Item
             name="effectiveTo"
-            label="Ngày kết thúc (Không bắt buộc)"
+            label="Ngày kết thúc"
             rules={[
-              () => ({
+              { required: true, message: 'Vui lòng chọn ngày kết thúc!' },
+              ({ getFieldValue }) => ({
                 validator(_, value) {
                   if (!value) return Promise.resolve();
+                  const fromVal = getFieldValue('effectiveFrom');
+                  if (fromVal && value.isBefore(fromVal, 'day')) {
+                    return Promise.reject(
+                      new Error('Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.')
+                    );
+                  }
                   const dateStr = value.format('YYYY-MM-DD');
                   let limitDateStr: string | null = null;
                   let typeText = '';
@@ -936,12 +943,17 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
               disabled={editState.record?.isDateRangeLocked}
               style={{ width: '100%' }}
               format="DD/MM/YYYY"
-              placeholder="Để trống nếu hiện hành"
+              placeholder="Chọn ngày kết thúc"
               disabledDate={(current) => {
                 let limitDateStr: string | null = null;
                 if (editState.mode === 'price') limitDateStr = lastStudentBillDate;
                 else if (editState.mode === 'teacherWage') limitDateStr = lastTeacherWageDate;
                 else if (editState.mode === 'taWage') limitDateStr = lastAssistantWageDate;
+
+                const fromVal = editForm.getFieldValue('effectiveFrom');
+                if (fromVal && current && current < fromVal.startOf('day')) {
+                  return true;
+                }
                 if (!limitDateStr) return false;
                 return current && current <= dayjs(limitDateStr).endOf('day');
               }}
