@@ -1,15 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect */
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
-import { Shield, Users, BookOpen, Layers, Activity, RefreshCw, AlertTriangle, ClipboardCheck, Coins, Wallet, TrendingUp } from 'lucide-react';
-import { Card, Row, Col, Typography, Table, Spin, Button, message, App, Tag, Space, Empty } from 'antd';
+import { Shield, Users, BookOpen, Layers, Activity, RefreshCw } from 'lucide-react';
+import { Card, Row, Col, Typography, Table, Spin, Button, message, App } from 'antd';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
-  ResponsiveContainer, Legend, BarChart, Bar, PieChart, Pie, Cell 
+  ResponsiveContainer, Legend 
 } from 'recharts';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/theme-context';
+import { DashboardFinancialCards } from './DashboardComponents/DashboardFinancialCards';
+import { DashboardOperationsSection, type OperationsData } from './DashboardComponents/DashboardOperationsSection';
+import { DashboardDistributionCharts } from './DashboardComponents/DashboardDistributionCharts';
 
 const { Title, Text } = Typography;
 
@@ -22,6 +25,7 @@ interface SummaryData {
   systemStatus: string;
   totalPaidSalary?: number;
   totalCollectedTuition?: number;
+  totalUncollectedTuition?: number;
   studentGrowth?: Array<{ month: string; students: number }>;
   courseDistribution?: Array<{ name: string; value: number }>;
 }
@@ -38,41 +42,6 @@ interface ActivityData {
   target: string;
   time: string;
   type: string;
-}
-
-interface OperationsData {
-  tasks: {
-    unassignedStudents: number;
-    unlockedPastSessions: number;
-    openPaymentPeriods: number;
-    cancelledReceipts: number;
-    paymentAnomalies: number;
-  };
-  atRiskStudents: Array<{
-    studentId: string;
-    studentCode: string;
-    studentName: string;
-    mobile: string | null;
-    level: 'high' | 'medium' | 'low';
-    score: number;
-    reasons: string[];
-    suggestion: string;
-  }>;
-  classSuggestions: Array<{
-    studentId: string;
-    studentCode: string;
-    studentName: string;
-    suggestions: Array<{
-      classId: string;
-      classCode: string;
-      className: string;
-      courseName: string;
-      levelName: string;
-      availableSeats: number | null;
-      score: number;
-      reasons: string[];
-    }>;
-  }>;
 }
 
 const AdminDashboardInner: React.FC = () => {
@@ -303,149 +272,11 @@ const AdminDashboardInner: React.FC = () => {
 
 
       {/* Financial Stats */}
-      <Row gutter={[16, 16]} className="dashboard-summary-cards" style={{ marginBottom: 16 }}>
-        <Col xs={12} md={8}>
-          <Card 
-            bodyStyle={{ padding: '16px' }} 
-            style={cardStyle} 
-            className="hover-card-glow"
-            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.borderColor = 'rgba(16,185,129,0.5)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--card-border)'; }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-              <div className="dashboard-stat-icon-box" style={{ 
-                width: 56, height: 56, borderRadius: 16, 
-                background: 'linear-gradient(135deg, rgba(16,185,129,0.2), rgba(5,150,105,0.1))', 
-                display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                color: '#34d399', boxShadow: 'inset 0 0 20px rgba(16,185,129,0.2)'
-              }}>
-                <Coins size={28} />
-              </div>
-              <div>
-                <Text style={{ color: 'var(--text-secondary)', fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Tổng tiền đã thu</Text>
-                <Title level={2} style={{ color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit', fontWeight: 700 }}>
-                  {(summary?.totalCollectedTuition || 0).toLocaleString('vi-VN')}&nbsp;₫
-                </Title>
-              </div>
-            </div>
-          </Card>
-        </Col>
+      <DashboardFinancialCards summary={summary} cardStyle={cardStyle} />
 
-        <Col xs={12} md={8}>
-          <Card 
-            bodyStyle={{ padding: '16px' }} 
-            style={cardStyle} 
-            className="hover-card-glow"
-            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.5)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--card-border)'; }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-              <div className="dashboard-stat-icon-box" style={{ 
-                width: 56, height: 56, borderRadius: 16, 
-                background: 'linear-gradient(135deg, rgba(239,68,68,0.2), rgba(185,28,28,0.1))', 
-                display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                color: '#f87171', boxShadow: 'inset 0 0 20px rgba(239,68,68,0.2)'
-              }}>
-                <Wallet size={28} />
-              </div>
-              <div>
-                <Text style={{ color: 'var(--text-secondary)', fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Tổng lương đã trả</Text>
-                <Title level={2} style={{ color: 'var(--text-primary)', margin: 0, fontFamily: 'Outfit', fontWeight: 700 }}>
-                  {(summary?.totalPaidSalary || 0).toLocaleString('vi-VN')}&nbsp;₫
-                </Title>
-              </div>
-            </div>
-          </Card>
-        </Col>
+      {/* Operations & Risk Students */}
+      <DashboardOperationsSection operations={operations} navigate={navigate} />
 
-        <Col xs={24} md={8}>
-          <Card 
-            bodyStyle={{ padding: '16px' }} 
-            style={cardStyle} 
-            className="hover-card-glow"
-            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.borderColor = 'rgba(59,130,246,0.5)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--card-border)'; }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-              <div className="dashboard-stat-icon-box" style={{ 
-                width: 56, height: 56, borderRadius: 16, 
-                background: 'linear-gradient(135deg, rgba(59,130,246,0.2), rgba(29,78,216,0.1))', 
-                display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                color: '#60a5fa', boxShadow: 'inset 0 0 20px rgba(59,130,246,0.2)'
-              }}>
-                <TrendingUp size={28} />
-              </div>
-              <div>
-                <Text style={{ color: 'var(--text-secondary)', fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Hiệu số thu - chi</Text>
-                <Title level={2} style={{ 
-                  color: ((summary?.totalCollectedTuition || 0) - (summary?.totalPaidSalary || 0)) >= 0 ? '#34d399' : '#f87171', 
-                  margin: 0, fontFamily: 'Outfit', fontWeight: 700 
-                }}>
-                  {((summary?.totalCollectedTuition || 0) - (summary?.totalPaidSalary || 0)).toLocaleString('vi-VN')}&nbsp;₫
-                </Title>
-              </div>
-            </div>
-          </Card>
-        </Col>
-      </Row>
-
-
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '28px 0 14px' }}>
-        <ClipboardCheck size={22} color="#818cf8" />
-        <Title level={4} style={{ margin: 0, color: 'var(--text-primary)' }}>Vận hành cần chú ý</Title>
-      </div>
-      <Row gutter={[16, 16]} className="dashboard-operation-cards" style={{ marginBottom: 20 }}>
-        {[
-          ['Học sinh chưa xếp lớp', operations?.tasks.unassignedStudents || 0, '/admin/students', '#f59e0b'],
-          ['Buổi học chưa chốt điểm danh', operations?.tasks.unlockedPastSessions || 0, '/admin/classes?tab=unlocked', '#ef4444'],
-          ['Kỳ học phí/lương chưa chốt', operations?.tasks.openPaymentPeriods || 0, '/admin/accounting', '#6366f1'],
-          ['Phiếu hủy thanh toán', operations?.tasks.cancelledReceipts || 0, '/admin/accounting?tab=anomalies', '#ec4899'],
-        ].map(([label, value, path, color]) => (
-          <Col xs={12} sm={12} lg={6} key={String(label)}>
-            <Card className="glass-panel" hoverable onClick={() => navigate(String(path))} bodyStyle={{ padding: 16 }}>
-              <Text style={{ color: 'var(--text-secondary)' }}>{label}</Text>
-              <div className="dashboard-operation-value" style={{ color: String(color), marginTop: 4 }}>{Number(value)}</div>
-            </Card>
-          </Col>
-        ))}
-      </Row>
-
-
-      <Row gutter={[20, 20]} style={{ marginBottom: 28 }}>
-        <Col span={24}>
-          <Card
-            className="glass-panel"
-            title={<Space><AlertTriangle size={19} color="#f59e0b" /><span>Cảnh báo nguy cơ nghỉ học</span></Space>}
-          >
-            <Table
-              rowKey="studentId"
-              size="small"
-              pagination={{ pageSize: 5 }}
-              dataSource={operations?.atRiskStudents || []}
-              columns={[
-                {
-                  title: 'Học sinh',
-                  render: (_, row) => (
-                    <Button type="link" style={{ padding: 0 }} onClick={() => navigate(`/admin/students/${row.studentId}`)}>
-                      {row.studentCode} - {row.studentName}
-                    </Button>
-                  ),
-                },
-                {
-                  title: 'Mức độ',
-                  width: 110,
-                  render: (_, row) => <Tag color={row.level === 'high' ? 'red' : 'orange'}>{row.score} điểm</Tag>,
-                },
-                {
-                  title: 'Nguyên nhân',
-                  render: (_, row) => <div>{row.reasons.map((reason) => <div key={reason}>{reason}</div>)}</div>,
-                },
-              ]}
-            />
-          </Card>
-        </Col>
-      </Row>
 
       <Row gutter={[32, 32]}>
         {/* Revenue Chart */}
@@ -560,87 +391,15 @@ const AdminDashboardInner: React.FC = () => {
       </Row>
 
       {/* Additional Charts */}
-      <Row gutter={[24, 24]}>
-        <Col xs={24} lg={12}>
-          <Card 
-            title={
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}>
-                <span style={{ 
-                  display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#6366f1',
-                  boxShadow: '0 0 10px #6366f1'
-                }}></span>
-                <span style={{ color: 'var(--text-primary)', fontFamily: 'Outfit', fontSize: 18, fontWeight: 600 }}>Tăng trưởng Học Sinh</span>
-              </div>
-            } 
-            style={cardStyle} 
-            headStyle={{ borderBottom: '1px solid var(--card-border)' }}
-          >
-            <div style={{ width: '100%', height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {summary?.studentGrowth && summary.studentGrowth.length > 0 ? (
-                <ResponsiveContainer>
-                  <BarChart data={summary.studentGrowth}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} vertical={false} />
-                    <XAxis dataKey="month" stroke={chartText} tick={{ fill: chartText }} />
-                    <YAxis stroke={chartText} tick={{ fill: chartText }} />
-                    <RechartsTooltip 
-                      contentStyle={{ backgroundColor: tooltipBackground, borderColor: 'var(--card-border)', borderRadius: 8, color: tooltipText }}
-                      itemStyle={{ color: tooltipText }}
-                    />
-                    <Bar dataKey="students" name="Số học sinh" fill="url(#colorExpected)" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <Empty description="Chưa có dữ liệu tăng trưởng" image={Empty.PRESENTED_IMAGE_SIMPLE} />
-              )}
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} lg={12}>
-          <Card 
-            title={
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}>
-                <span style={{ 
-                  display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#34d399',
-                  boxShadow: '0 0 10px #34d399'
-                }}></span>
-                <span style={{ color: 'var(--text-primary)', fontFamily: 'Outfit', fontSize: 18, fontWeight: 600 }}>Phân bố Học Sinh theo Khóa</span>
-              </div>
-            } 
-            style={cardStyle} 
-            headStyle={{ borderBottom: '1px solid var(--card-border)' }}
-          >
-            <div style={{ width: '100%', height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {summary?.courseDistribution && summary.courseDistribution.length > 0 ? (
-                <ResponsiveContainer>
-                  <PieChart>
-                    <Pie
-                      data={summary.courseDistribution}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={5}
-                      dataKey="value"
-                      label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
-                      labelLine={false}
-                    >
-                      {[ '#6366f1', '#34d399', '#f59e0b', '#ec4899' ].map((color, index) => (
-                        <Cell key={`cell-${index}`} fill={color} />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip 
-                      contentStyle={{ backgroundColor: tooltipBackground, borderColor: 'var(--card-border)', borderRadius: 8, color: tooltipText }}
-                      itemStyle={{ color: tooltipText }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <Empty description="Chưa có dữ liệu phân bố" image={Empty.PRESENTED_IMAGE_SIMPLE} />
-              )}
-            </div>
-          </Card>
-        </Col>
-      </Row>
+      <DashboardDistributionCharts 
+        studentGrowth={summary?.studentGrowth}
+        courseDistribution={summary?.courseDistribution}
+        cardStyle={cardStyle}
+        chartGrid={chartGrid}
+        chartText={chartText}
+        tooltipBackground={tooltipBackground}
+        tooltipText={tooltipText}
+      />
     </div>
   );
 };
