@@ -18,6 +18,8 @@ export interface PricingData {
   isTeacherWageLocked?: boolean;
   isTaWageLocked?: boolean;
   isDateRangeLocked?: boolean;
+  isEffectiveFromLocked?: boolean;
+  isEffectiveToLocked?: boolean;
   lastStudentBillDate?: string | null;
   lastTeacherWageDate?: string | null;
   lastAssistantWageDate?: string | null;
@@ -753,212 +755,246 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({ open, onCancel, o
         width={450}
       >
         <Form form={editForm} layout="vertical" onFinish={handleEditPricingSubmit} style={{ marginTop: 16 }}>
-          {editState.mode === 'price' && (
-            <>
-              {lastStudentBillDate ? (
-                <div style={{ marginBottom: 16, padding: '8px 12px', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: 6 }}>
-                  <Text style={{ fontSize: '12px', color: '#10b981' }}>
-                    💡 <strong>Học viên chốt lần cuối:</strong> {dayjs(lastStudentBillDate).format('DD/MM/YYYY')}
-                  </Text>
-                </div>
-              ) : (
-                <div style={{ marginBottom: 16, padding: '8px 12px', background: 'rgba(16, 185, 129, 0.04)', border: '1px dotted rgba(16, 185, 129, 0.2)', borderRadius: 6 }}>
-                  <Text style={{ fontSize: '12px', color: '#10b981' }}>
-                    💡 Chưa có dữ liệu chốt học phí cho học viên.
-                  </Text>
-                </div>
-              )}
-              <Form.Item
-                name="pricePerSession"
-                label="Đơn giá học viên / buổi"
-                rules={[{ required: true, message: 'Nhập đơn giá học sinh!' }]}
-              >
-                <InputNumber
-                  disabled={editState.record?.isStudentPriceLocked}
-                  style={{ width: '100%' }}
-                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                  parser={(value) => value!.replace(/\$\s?|(,*)/g, '') as any}
-                  addonAfter="VND"
-                  min={0}
-                  autoFocus
-                />
-              </Form.Item>
-            </>
-          )}
+          {(() => {
+            const todayStr = dayjs().format('YYYY-MM-DD');
+            const isFromLocked = Boolean(editState.record && editState.record.effectiveFrom <= todayStr);
+            const isToLocked = Boolean(editState.record && editState.record.effectiveTo && editState.record.effectiveTo <= todayStr);
 
-          {editState.mode === 'teacherWage' && (
-            <>
-              {lastTeacherWageDate ? (
-                <div style={{ marginBottom: 16, padding: '8px 12px', background: 'rgba(251, 191, 36, 0.08)', border: '1px solid rgba(251, 191, 36, 0.2)', borderRadius: 6 }}>
-                  <Text style={{ fontSize: '12px', color: '#d97706' }}>
-                    💡 <strong>Giáo viên chốt lương lần cuối:</strong> {dayjs(lastTeacherWageDate).format('DD/MM/YYYY')}
-                  </Text>
-                </div>
-              ) : (
-                <div style={{ marginBottom: 16, padding: '8px 12px', background: 'rgba(251, 191, 36, 0.04)', border: '1px dotted rgba(251, 191, 36, 0.2)', borderRadius: 6 }}>
-                  <Text style={{ fontSize: '12px', color: '#d97706' }}>
-                    💡 Chưa có dữ liệu chốt lương cho giáo viên.
-                  </Text>
-                </div>
-              )}
-              <Form.Item
-                name="teacherWagePerSession"
-                label="Lương giáo viên / buổi"
-                rules={[{ required: true, message: 'Nhập lương giáo viên!' }]}
-              >
-                <InputNumber
-                  disabled={editState.record?.isTeacherWageLocked}
-                  style={{ width: '100%' }}
-                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                  parser={(value) => value!.replace(/\$\s?|(,*)/g, '') as any}
-                  addonAfter="VND"
-                  min={0}
-                  autoFocus
-                />
-              </Form.Item>
-            </>
-          )}
+            return (
+              <>
+                {editState.mode === 'price' && (
+                  <>
+                    {lastStudentBillDate ? (
+                      <div style={{ marginBottom: 16, padding: '8px 12px', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: 6 }}>
+                        <Text style={{ fontSize: '12px', color: '#10b981' }}>
+                          💡 <strong>Học viên chốt lần cuối:</strong> {dayjs(lastStudentBillDate).format('DD/MM/YYYY')}
+                        </Text>
+                      </div>
+                    ) : (
+                      <div style={{ marginBottom: 16, padding: '8px 12px', background: 'rgba(16, 185, 129, 0.04)', border: '1px dotted rgba(16, 185, 129, 0.2)', borderRadius: 6 }}>
+                        <Text style={{ fontSize: '12px', color: '#10b981' }}>
+                          💡 Chưa có dữ liệu chốt học phí cho học viên.
+                        </Text>
+                      </div>
+                    )}
+                    <Form.Item
+                      name="pricePerSession"
+                      label="Đơn giá học viên / buổi"
+                      rules={[{ required: true, message: 'Nhập đơn giá học sinh!' }]}
+                    >
+                      <InputNumber
+                        disabled={editState.record?.isStudentPriceLocked && isFromLocked}
+                        style={{ width: '100%' }}
+                        formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                        parser={(value) => value!.replace(/\$\s?|(,*)/g, '') as any}
+                        addonAfter="VND"
+                        min={0}
+                        autoFocus
+                      />
+                    </Form.Item>
+                  </>
+                )}
 
-          {editState.mode === 'taWage' && (
-            <>
-              {lastAssistantWageDate ? (
-                <div style={{ marginBottom: 16, padding: '8px 12px', background: 'rgba(96, 165, 250, 0.08)', border: '1px solid rgba(96, 165, 250, 0.2)', borderRadius: 6 }}>
-                  <Text style={{ fontSize: '12px', color: '#2563eb' }}>
-                    💡 <strong>Trợ giảng chốt lương lần cuối:</strong> {dayjs(lastAssistantWageDate).format('DD/MM/YYYY')}
-                  </Text>
-                </div>
-              ) : (
-                <div style={{ marginBottom: 16, padding: '8px 12px', background: 'rgba(96, 165, 250, 0.04)', border: '1px dotted rgba(96, 165, 250, 0.2)', borderRadius: 6 }}>
-                  <Text style={{ fontSize: '12px', color: '#2563eb' }}>
-                    💡 Chưa có dữ liệu chốt lương cho trợ giảng.
-                  </Text>
-                </div>
-              )}
-              <Form.Item
-                name="taWagePerSession"
-                label="Lương trợ giảng / buổi"
-                rules={[{ required: true, message: 'Nhập lương trợ giảng!' }]}
-              >
-                <InputNumber
-                  disabled={editState.record?.isTaWageLocked}
-                  style={{ width: '100%' }}
-                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                  parser={(value) => value!.replace(/\$\s?|(,*)/g, '') as any}
-                  addonAfter="VND"
-                  min={0}
-                  autoFocus
-                />
-              </Form.Item>
-            </>
-          )}
+                {editState.mode === 'teacherWage' && (
+                  <>
+                    {lastTeacherWageDate ? (
+                      <div style={{ marginBottom: 16, padding: '8px 12px', background: 'rgba(251, 191, 36, 0.08)', border: '1px solid rgba(251, 191, 36, 0.2)', borderRadius: 6 }}>
+                        <Text style={{ fontSize: '12px', color: '#d97706' }}>
+                          💡 <strong>Giáo viên chốt lương lần cuối:</strong> {dayjs(lastTeacherWageDate).format('DD/MM/YYYY')}
+                        </Text>
+                      </div>
+                    ) : (
+                      <div style={{ marginBottom: 16, padding: '8px 12px', background: 'rgba(251, 191, 36, 0.04)', border: '1px dotted rgba(251, 191, 36, 0.2)', borderRadius: 6 }}>
+                        <Text style={{ fontSize: '12px', color: '#d97706' }}>
+                          💡 Chưa có dữ liệu chốt lương cho giáo viên.
+                        </Text>
+                      </div>
+                    )}
+                    <Form.Item
+                      name="teacherWagePerSession"
+                      label="Lương giáo viên / buổi"
+                      rules={[{ required: true, message: 'Nhập lương giáo viên!' }]}
+                    >
+                      <InputNumber
+                        disabled={editState.record?.isTeacherWageLocked && isFromLocked}
+                        style={{ width: '100%' }}
+                        formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                        parser={(value) => value!.replace(/\$\s?|(,*)/g, '') as any}
+                        addonAfter="VND"
+                        min={0}
+                        autoFocus
+                      />
+                    </Form.Item>
+                  </>
+                )}
 
-          <Form.Item
-            name="effectiveFrom"
-            label="Ngày bắt đầu áp dụng"
-            rules={[
-              { required: true, message: 'Vui lòng chọn ngày!' },
-              () => ({
-                validator(_, value) {
-                  if (!value) return Promise.resolve();
-                  const dateStr = value.format('YYYY-MM-DD');
-                  let limitDateStr: string | null = null;
-                  let typeText = '';
+                {editState.mode === 'taWage' && (
+                  <>
+                    {lastAssistantWageDate ? (
+                      <div style={{ marginBottom: 16, padding: '8px 12px', background: 'rgba(96, 165, 250, 0.08)', border: '1px solid rgba(96, 165, 250, 0.2)', borderRadius: 6 }}>
+                        <Text style={{ fontSize: '12px', color: '#2563eb' }}>
+                          💡 <strong>Trợ giảng chốt lương lần cuối:</strong> {dayjs(lastAssistantWageDate).format('DD/MM/YYYY')}
+                        </Text>
+                      </div>
+                    ) : (
+                      <div style={{ marginBottom: 16, padding: '8px 12px', background: 'rgba(96, 165, 250, 0.04)', border: '1px dotted rgba(96, 165, 250, 0.2)', borderRadius: 6 }}>
+                        <Text style={{ fontSize: '12px', color: '#2563eb' }}>
+                          💡 Chưa có dữ liệu chốt lương cho trợ giảng.
+                        </Text>
+                      </div>
+                    )}
+                    <Form.Item
+                      name="taWagePerSession"
+                      label="Lương trợ giảng / buổi"
+                      rules={[{ required: true, message: 'Nhập lương trợ giảng!' }]}
+                    >
+                      <InputNumber
+                        disabled={editState.record?.isTaWageLocked && isFromLocked}
+                        style={{ width: '100%' }}
+                        formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                        parser={(value) => value!.replace(/\$\s?|(,*)/g, '') as any}
+                        addonAfter="VND"
+                        min={0}
+                        autoFocus
+                      />
+                    </Form.Item>
+                  </>
+                )}
 
-                  if (editState.mode === 'price') {
-                    limitDateStr = lastStudentBillDate;
-                    typeText = 'chốt học phí học viên';
-                  } else if (editState.mode === 'teacherWage') {
-                    limitDateStr = lastTeacherWageDate;
-                    typeText = 'chốt lương giáo viên';
-                  } else if (editState.mode === 'taWage') {
-                    limitDateStr = lastAssistantWageDate;
-                    typeText = 'chốt lương trợ giảng';
-                  }
+                <Form.Item
+                  name="effectiveFrom"
+                  label="Ngày bắt đầu áp dụng"
+                  rules={[
+                    { required: true, message: 'Vui lòng chọn ngày!' },
+                    () => ({
+                      validator(_, value) {
+                        if (!value) return Promise.resolve();
+                        const dateStr = value.format('YYYY-MM-DD');
 
-                  if (limitDateStr && dateStr <= limitDateStr) {
-                    return Promise.reject(
-                      new Error(`Ngày bắt đầu áp dụng phải sau ngày ${dayjs(limitDateStr).format('DD/MM/YYYY')} (ngày ${typeText} gần nhất).`)
-                    );
-                  }
-                  return Promise.resolve();
-                },
-              }),
-            ]}
-          >
-            <DatePicker
-              disabled={editState.record?.isDateRangeLocked}
-              style={{ width: '100%' }}
-              format="DD/MM/YYYY"
-              disabledDate={(current) => {
-                let limitDateStr: string | null = null;
-                if (editState.mode === 'price') limitDateStr = lastStudentBillDate;
-                else if (editState.mode === 'teacherWage') limitDateStr = lastTeacherWageDate;
-                else if (editState.mode === 'taWage') limitDateStr = lastAssistantWageDate;
-                if (!limitDateStr) return false;
-                return current && current <= dayjs(limitDateStr).endOf('day');
-              }}
-            />
-          </Form.Item>
+                        if (editState.record && dateStr <= todayStr) {
+                          return Promise.reject(
+                            new Error(`Ngày bắt đầu áp dụng mới phải lớn hơn ngày hôm nay (${dayjs(todayStr).format('DD/MM/YYYY')}).`)
+                          );
+                        }
 
-          <Form.Item
-            name="effectiveTo"
-            label="Ngày kết thúc"
-            rules={[
-              { required: true, message: 'Vui lòng chọn ngày kết thúc!' },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value) return Promise.resolve();
-                  const fromVal = getFieldValue('effectiveFrom');
-                  if (fromVal && value.isBefore(fromVal, 'day')) {
-                    return Promise.reject(
-                      new Error('Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.')
-                    );
-                  }
-                  const dateStr = value.format('YYYY-MM-DD');
-                  let limitDateStr: string | null = null;
-                  let typeText = '';
+                        let limitDateStr: string | null = null;
+                        let typeText = '';
 
-                  if (editState.mode === 'price') {
-                    limitDateStr = lastStudentBillDate;
-                    typeText = 'chốt học phí học viên';
-                  } else if (editState.mode === 'teacherWage') {
-                    limitDateStr = lastTeacherWageDate;
-                    typeText = 'chốt lương giáo viên';
-                  } else if (editState.mode === 'taWage') {
-                    limitDateStr = lastAssistantWageDate;
-                    typeText = 'chốt lương trợ giảng';
-                  }
+                        if (editState.mode === 'price') {
+                          limitDateStr = lastStudentBillDate;
+                          typeText = 'chốt học phí học viên';
+                        } else if (editState.mode === 'teacherWage') {
+                          limitDateStr = lastTeacherWageDate;
+                          typeText = 'chốt lương giáo viên';
+                        } else if (editState.mode === 'taWage') {
+                          limitDateStr = lastAssistantWageDate;
+                          typeText = 'chốt lương trợ giảng';
+                        }
 
-                  if (limitDateStr && dateStr <= limitDateStr) {
-                    return Promise.reject(
-                      new Error(`Ngày kết thúc áp dụng phải sau ngày ${dayjs(limitDateStr).format('DD/MM/YYYY')} (ngày ${typeText} gần nhất).`)
-                    );
-                  }
-                  return Promise.resolve();
-                },
-              }),
-            ]}
-          >
-            <DatePicker
-              disabled={editState.record?.isDateRangeLocked}
-              style={{ width: '100%' }}
-              format="DD/MM/YYYY"
-              placeholder="Chọn ngày kết thúc"
-              disabledDate={(current) => {
-                let limitDateStr: string | null = null;
-                if (editState.mode === 'price') limitDateStr = lastStudentBillDate;
-                else if (editState.mode === 'teacherWage') limitDateStr = lastTeacherWageDate;
-                else if (editState.mode === 'taWage') limitDateStr = lastAssistantWageDate;
+                        if (limitDateStr && dateStr <= limitDateStr) {
+                          return Promise.reject(
+                            new Error(`Ngày bắt đầu áp dụng phải sau ngày ${dayjs(limitDateStr).format('DD/MM/YYYY')} (ngày ${typeText} gần nhất).`)
+                          );
+                        }
+                        return Promise.resolve();
+                      },
+                    }),
+                  ]}
+                >
+                  <DatePicker
+                    disabled={isFromLocked}
+                    style={{ width: '100%' }}
+                    format="DD/MM/YYYY"
+                    disabledDate={(current) => {
+                      if (!current) return false;
+                      if (editState.record && current <= dayjs().endOf('day')) {
+                        return true;
+                      }
+                      let limitDateStr: string | null = null;
+                      if (editState.mode === 'price') limitDateStr = lastStudentBillDate;
+                      else if (editState.mode === 'teacherWage') limitDateStr = lastTeacherWageDate;
+                      else if (editState.mode === 'taWage') limitDateStr = lastAssistantWageDate;
+                      if (!limitDateStr) return false;
+                      return current <= dayjs(limitDateStr).endOf('day');
+                    }}
+                  />
+                </Form.Item>
 
-                const fromVal = editForm.getFieldValue('effectiveFrom');
-                if (fromVal && current && current < fromVal.startOf('day')) {
-                  return true;
-                }
-                if (!limitDateStr) return false;
-                return current && current <= dayjs(limitDateStr).endOf('day');
-              }}
-            />
-          </Form.Item>
+                <Form.Item
+                  name="effectiveTo"
+                  label="Ngày kết thúc"
+                  rules={[
+                    { required: true, message: 'Vui lòng chọn ngày kết thúc!' },
+                    ({ getFieldValue }) => ({
+                      validator(_, value) {
+                        if (!value) return Promise.resolve();
+                        const fromVal = getFieldValue('effectiveFrom');
+                        if (fromVal && value.isBefore(fromVal, 'day')) {
+                          return Promise.reject(
+                            new Error('Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.')
+                          );
+                        }
+                        const dateStr = value.format('YYYY-MM-DD');
+
+                        if (dateStr < todayStr) {
+                          return Promise.reject(
+                            new Error(`Ngày kết thúc không được ở trong quá khứ (phải từ ngày hôm nay ${dayjs(todayStr).format('DD/MM/YYYY')} trở đi).`)
+                          );
+                        }
+
+                        let limitDateStr: string | null = null;
+                        let typeText = '';
+
+                        if (editState.mode === 'price') {
+                          limitDateStr = lastStudentBillDate;
+                          typeText = 'chốt học phí học viên';
+                        } else if (editState.mode === 'teacherWage') {
+                          limitDateStr = lastTeacherWageDate;
+                          typeText = 'chốt lương giáo viên';
+                        } else if (editState.mode === 'taWage') {
+                          limitDateStr = lastAssistantWageDate;
+                          typeText = 'chốt lương trợ giảng';
+                        }
+
+                        if (limitDateStr && dateStr <= limitDateStr) {
+                          return Promise.reject(
+                            new Error(`Ngày kết thúc áp dụng phải sau ngày ${dayjs(limitDateStr).format('DD/MM/YYYY')} (ngày ${typeText} gần nhất).`)
+                          );
+                        }
+                        return Promise.resolve();
+                      },
+                    }),
+                  ]}
+                >
+                  <DatePicker
+                    disabled={isToLocked}
+                    style={{ width: '100%' }}
+                    format="DD/MM/YYYY"
+                    placeholder="Chọn ngày kết thúc"
+                    disabledDate={(current) => {
+                      if (!current) return false;
+                      if (current < dayjs().startOf('day')) {
+                        return true;
+                      }
+                      const fromVal = editForm.getFieldValue('effectiveFrom');
+                      if (fromVal && current < fromVal.startOf('day')) {
+                        return true;
+                      }
+                      let limitDateStr: string | null = null;
+                      if (editState.mode === 'price') limitDateStr = lastStudentBillDate;
+                      else if (editState.mode === 'teacherWage') limitDateStr = lastTeacherWageDate;
+                      else if (editState.mode === 'taWage') limitDateStr = lastAssistantWageDate;
+
+                      if (limitDateStr && current <= dayjs(limitDateStr).endOf('day')) {
+                        return true;
+                      }
+                      return false;
+                    }}
+                  />
+                </Form.Item>
+              </>
+            );
+          })()}
         </Form>
       </Modal>
     </>

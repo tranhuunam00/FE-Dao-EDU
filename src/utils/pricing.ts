@@ -13,6 +13,8 @@ export interface PricingData {
   isTeacherWageLocked?: boolean;
   isTaWageLocked?: boolean;
   isDateRangeLocked?: boolean;
+  isEffectiveFromLocked?: boolean;
+  isEffectiveToLocked?: boolean;
   lastStudentBillDate?: string | null;
   lastTeacherWageDate?: string | null;
   lastAssistantWageDate?: string | null;
