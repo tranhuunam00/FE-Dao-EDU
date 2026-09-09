@@ -11,6 +11,7 @@ interface EditPricingModalProps {
   open: boolean;
   mode: EditMode | null;
   record: PricingData | null;
+  hasExistingRecords?: boolean;
   submitting: boolean;
   lastStudentBillDate: string | null;
   lastTeacherWageDate: string | null;
@@ -23,6 +24,7 @@ export const EditPricingModal: React.FC<EditPricingModalProps> = ({
   open,
   mode,
   record,
+  hasExistingRecords = false,
   submitting,
   lastStudentBillDate,
   lastTeacherWageDate,
@@ -94,6 +96,13 @@ export const EditPricingModal: React.FC<EditPricingModalProps> = ({
       width={450}
     >
       <Form form={form} layout="vertical" onFinish={onSubmit} style={{ marginTop: 16 }}>
+        {!record && !hasExistingRecords && (
+          <div style={{ marginBottom: 16, padding: '8px 12px', background: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: 6 }}>
+            <Text style={{ fontSize: '12px', color: '#2563eb' }}>
+              💡 <strong>Chưa có cấu hình giá cho mục này:</strong> Bạn có thể chọn ngày bắt đầu từ quá khứ (ví dụ ngày bắt đầu khóa học) để tính toán cho các buổi học trước đó.
+            </Text>
+          </div>
+        )}
         {mode === 'price' && (
           <>
             {lastStudentBillDate ? (
@@ -208,7 +217,8 @@ export const EditPricingModal: React.FC<EditPricingModalProps> = ({
                   return Promise.resolve();
                 }
 
-                if (record && dateStr <= todayStr) {
+                // Nếu là sửa bản ghi, hoặc tạo mới khi ĐÃ CÓ bản ghi trước đó: Ngày bắt đầu phải lớn hơn hôm nay
+                if ((record || hasExistingRecords) && dateStr <= todayStr) {
                   return Promise.reject(
                     new Error(`Ngày bắt đầu áp dụng mới phải lớn hơn ngày hôm nay (${dayjs(todayStr).format('DD/MM/YYYY')}).`)
                   );
@@ -244,7 +254,8 @@ export const EditPricingModal: React.FC<EditPricingModalProps> = ({
             format="DD/MM/YYYY"
             disabledDate={(current) => {
               if (!current) return false;
-              if (record && current <= dayjs().endOf('day')) {
+              // Nếu đang sửa bản ghi, hoặc tạo mới khi ĐÃ CÓ bản ghi trước đó: Không cho chọn ngày trong quá khứ
+              if ((record || hasExistingRecords) && current <= dayjs().endOf('day')) {
                 return true;
               }
               let limitDateStr: string | null = null;

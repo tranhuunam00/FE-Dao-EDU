@@ -175,6 +175,16 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({
     [...pricingList].filter((p) => (p.type ? p.type === 'ta' : Number(p.taWagePerSession) > 0)),
   );
 
+  const currentTypeRecords =
+    editState.mode === 'price'
+      ? studentPricing
+      : editState.mode === 'teacherWage'
+      ? teacherPricing
+      : editState.mode === 'taWage'
+      ? taPricing
+      : [];
+  const hasExistingRecords = currentTypeRecords.length > 0;
+
   return (
     <>
       <Modal
@@ -218,7 +228,7 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({
                       onClick={() => setEditState({ open: true, mode: 'price', record: null })}
                       style={{
                         background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                        border: 'none',
+                        borderColor: '#10b981',
                       }}
                     >
                       Thêm đơn giá mới
@@ -228,11 +238,11 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({
                     dataSource={studentPricing}
                     mode="price"
                     rateField="pricePerSession"
-                    rateLabel="Đơn giá / buổi"
-                    rateColor="#34d399"
+                    rateLabel="Đơn giá học viên / buổi"
+                    rateColor="#10b981"
                     lockField="isStudentPriceLocked"
                     lastBillDate={lastStudentBillDate}
-                    billTooltip="Đã có học viên đóng tiền trong khoảng thời gian này, không thể xóa"
+                    billTooltip="Đã có học viên được tính học phí trong khoảng thời gian này, không thể xóa"
                     onEdit={(record) => setEditState({ open: true, mode: 'price', record })}
                     onDelete={handleDeletePricing}
                   />
@@ -263,8 +273,8 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({
                       icon={<PlusOutlined />}
                       onClick={() => setEditState({ open: true, mode: 'teacherWage', record: null })}
                       style={{
-                        background: 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)',
-                        border: 'none',
+                        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                        borderColor: '#f59e0b',
                       }}
                     >
                       Thêm lương mới
@@ -275,7 +285,7 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({
                     mode="teacherWage"
                     rateField="teacherWagePerSession"
                     rateLabel="Lương giáo viên / buổi"
-                    rateColor="#fbbf24"
+                    rateColor="#f59e0b"
                     lockField="isTeacherWageLocked"
                     lastBillDate={lastTeacherWageDate}
                     billTooltip="Đã có giáo viên được chốt lương trong khoảng thời gian này, không thể xóa"
@@ -309,8 +319,8 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({
                       icon={<PlusOutlined />}
                       onClick={() => setEditState({ open: true, mode: 'taWage', record: null })}
                       style={{
-                        background: 'linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)',
-                        border: 'none',
+                        background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                        borderColor: '#3b82f6',
                       }}
                     >
                       Thêm lương mới
@@ -339,6 +349,7 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({
         open={editState.open}
         mode={editState.mode}
         record={editState.record}
+        hasExistingRecords={hasExistingRecords}
         submitting={submittingEditPricing}
         lastStudentBillDate={lastStudentBillDate}
         lastTeacherWageDate={lastTeacherWageDate}
