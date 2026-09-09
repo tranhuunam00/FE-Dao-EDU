@@ -30,6 +30,9 @@ interface Session {
 
 interface LeaveRequest {
   id: string;
+  studentId?: string;
+  studentCode?: string;
+  studentName?: string;
   classSessionId: string;
   className: string;
   sessionDate: string;
@@ -52,6 +55,10 @@ const StudentLeaveRequests: React.FC = () => {
   const { message } = App.useApp();
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [profiles, setProfiles] = useState<Array<{ id: string; firstName: string; lastName: string }>>([]);
+  const [activeStudentId, setActiveStudentId] = useState<string>(
+    localStorage.getItem('activeStudentId') || '',
+  );
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
@@ -65,13 +72,32 @@ const StudentLeaveRequests: React.FC = () => {
         api.get('/dashboard/student'),
       ]);
       setRequests(requestResponse.data || []);
-      setSessions(dashboardResponse.data.sessions || []);
+      setSessions(dashboardResponse.data?.sessions || []);
     } catch (error: unknown) {
       message.error(getErrorMessage(error, 'Không thể tải danh sách xin nghỉ'));
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    api
+      .get('/students/me/profiles')
+      .then(({ data }) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setProfiles(data);
+          const stored = localStorage.getItem('activeStudentId');
+          const found = data.find((p: any) => p.id === stored);
+          if (found) {
+            setActiveStudentId(found.id);
+          } else {
+            setActiveStudentId(data[0].id);
+            localStorage.setItem('activeStudentId', data[0].id);
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => void load(), 0);
@@ -84,7 +110,11 @@ const StudentLeaveRequests: React.FC = () => {
     const today = dayjs().format('YYYY-MM-DD');
     const activeSessionIds = new Set(
       requests
-        .filter((item) => ['pending', 'approved'].includes(item.status))
+        .filter(
+          (item) =>
+            ['pending', 'approved'].includes(item.status) &&
+            (!activeStudentId || !item.studentId || item.studentId === activeStudentId),
+        )
         .map((item) => item.classSessionId),
     );
     return sessions
@@ -98,13 +128,16 @@ const StudentLeaveRequests: React.FC = () => {
       .sort((a, b) =>
         `${a.date} ${a.startTime}`.localeCompare(`${b.date} ${b.startTime}`),
       );
-  }, [requests, sessions]);
+  }, [requests, sessions, activeStudentId]);
 
   const submit = async () => {
     const values = await form.validateFields();
     try {
       setSubmitting(true);
-      await api.post('/leave-requests', values);
+      await api.post('/leave-requests', {
+        ...values,
+        studentId: values.studentId || activeStudentId || undefined,
+      });
       message.success('Đã gửi đơn xin nghỉ');
       form.resetFields();
       setOpen(false);
@@ -140,7 +173,15 @@ const StudentLeaveRequests: React.FC = () => {
             Gửi đơn cho buổi học sắp tới và theo dõi kết quả duyệt.
           </p>
         </div>
-        <Button type="primary" onClick={() => setOpen(true)}>
+        <Button
+          type="primary"
+          onClick={() => {
+            form.setFieldsValue({
+              studentId: activeStudentId || undefined,
+            });
+            setOpen(true);
+          }}
+        >
           Gửi đơn xin nghỉ
         </Button>
       </Space>
@@ -152,6 +193,23 @@ const StudentLeaveRequests: React.FC = () => {
           rowKey="id"
           scroll={{ x: 850 }}
           columns={[
+            ...(profiles.length > 1
+              ? [
+                  {
+                    title: 'Học sinh',
+                    render: (_: unknown, record: LeaveRequest) => (
+                      <div>
+                        <b>{record.studentName || '-'}</b>
+                        {record.studentCode && (
+                          <div style={{ fontSize: 12, opacity: 0.65 }}>
+                            {record.studentCode}
+                          </div>
+                        )}
+                      </div>
+                    ),
+                  },
+                ]
+              : []),
             {
               title: 'Buổi học',
               render: (_, record) => (
@@ -211,6 +269,32 @@ const StudentLeaveRequests: React.FC = () => {
         }
       >
         <Form form={form} layout="vertical">
+          {profiles.length > 1 && (
+            <Form.Item
+              name="studentId"
+              label="Học sinh xin nghỉ"
+              rules={[{ required: true, message: 'Vui lòng chọn học sinh' }]}
+            >
+              <Select
+                placeholder="Chọn học sinh"
+                options={profiles.map((p) => ({
+                  value: p.id,
+                  label: `${p.lastName} ${p.firstName}`,
+                }))}
+                onChange={async (newStudentId) => {
+                  setActiveStudentId(newStudentId);
+                  localStorage.setItem('activeStudentId', newStudentId);
+                  try {
+                    const dashRes = await api.get('/dashboard/student');
+                    setSessions(dashRes.data?.sessions || []);
+                  } catch {
+                    // Ignore
+                  }
+                  form.setFieldValue('classSessionId', undefined);
+                }}
+              />
+            </Form.Item>
+          )}
           <Form.Item
             name="classSessionId"
             label="Buổi học"
@@ -245,6 +329,8 @@ const StudentLeaveRequests: React.FC = () => {
 export default StudentLeaveRequests;
 
 function getErrorMessage(error: unknown, fallback: string): string {
-  if (!axios.isAxiosError<{ message?: string }>(error)) return fallback;
-  return error.response?.data?.message || fallback;
+  if (!axios.isAxiosError<{ message?: string | string[] }>(error)) return fallback;
+  const msg = error.response?.data?.message;
+  if (Array.isArray(msg)) return msg.join(', ');
+  return msg || fallback;
 }

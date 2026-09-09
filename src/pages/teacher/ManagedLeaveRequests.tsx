@@ -236,6 +236,8 @@ const ManagedLeaveRequests: React.FC = () => {
 export default ManagedLeaveRequests;
 
 function getErrorMessage(error: unknown, fallback: string): string {
-  if (!axios.isAxiosError<{ message?: string }>(error)) return fallback;
-  return error.response?.data?.message || fallback;
+  if (!axios.isAxiosError<{ message?: string | string[] }>(error)) return fallback;
+  const msg = error.response?.data?.message;
+  if (Array.isArray(msg)) return msg.join(', ');
+  return msg || fallback;
 }
