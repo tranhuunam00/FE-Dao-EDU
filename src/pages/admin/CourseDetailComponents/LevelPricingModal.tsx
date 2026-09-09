@@ -79,10 +79,13 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({
           const payload: any = {};
           if (editState.mode === 'price') {
             payload.pricePerSession = Number(values.pricePerSession);
+            payload.type = 'student';
           } else if (editState.mode === 'teacherWage') {
             payload.teacherWagePerSession = Number(values.teacherWagePerSession);
+            payload.type = 'teacher';
           } else if (editState.mode === 'taWage') {
             payload.taWagePerSession = Number(values.taWagePerSession || 0);
+            payload.type = 'ta';
           }
           payload.effectiveFrom = values.effectiveFrom.format('YYYY-MM-DD');
           payload.effectiveTo = values.effectiveTo
@@ -163,13 +166,13 @@ const LevelPricingModal: React.FC<LevelPricingModalProps> = ({
   }, null);
 
   const studentPricing = sortPricingNewestFirst(
-    [...pricingList].filter((p) => Number(p.pricePerSession) > 0),
+    [...pricingList].filter((p) => (p.type ? p.type === 'student' : Number(p.pricePerSession) > 0)),
   );
   const teacherPricing = sortPricingNewestFirst(
-    [...pricingList].filter((p) => Number(p.teacherWagePerSession) > 0),
+    [...pricingList].filter((p) => (p.type ? p.type === 'teacher' : Number(p.teacherWagePerSession) > 0)),
   );
   const taPricing = sortPricingNewestFirst(
-    [...pricingList].filter((p) => Number(p.taWagePerSession) > 0),
+    [...pricingList].filter((p) => (p.type ? p.type === 'ta' : Number(p.taWagePerSession) > 0)),
   );
 
   return (

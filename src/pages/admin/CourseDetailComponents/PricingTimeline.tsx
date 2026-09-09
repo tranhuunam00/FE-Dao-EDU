@@ -11,6 +11,7 @@ export interface PricingData {
   taWagePerSession: number;
   effectiveFrom: string;
   effectiveTo: string | null;
+  type?: 'student' | 'teacher' | 'ta';
   isStudentPriceLocked?: boolean;
   isTeacherWageLocked?: boolean;
   isTaWageLocked?: boolean;
@@ -33,7 +34,17 @@ export const computeDisjointSegments = (
   pricing: PricingData[],
   rateField: 'pricePerSession' | 'teacherWagePerSession' | 'taWagePerSession',
 ): DisjointSegment[] => {
-  const activePricing = pricing.filter((p) => Number((p as any)[rateField]) > 0);
+  const expectedType =
+    rateField === 'pricePerSession'
+      ? 'student'
+      : rateField === 'teacherWagePerSession'
+        ? 'teacher'
+        : 'ta';
+  const activePricing = pricing.filter(
+    (p) =>
+      (p.type ? p.type === expectedType : Number((p as any)[rateField]) > 0) &&
+      Number((p as any)[rateField]) > 0,
+  );
   if (activePricing.length === 0) return [];
 
   // Sort pricing newest first to prioritize the latest configured rules when ranges overlap
