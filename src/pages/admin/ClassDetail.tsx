@@ -101,15 +101,20 @@ const ClassDetailInner: React.FC = () => {
   const loadAllData = async () => {
     if (!id) return;
     try {
-      const [classRes, sessionsRes] = await Promise.all([
-        api.get(`/classes/${id}`),
-        api.get(`/classes/${id}/sessions`),
-      ]);
+      const classRes = await api.get(`/classes/${id}`);
       setClassData(classRes.data);
-      setSessions(sessionsRes.data);
 
       if (classRes.data.center?.id) {
         api.get(`/rooms?centerId=${classRes.data.center.id}&status=Active`).then(({ data }) => setRooms(data)).catch(() => {});
+      }
+
+      try {
+        const sessionsRes = await api.get(`/classes/${id}/sessions`);
+        setSessions(sessionsRes.data || []);
+      } catch (sessErr: any) {
+        console.error('Không thể tải danh sách buổi học:', sessErr);
+        message.warning(sessErr.response?.data?.message || 'Không thể tải danh sách buổi học của lớp');
+        setSessions([]);
       }
     } catch (err: any) {
       message.error(err.response?.data?.message || 'Không thể tải thông tin chi tiết lớp học');
