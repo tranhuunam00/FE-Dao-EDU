@@ -659,7 +659,7 @@ const ClassDetailInner: React.FC = () => {
           },
           {
             key: 'students',
-            label: `Học sinh (${classData.students.filter((s:any) => s.status === 'Active').length})`,
+            label: `Học sinh (${(classData.students || []).filter((s: any) => s.status === 'Active').length})`,
             children: (
               <StudentsTab
                 classData={classData}

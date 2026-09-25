@@ -56,7 +56,7 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
       title: 'Giờ học',
       key: 'time',
       width: '150px',
-      render: (_: any, record: ClassSession) => `${record.startTime.substring(0,5)} - ${record.endTime.substring(0,5)}`,
+      render: (_: any, record: ClassSession) => `${(record.startTime || '').substring(0, 5)} - ${(record.endTime || '').substring(0, 5)}`,
     },
     {
       title: 'Phòng học',
