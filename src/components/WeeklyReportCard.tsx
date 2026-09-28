@@ -241,58 +241,70 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({ report: rawR
           </div>
         </div>
 
-        {/* 7 FACTORS SQI BREAKDOWN GRID */}
+        {/* TIÊU CHÍ CHẤT LƯỢNG HỌC TẬP (QUY CHUẨN THANG 10) */}
         {report.sqiBreakdown && (
           <div style={{ marginBottom: 24 }}>
-            <Text style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary, #6b7280)' }}>
-              Cấu trúc 7 Yếu Tố Đánh Giá SQI
-            </Text>
-            <Row gutter={[12, 12]} style={{ marginTop: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, flexWrap: 'wrap', gap: 8 }}>
+              <div>
+                <Text style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary, #6b7280)' }}>
+                  Cấu Trúc Đánh Giá Chất Lượng Học Tập (SQI - Thang Điểm 10)
+                </Text>
+                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
+                  * Các tiêu chí được quy chuẩn về thang điểm 10 kết hợp trọng số để tính điểm SQI tổng kết tuần
+                </div>
+              </div>
+              {report.sqiDelta !== undefined && report.sqiDelta !== 0 && (
+                <Text style={{ fontSize: 12, fontWeight: 600, color: report.sqiDelta > 0 ? '#10b981' : '#ef4444' }}>
+                  {report.sqiDelta > 0 ? `▲ Tăng +${report.sqiDelta} điểm so với tuần trước` : `▼ Giảm ${report.sqiDelta} điểm so với tuần trước`}
+                </Text>
+              )}
+            </div>
+            <Row gutter={[10, 10]} style={{ marginTop: 10 }}>
               <Col xs={12} sm={6} md={3}>
                 <div style={factorBoxStyle}>
                   <Text style={factorTitleStyle}>Học tập (30%)</Text>
-                  <span style={factorValStyle}>{report.sqiBreakdown.academic}/30</span>
+                  <span style={factorValStyle}>{((report.sqiBreakdown.academic / 30) * 10).toFixed(1)}/10</span>
                 </div>
               </Col>
               <Col xs={12} sm={6} md={3}>
                 <div style={factorBoxStyle}>
                   <Text style={factorTitleStyle}>Tiến bộ (20%)</Text>
-                  <span style={factorValStyle}>{report.sqiBreakdown.progress}/20</span>
+                  <span style={factorValStyle}>{((report.sqiBreakdown.progress / 20) * 10).toFixed(1)}/10</span>
                 </div>
               </Col>
               <Col xs={12} sm={6} md={3}>
                 <div style={factorBoxStyle}>
-                  <Text style={factorTitleStyle}>Năng lực (15%)</Text>
-                  <span style={factorValStyle}>{report.sqiBreakdown.competency}/15</span>
+                  <Text style={factorTitleStyle}>Tiếp thu (15%)</Text>
+                  <span style={factorValStyle}>{((report.sqiBreakdown.competency / 15) * 10).toFixed(1)}/10</span>
                 </div>
               </Col>
               <Col xs={12} sm={6} md={3}>
                 <div style={factorBoxStyle}>
                   <Text style={factorTitleStyle}>Chuyên cần (10%)</Text>
-                  <span style={factorValStyle}>{report.sqiBreakdown.attendance}/10</span>
+                  <span style={factorValStyle}>{((report.sqiBreakdown.attendance / 10) * 10).toFixed(1)}/10</span>
                 </div>
               </Col>
               <Col xs={12} sm={6} md={3}>
                 <div style={factorBoxStyle}>
                   <Text style={factorTitleStyle}>Bài tập (10%)</Text>
-                  <span style={factorValStyle}>{report.sqiBreakdown.homework}/10</span>
+                  <span style={factorValStyle}>{((report.sqiBreakdown.homework / 10) * 10).toFixed(1)}/10</span>
                 </div>
               </Col>
               <Col xs={12} sm={6} md={3}>
                 <div style={factorBoxStyle}>
                   <Text style={factorTitleStyle}>Thái độ (10%)</Text>
-                  <span style={factorValStyle}>{report.sqiBreakdown.attitude}/10</span>
+                  <span style={factorValStyle}>{((report.sqiBreakdown.attitude / 10) * 10).toFixed(1)}/10</span>
                 </div>
               </Col>
               <Col xs={12} sm={6} md={3}>
                 <div style={factorBoxStyle}>
-                  <Text style={factorTitleStyle}>Kỹ năng (5%)</Text>
-                  <span style={factorValStyle}>{report.sqiBreakdown.behavior}/5</span>
+                  <Text style={factorTitleStyle}>Kỷ luật (5%)</Text>
+                  <span style={factorValStyle}>{((report.sqiBreakdown.behavior / 5) * 10).toFixed(1)}/10</span>
                 </div>
               </Col>
               <Col xs={12} sm={6} md={3}>
-                <div style={{ ...factorBoxStyle, background: 'rgba(99, 102, 241, 0.08)' }}>
-                  <Text style={{ ...factorTitleStyle, color: '#4f46e5' }}>Tổng SQI</Text>
+                <div style={{ ...factorBoxStyle, background: 'rgba(99, 102, 241, 0.08)', borderColor: 'rgba(99, 102, 241, 0.3)' }}>
+                  <Text style={{ ...factorTitleStyle, color: '#4f46e5', fontWeight: 700 }}>Tổng SQI</Text>
                   <span style={{ ...factorValStyle, color: '#4f46e5' }}>{report.sqiScore}đ</span>
                 </div>
               </Col>
@@ -303,9 +315,14 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({ report: rawR
         {/* SUBJECT PERFORMANCES TABLE */}
         {report.subjectPerformances && report.subjectPerformances.length > 0 && (
           <div style={{ marginBottom: 24 }}>
-            <Text style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary, #6b7280)' }}>
-              Kết Quả Học Tập Theo Môn
-            </Text>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 6 }}>
+              <Text style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary, #6b7280)' }}>
+                Kết Quả Học Tập Theo Môn
+              </Text>
+              <Text style={{ fontSize: 12, color: 'var(--text-secondary, #6b7280)' }}>
+                So sánh điểm tuần này với tuần liền trước
+              </Text>
+            </div>
             <Table
               size="small"
               pagination={false}
@@ -324,7 +341,22 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({ report: rawR
                   ),
                 },
                 {
-                  title: 'Điểm số tuần',
+                  title: 'Điểm tuần trước',
+                  key: 'previousScore',
+                  width: 140,
+                  render: (_: any, row: any) => {
+                    if (row.previousScore !== undefined && row.previousScore !== null) {
+                      return (
+                        <Text strong style={{ fontSize: 13, color: '#4b5563' }}>
+                          {row.previousScore} / 10
+                        </Text>
+                      );
+                    }
+                    return <Tag color="default" style={{ fontSize: 11, borderRadius: 6 }}>Chưa có</Tag>;
+                  },
+                },
+                {
+                  title: 'Điểm tuần này',
                   key: 'score',
                   render: (_: any, row: any) => (
                     <Space size={8} wrap>
@@ -339,7 +371,7 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({ report: rawR
                       </Text>
                       {row.isEstimated ? (
                         <Tag color="cyan" style={{ fontSize: 11, borderRadius: 10, margin: 0 }}>
-                          Theo mức tiếp thu
+                          Đánh giá buổi học
                         </Tag>
                       ) : (
                         <Tag color="purple" style={{ fontSize: 11, borderRadius: 10, margin: 0 }}>
@@ -350,22 +382,37 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({ report: rawR
                   ),
                 },
                 {
-                  title: 'Xu hướng',
-                  dataIndex: 'trend',
-                  render: (tr: string) =>
-                    tr === 'up' ? (
-                      <Tag color="success">
-                        <TrendingUp size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> Tăng tiến
+                  title: 'So với tuần trước',
+                  key: 'trend',
+                  render: (_: any, row: any) => {
+                    const tr = row.trend;
+                    const delta = row.scoreDelta;
+                    if (tr === 'up') {
+                      const dStr = delta !== undefined && delta > 0 ? ` (+${delta})` : '';
+                      return (
+                        <Tag color="success" style={{ fontWeight: 600, borderRadius: 6 }}>
+                          <TrendingUp size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> Tăng tiến{dStr}
+                        </Tag>
+                      );
+                    }
+                    if (tr === 'down') {
+                      const dStr = delta !== undefined ? ` (${delta})` : '';
+                      return (
+                        <Tag color="error" style={{ fontWeight: 600, borderRadius: 6 }}>
+                          <TrendingDown size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> Giảm sút{dStr}
+                        </Tag>
+                      );
+                    }
+                    if (tr === 'new') {
+                      return <Tag color="processing" style={{ fontWeight: 600, borderRadius: 6 }}>Môn mới tuần này</Tag>;
+                    }
+                    const dStr = delta !== undefined ? ` (${delta > 0 ? '+' + delta : delta})` : ' (0.0)';
+                    return (
+                      <Tag color="default" style={{ fontWeight: 600, borderRadius: 6 }}>
+                        <Minus size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> Ổn định{dStr}
                       </Tag>
-                    ) : tr === 'down' ? (
-                      <Tag color="error">
-                        <TrendingDown size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> Cần chú ý
-                      </Tag>
-                    ) : (
-                      <Tag color="default">
-                        <Minus size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> Ổn định
-                      </Tag>
-                    ),
+                    );
+                  },
                 },
               ]}
             />
@@ -391,7 +438,7 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({ report: rawR
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <Trophy size={18} color="#10b981" />
                 <Text strong style={{ color: '#047857', fontSize: 14 }}>
-                  🎯 Điểm Mạnh Trong Tuần
+                  Điểm Mạnh Trong Tuần
                 </Text>
               </div>
               <Paragraph style={{ margin: 0, color: 'var(--text-primary, #1f2937)', fontSize: 13.5, lineHeight: 1.6 }}>
@@ -414,7 +461,7 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({ report: rawR
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <AlertCircle size={18} color="#d97706" />
                 <Text strong style={{ color: '#b45309', fontSize: 14 }}>
-                  ⚠️ Cần Cải Thiện
+                  Cần Cải Thiện
                 </Text>
               </div>
               <Paragraph style={{ margin: 0, color: 'var(--text-primary, #1f2937)', fontSize: 13.5, lineHeight: 1.6 }}>
@@ -436,7 +483,7 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({ report: rawR
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                 <Sparkles size={18} color="#6366f1" />
                 <Text strong style={{ color: '#4338ca', fontSize: 14.5 }}>
-                  🤖 Khuyến Nghị Tuần Tới Dành Cho Phụ Huynh
+                  Khuyến Nghị Tuần Tới Dành Cho Phụ Huynh
                 </Text>
               </div>
               <ul style={{ margin: 0, paddingLeft: 20 }}>

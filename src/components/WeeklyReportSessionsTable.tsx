@@ -138,7 +138,7 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
   return (
     <div style={{ marginTop: 24, marginBottom: 20 }}>
       <Text style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary, #6b7280)' }}>
-        📋 Chi Tiết Từng Buổi Học Trong Tuần
+        Chi Tiết Từng Buổi Học Trong Tuần
       </Text>
       <Table
         size="small"
