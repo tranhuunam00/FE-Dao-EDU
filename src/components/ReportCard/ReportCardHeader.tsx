@@ -3,7 +3,7 @@ import { Typography, Row, Col } from 'antd';
 import { Calendar, User, BookOpen } from 'lucide-react';
 import { BrandLogo } from '../common/BrandLogo';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 interface ReportCardHeaderProps {
   studentName?: string;
@@ -59,20 +59,21 @@ export const ReportCardHeader: React.FC<ReportCardHeaderProps> = ({
 
       {/* DOCUMENT TITLE */}
       <div className="report-header-title" style={{ textAlign: 'center', margin: '8px 0 10px' }}>
-        <Title
-          level={3}
+        <div
           style={{
             margin: 0,
             textTransform: 'uppercase',
-            color: '#0f172a',
-            fontWeight: 800,
-            fontSize: 18,
-            letterSpacing: '0.03em',
+            color: '#1e1b4b',
+            fontFamily: "'Merriweather', 'Times New Roman', 'Playfair Display', Georgia, serif",
+            fontWeight: 900,
+            fontSize: 19,
+            letterSpacing: '0.04em',
+            lineHeight: 1.3,
           }}
         >
           {isMonthly ? 'PHIẾU BÁO KẾT QUẢ HỌC TẬP THÁNG' : 'PHIẾU BÁO KẾT QUẢ HỌC TẬP TUẦN'}
-        </Title>
-        <div style={{ fontSize: 12.5, fontWeight: 600, color: '#4338ca', marginTop: 2 }}>
+        </div>
+        <div style={{ fontSize: 12.5, fontWeight: 600, color: '#4338ca', marginTop: 3 }}>
           {periodLabel} ({dateRange})
         </div>
       </div>

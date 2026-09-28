@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Card, Table, Tag, Select, Row, Col, Typography, Button, Modal, Spin, Empty, Segmented, Checkbox, message } from 'antd';
-import { TrendingUp, TrendingDown, Minus, Eye } from 'lucide-react';
+import { Card, Table, Tag, Select, Row, Col, Typography, Button, Modal, Spin, Empty, Segmented, Checkbox, message, Space } from 'antd';
+import { TrendingUp, TrendingDown, Minus, Eye, Share2 } from 'lucide-react';
 import api from '../../services/api';
 import { weeklyReportService } from '../../services/weekly-report.service';
 import type { StudentWeeklySummary, WeeklyReportData } from '../../services/weekly-report.service';
@@ -400,17 +400,37 @@ export const AdminWeeklyReports: React.FC = () => {
             {
               title: 'Hành động',
               key: 'action',
-              width: 140,
+              width: 190,
               align: 'center',
               render: (_, row: StudentWeeklySummary) => (
-                <Button
-                  size="small"
-                  type="link"
-                  icon={<Eye size={14} />}
-                  onClick={() => handleViewStudentReport(row.studentId)}
-                >
-                  Xem thiệp báo cáo
-                </Button>
+                <Space size={2}>
+                  <Button
+                    size="small"
+                    type="link"
+                    icon={<Eye size={14} />}
+                    onClick={() => handleViewStudentReport(row.studentId)}
+                    style={{ padding: '0 4px', fontSize: 12.5 }}
+                  >
+                    Xem thiệp
+                  </Button>
+                  <Button
+                    size="small"
+                    type="text"
+                    icon={<Share2 size={13} style={{ color: '#0284c7' }} />}
+                    onClick={() => {
+                      const baseOrigin = (import.meta as any).env?.VITE_PUBLIC_URL || (import.meta as any).env?.VITE_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+                      const cleanOrigin = baseOrigin.replace(/\/+$/, '');
+                      const periodNumber = periodMode === 'month' ? selectedMonth : selectedWeek;
+                      const url = `${cleanOrigin}/public/reports/${row.studentId}?type=${periodMode}&${periodMode === 'month' ? `month=${periodNumber}` : `week=${periodNumber}`}&year=${selectedYear}`;
+                      navigator.clipboard.writeText(url);
+                      message.success(`Đã copy link báo cáo của ${row.studentName}!`);
+                    }}
+                    title="Sao chép liên kết cho phụ huynh"
+                    style={{ color: '#0284c7', padding: '0 4px', fontSize: 12 }}
+                  >
+                    Copy link
+                  </Button>
+                </Space>
               ),
             },
           ]}
