@@ -56,12 +56,14 @@ export const TeacherWeeklyReports: React.FC = () => {
       .catch((err) => console.error('Lỗi lấy danh sách lớp:', err));
   }, []);
 
-  // 2. Tải tổng hợp báo cáo tuần của lớp
+  // 2. Tải tổng hợp báo cáo tuần / tháng của lớp
   const loadClassReports = useCallback(async () => {
     if (!selectedClassId) return;
     setLoading(true);
     try {
-      const res = await weeklyReportService.getClassReports(selectedClassId, selectedWeek, selectedYear);
+      const res = periodMode === 'month'
+        ? await weeklyReportService.getClassReports(selectedClassId, undefined, selectedYear, selectedMonth)
+        : await weeklyReportService.getClassReports(selectedClassId, selectedWeek, selectedYear);
       if (res.success && res.data) {
         setClassData(res.data);
       } else {
@@ -73,7 +75,7 @@ export const TeacherWeeklyReports: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedClassId, selectedWeek, selectedYear]);
+  }, [selectedClassId, selectedWeek, selectedYear, periodMode, selectedMonth]);
 
   useEffect(() => {
     loadClassReports();

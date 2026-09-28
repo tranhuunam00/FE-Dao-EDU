@@ -103,9 +103,10 @@ export const weeklyReportService = {
   },
 
   // 2. Giáo viên / Admin: Xem tổng hợp SQI của cả lớp học
-  getClassReports: async (classId: string, week?: number, year?: number): Promise<ClassWeeklyReportsResponse> => {
+  getClassReports: async (classId: string, week?: number, year?: number, month?: number): Promise<ClassWeeklyReportsResponse> => {
     const params = new URLSearchParams();
     if (week) params.append('week', String(week));
+    if (month) params.append('month', String(month));
     if (year) params.append('year', String(year));
     const response = await api.get(`/weekly-reports/class/${classId}?${params.toString()}`);
     return response.data;
