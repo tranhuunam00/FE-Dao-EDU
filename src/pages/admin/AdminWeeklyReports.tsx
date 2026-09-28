@@ -1,12 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Card, Table, Tag, Select, Row, Col, Typography, Button, Modal, Spin, Empty, Segmented } from 'antd';
+import { Card, Table, Tag, Select, Row, Col, Typography, Button, Modal, Spin, Empty, Segmented, Checkbox, message } from 'antd';
 import { TrendingUp, TrendingDown, Minus, Eye } from 'lucide-react';
 import api from '../../services/api';
 import { weeklyReportService } from '../../services/weekly-report.service';
-import type {
-  StudentWeeklySummary,
-  WeeklyReportData,
-} from '../../services/weekly-report.service';
+import type { StudentWeeklySummary, WeeklyReportData } from '../../services/weekly-report.service';
 import { WeeklyReportCard } from '../../components/WeeklyReportCard';
 
 const { Title, Text } = Typography;
@@ -24,9 +21,7 @@ export const AdminWeeklyReports: React.FC = () => {
     target.setDate(target.getDate() - dayNr + 3);
     const firstThursday = target.valueOf();
     target.setMonth(0, 1);
-    if (target.getDay() !== 4) {
-      target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7));
-    }
+    if (target.getDay() !== 4) target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7));
     return 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
   };
 
@@ -46,24 +41,17 @@ export const AdminWeeklyReports: React.FC = () => {
 
   // 1. Tải danh sách Trung tâm & Lớp học
   useEffect(() => {
-    Promise.all([
-      api.get('/centers'),
-      api.get('/classes'),
-    ])
+    Promise.all([api.get('/centers'), api.get('/classes')])
       .then(([centerRes, classRes]) => {
         const centerList = Array.isArray(centerRes.data) ? centerRes.data : centerRes.data.centers || [];
         setCenters(centerList);
-
         const classList = Array.isArray(classRes.data) ? classRes.data : classRes.data.classes || [];
         setClasses(classList);
-        if (classList.length > 0) {
-          setSelectedClassId(classList[0].id);
-        }
+        if (classList.length > 0) setSelectedClassId(classList[0].id);
       })
       .catch((err) => console.error('Lỗi lấy danh sách trung tâm/lớp:', err));
   }, []);
 
-  // Lọc danh sách lớp theo trung tâm nếu chọn
   const filteredClasses = selectedCenterId
     ? classes.filter((c) => c.centerId === selectedCenterId)
     : classes;
@@ -76,11 +64,7 @@ export const AdminWeeklyReports: React.FC = () => {
       const res = periodMode === 'month'
         ? await weeklyReportService.getClassReports(selectedClassId, undefined, selectedYear, selectedMonth)
         : await weeklyReportService.getClassReports(selectedClassId, selectedWeek, selectedYear);
-      if (res.success && res.data) {
-        setClassData(res.data);
-      } else {
-        setClassData(null);
-      }
+      setClassData(res.success && res.data ? res.data : null);
     } catch (err) {
       console.error('Lỗi lấy báo cáo SQI của lớp:', err);
       setClassData(null);
@@ -101,16 +85,39 @@ export const AdminWeeklyReports: React.FC = () => {
       const res = periodMode === 'month'
         ? await weeklyReportService.getStudentMonthlyReport(studentId, selectedMonth, selectedYear)
         : await weeklyReportService.getStudentReport(studentId, selectedWeek, selectedYear);
-      if (res.success && res.data) {
-        setModalReport(res.data);
-      } else {
-        setModalReport(null);
-      }
+      setModalReport(res.success && res.data ? res.data : null);
     } catch (err) {
       console.error('Lỗi tải báo cáo chi tiết:', err);
       setModalReport(null);
     } finally {
       setModalLoading(false);
+    }
+  };
+
+  const handleToggleZaloSent = async (studentId: string, isSent: boolean) => {
+    setClassData((prev: any) => {
+      if (!prev || !prev.students) return prev;
+      return {
+        ...prev,
+        students: prev.students.map((s: StudentWeeklySummary) =>
+          s.studentId === studentId ? { ...s, sentToZaloAt: isSent ? new Date().toISOString() : null } : s
+        ),
+      };
+    });
+
+    try {
+      const periodNumber = periodMode === 'month' ? selectedMonth : selectedWeek;
+      await weeklyReportService.toggleZaloSent(studentId, {
+        reportType: periodMode,
+        periodNumber,
+        year: selectedYear,
+        isSent,
+      });
+      message.success(isSent ? 'Đã đánh dấu đã gửi phụ huynh' : 'Đã bỏ đánh dấu gửi phụ huynh');
+    } catch (err) {
+      console.error('Lỗi cập nhật gửi PH:', err);
+      message.error('Không thể cập nhật trạng thái gửi phụ huynh');
+      loadClassReports();
     }
   };
 
@@ -131,16 +138,7 @@ export const AdminWeeklyReports: React.FC = () => {
   return (
     <div style={{ padding: '4px 8px 32px' }}>
       {/* HEADER CONTROLS */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 16,
-          marginBottom: 20,
-        }}
-      >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16, marginBottom: 20 }}>
         <div>
           <Title level={4} style={{ margin: 0, color: 'var(--text-primary, #111827)' }}>
             📊 Quản Trị Báo Cáo Tuần & Chất Lượng SQI
@@ -170,46 +168,28 @@ export const AdminWeeklyReports: React.FC = () => {
             value={selectedClassId}
             onChange={(c) => setSelectedClassId(c)}
             style={{ width: 220 }}
-            options={filteredClasses.map((c) => ({
-              value: c.id,
-              label: `${c.className} (${c.classCode})`,
-            }))}
+            options={filteredClasses.map((c) => ({ value: c.id, label: `${c.className} (${c.classCode})` }))}
           />
           <Segmented
             value={periodMode}
             onChange={(v) => setPeriodMode(v as 'month' | 'week')}
-            options={[
-              { label: 'Theo Tháng', value: 'month' },
-              { label: 'Theo Tuần', value: 'week' },
-            ]}
+            options={[{ label: 'Theo Tháng', value: 'month' }, { label: 'Theo Tuần', value: 'week' }]}
           />
           {periodMode === 'month' ? (
             <Select
               value={selectedMonth}
               onChange={(m) => setSelectedMonth(m)}
               style={{ width: 120 }}
-              options={Array.from({ length: 12 }, (_, i) => ({
-                value: i + 1,
-                label: `Tháng ${String(i + 1).padStart(2, '0')}`,
-              }))}
+              options={Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: `Tháng ${String(i + 1).padStart(2, '0')}` }))}
             />
           ) : (
-            <Select
-              value={selectedWeek}
-              onChange={(w) => setSelectedWeek(w)}
-              style={{ width: 150 }}
-              options={weekOptions}
-            />
+            <Select value={selectedWeek} onChange={(w) => setSelectedWeek(w)} style={{ width: 150 }} options={weekOptions} />
           )}
           <Select
             value={selectedYear}
             onChange={(y) => setSelectedYear(y)}
             style={{ width: 90 }}
-            options={[
-              { value: 2025, label: '2025' },
-              { value: 2026, label: '2026' },
-              { value: 2027, label: '2027' },
-            ]}
+            options={[{ value: 2025, label: '2025' }, { value: 2026, label: '2026' }, { value: 2027, label: '2027' }]}
           />
         </div>
       </div>
@@ -251,7 +231,6 @@ export const AdminWeeklyReports: React.FC = () => {
                 ];
                 return (
                   <>
-                    {/* Stacked Bar */}
                     <div style={{ display: 'flex', height: 22, borderRadius: 6, overflow: 'hidden', background: '#f1f5f9', marginBottom: 8 }}>
                       {levels.map((lv) => {
                         const pct = (lv.count / total) * 100;
@@ -273,19 +252,17 @@ export const AdminWeeklyReports: React.FC = () => {
                               transition: 'width 0.4s ease',
                             }}
                           >
-                            {pct >= 12 ? `${Math.round(pct)}%` : ''}
+                            {lv.count}
                           </div>
                         );
                       })}
                     </div>
-                    {/* Legend */}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                       {levels.map((lv) => (
-                        <div key={lv.key} style={{ display: 'flex', alignItems: 'center', gap: 4, opacity: lv.count > 0 ? 1 : 0.35 }}>
-                          <span style={{ width: 8, height: 8, borderRadius: '50%', background: lv.color, display: 'inline-block' }} />
-                          <span style={{ fontSize: 11, color: 'var(--text-primary, #334155)', fontWeight: lv.count > 0 ? 600 : 400 }}>
-                            {lv.label}: <strong>{lv.count}</strong>
-                          </span>
+                        <div key={lv.key} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11.5 }}>
+                          <span style={{ width: 8, height: 8, borderRadius: '50%', background: lv.color }} />
+                          <span style={{ color: 'var(--text-secondary, #6b7280)' }}>{lv.label}:</span>
+                          <strong style={{ color: 'var(--text-primary, #111827)' }}>{lv.count}</strong>
                         </div>
                       ))}
                     </div>
@@ -298,16 +275,12 @@ export const AdminWeeklyReports: React.FC = () => {
       )}
 
       {/* STUDENTS SQI TABLE */}
-      <Card
-        className="glass-panel"
-        style={{ borderRadius: 14, overflow: 'hidden' }}
-        styles={{ body: { padding: 0 } }}
-      >
+      <Card className="glass-panel" style={{ borderRadius: 14, overflow: 'hidden' }} styles={{ body: { padding: 0 } }}>
         <Table
           loading={loading}
           rowKey="studentId"
           pagination={{ pageSize: 15 }}
-          scroll={{ x: 750 }}
+          scroll={{ x: 800 }}
           dataSource={classData?.students || []}
           columns={[
             {
@@ -315,13 +288,9 @@ export const AdminWeeklyReports: React.FC = () => {
               key: 'student',
               render: (_, row: StudentWeeklySummary) => (
                 <div>
-                  <Text strong style={{ color: 'var(--text-primary, #111827)' }}>
-                    {row.studentName}
-                  </Text>
+                  <Text strong style={{ color: 'var(--text-primary, #111827)' }}>{row.studentName}</Text>
                   {row.studentCode && (
-                    <div style={{ fontSize: 12, color: 'var(--text-secondary, #6b7280)' }}>
-                      Mã: {row.studentCode}
-                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary, #6b7280)' }}>Mã: {row.studentCode}</div>
                   )}
                 </div>
               ),
@@ -336,9 +305,7 @@ export const AdminWeeklyReports: React.FC = () => {
                 }
                 return (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 16, fontWeight: 800, color: '#4f46e5' }}>
-                      {row.sqiScore}
-                    </span>
+                    <span style={{ fontSize: 16, fontWeight: 800, color: '#4f46e5' }}>{row.sqiScore}</span>
                     {row.sqiDelta !== null && row.sqiDelta !== undefined && (
                       row.sqiDelta > 0 ? (
                         <Tag color="success" style={{ margin: 0, padding: '0 4px', fontSize: 11 }}>
@@ -364,11 +331,7 @@ export const AdminWeeklyReports: React.FC = () => {
               width: 160,
               render: (_, row: StudentWeeklySummary) => {
                 if (!row.hasSessions || !row.level) {
-                  return (
-                    <Tag style={{ color: '#94a3b8', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                      Chưa có dữ liệu
-                    </Tag>
-                  );
+                  return <Tag style={{ color: '#94a3b8', background: '#f8fafc', border: '1px solid #e2e8f0' }}>Chưa có dữ liệu</Tag>;
                 }
                 return getLevelTag(row.level);
               },
@@ -376,11 +339,9 @@ export const AdminWeeklyReports: React.FC = () => {
             {
               title: 'Chuyên cần',
               dataIndex: 'attendanceRate',
-              width: 120,
+              width: 110,
               render: (rate: number | null | undefined, row: StudentWeeklySummary) => {
-                if (!row.hasSessions || rate === null || rate === undefined) {
-                  return <Text style={{ color: '#94a3b8' }}>—</Text>;
-                }
+                if (!row.hasSessions || rate === null || rate === undefined) return <Text style={{ color: '#94a3b8' }}>—</Text>;
                 return (
                   <Text style={{ fontWeight: 600, color: rate >= 80 ? '#10b981' : rate >= 50 ? '#f59e0b' : '#ef4444' }}>
                     {rate}%
@@ -391,11 +352,9 @@ export const AdminWeeklyReports: React.FC = () => {
             {
               title: 'Bài tập',
               dataIndex: 'homeworkRate',
-              width: 120,
+              width: 100,
               render: (rate: number | null | undefined, row: StudentWeeklySummary) => {
-                if (!row.hasSessions || rate === null || rate === undefined) {
-                  return <Text style={{ color: '#94a3b8' }}>—</Text>;
-                }
+                if (!row.hasSessions || rate === null || rate === undefined) return <Text style={{ color: '#94a3b8' }}>—</Text>;
                 return (
                   <Text style={{ fontWeight: 600, color: rate >= 80 ? '#10b981' : rate >= 50 ? '#f59e0b' : '#ef4444' }}>
                     {rate}%
@@ -404,9 +363,44 @@ export const AdminWeeklyReports: React.FC = () => {
               },
             },
             {
+              title: 'Trạng thái duyệt',
+              key: 'isApproved',
+              width: 130,
+              align: 'center',
+              render: (_, row: StudentWeeklySummary) => (
+                row.isApproved ? (
+                  <Tag color="success" style={{ margin: 0, fontWeight: 600, borderRadius: 4 }}>
+                    Đã duyệt
+                  </Tag>
+                ) : (
+                  <Tag color="default" style={{ margin: 0, color: '#64748b', borderRadius: 4 }}>
+                    Bản nháp
+                  </Tag>
+                )
+              ),
+            },
+            {
+              title: 'Đã gửi PH',
+              key: 'sentToZaloAt',
+              width: 130,
+              align: 'center',
+              render: (_, row: StudentWeeklySummary) => (
+                <Checkbox
+                  checked={Boolean(row.sentToZaloAt)}
+                  onChange={(e) => handleToggleZaloSent(row.studentId, e.target.checked)}
+                >
+                  {row.sentToZaloAt ? (
+                    <span style={{ color: '#0284c7', fontWeight: 600, fontSize: 12 }}>Đã gửi</span>
+                  ) : (
+                    <span style={{ color: '#94a3b8', fontSize: 12 }}>Chưa gửi</span>
+                  )}
+                </Checkbox>
+              ),
+            },
+            {
               title: 'Hành động',
               key: 'action',
-              width: 150,
+              width: 140,
               align: 'center',
               render: (_, row: StudentWeeklySummary) => (
                 <Button
@@ -431,10 +425,7 @@ export const AdminWeeklyReports: React.FC = () => {
         width={920}
         destroyOnClose
         style={{ top: 20 }}
-        styles={{
-          container: { padding: 0 },
-          body: { background: '#ffffff', padding: 0 }
-        }}
+        styles={{ container: { padding: 0 }, body: { background: '#ffffff', padding: 0 } }}
       >
         {modalLoading ? (
           <div style={{ textAlign: 'center', padding: '60px 0' }}>
@@ -449,6 +440,17 @@ export const AdminWeeklyReports: React.FC = () => {
               report={modalReport}
               isMonthly={periodMode === 'month'}
               classNameTitle={classData?.className}
+              onApprovalChanged={(approved) => {
+                setClassData((prev: any) => {
+                  if (!prev || !prev.students) return prev;
+                  return {
+                    ...prev,
+                    students: prev.students.map((s: StudentWeeklySummary) =>
+                      s.studentId === modalReport.studentId ? { ...s, isApproved: approved } : s
+                    ),
+                  };
+                });
+              }}
             />
           </div>
         ) : (

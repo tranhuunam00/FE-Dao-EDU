@@ -75,6 +75,7 @@ export interface StudentWeeklySummary {
   attendanceRate: number | null;
   homeworkRate: number | null;
   isApproved?: boolean;
+  sentToZaloAt?: string | null;
 }
 
 export interface ClassWeeklyReportsResponse {
@@ -161,6 +162,47 @@ export const weeklyReportService = {
     const response = await api.post(`/weekly-reports/student/${studentId}/toggle-approval`, payload);
     return response.data;
   },
+
+  // 7. Giáo viên / Admin: Sinh nhận xét sư phạm bằng Gemini AI
+  generatePedagogy: async (
+    studentId: string,
+    payload: {
+      studentName?: string;
+      reportType: 'week' | 'month';
+      periodNumber: number;
+      year: number;
+      sqiScore?: number;
+      strengths?: string;
+      improvements?: string;
+    },
+  ): Promise<{ success: boolean; data: any }> => {
+    const response = await api.post(`/weekly-reports/student/${studentId}/generate-pedagogy`, payload);
+    return response.data;
+  },
+
+  // 8. Giáo viên / Admin: Đánh dấu / Hủy đã gửi báo cáo cho phụ huynh
+  toggleZaloSent: async (
+    studentId: string,
+    payload: {
+      reportType: 'week' | 'month';
+      periodNumber: number;
+      year: number;
+      isSent: boolean;
+    },
+  ): Promise<{ success: boolean; data: any; message?: string }> => {
+    const response = await api.post(`/weekly-reports/student/${studentId}/toggle-zalo-sent`, payload);
+    return response.data;
+  },
+
+  // 9. Phụ huynh: Xem báo cáo công khai qua liên kết chia sẻ hoặc quét mã QR
+  getPublicReport: async (
+    studentId: string,
+    params?: { type?: 'week' | 'month'; week?: number; month?: number; year?: number },
+  ): Promise<WeeklyReportResponse> => {
+    const response = await api.get(`/public/weekly-reports/student/${studentId}`, { params });
+    return response.data;
+  },
 };
 
 export default weeklyReportService;
+

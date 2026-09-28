@@ -324,11 +324,7 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
                         <span style={{ color: '#94a3b8', fontWeight: 400 }}>—</span>
                       )}
                     </td>
-                    <td style={totalRowTdStyle}>
-                      <span style={{ color: '#64748b', fontWeight: 500, fontSize: 10 }}>
-                        {presentCount === totalSub ? 'Chuyên cần đầy đủ' : `Vắng ${totalSub - presentCount} buổi`}
-                      </span>
-                    </td>
+                    <td style={totalRowTdStyle}></td>
                   </tr>
                 </React.Fragment>
               );

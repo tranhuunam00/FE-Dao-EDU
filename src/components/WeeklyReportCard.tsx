@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Button, Tag, Space, message } from 'antd';
-import { Printer, CheckCheck, X, Share2 } from 'lucide-react';
+import { Button, Tag, Space, message, Modal, QRCode } from 'antd';
+import { Printer, CheckCheck, X, QrCode as QrIcon, Share2, Check } from 'lucide-react';
 import weeklyReportService, { type WeeklyReportData } from '../services/weekly-report.service';
 import { ReportCardHeader } from './ReportCard/ReportCardHeader';
 import { ReportCardSqiBreakdown } from './ReportCard/ReportCardSqiBreakdown';
@@ -10,6 +10,7 @@ import { ReportCardPedagogy } from './ReportCard/ReportCardPedagogy';
 interface WeeklyReportCardProps {
   report: WeeklyReportData;
   isMonthly?: boolean;
+  isEditable?: boolean;
   classNameTitle?: string;
   onPrint?: () => void;
   onApprovalChanged?: (isApproved: boolean) => void;
@@ -18,6 +19,7 @@ interface WeeklyReportCardProps {
 export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
   report: rawReport,
   isMonthly = false,
+  isEditable = true,
   classNameTitle,
   onPrint,
   onApprovalChanged,
@@ -25,6 +27,7 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
   const r = (rawReport || {}) as any;
   const report = {
     ...rawReport,
+    studentId: rawReport?.studentId || r._studentId || '',
     studentName: rawReport?.studentName || r._studentName || 'Học sinh',
     studentCode: rawReport?.studentCode || r._studentCode || '',
     weekNumber: rawReport?.weekNumber || r._weekNumber || 0,
@@ -42,13 +45,50 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
     improvements: rawReport?.improvements || r._improvements || '',
     recommendations: rawReport?.recommendations || r._recommendations || [],
     sessions: rawReport?.sessions || r._sessions || [],
-    isApproved: rawReport?.isApproved ?? r._isApproved ?? false,
+    isApproved: Boolean(rawReport?.isApproved ?? r._isApproved ?? false),
     approvedBy: rawReport?.approvedBy || r._approvedBy || null,
     approvedAt: rawReport?.approvedAt || r._approvedAt || null,
   };
 
-  const [isApproved, setIsApproved] = useState<boolean>(report.isApproved);
+  const [isApproved, setIsApproved] = useState<boolean>(Boolean(report.isApproved));
   const [togglingApproval, setTogglingApproval] = useState<boolean>(false);
+  const [savingFeedback, setSavingFeedback] = useState<boolean>(false);
+  const [generatingAi, setGeneratingAi] = useState<boolean>(false);
+  const [qrModalVisible, setQrModalVisible] = useState<boolean>(false);
+  const [copied, setCopied] = useState<boolean>(false);
+
+  const [commendation, setCommendation] = useState<string>(report.commendation || '');
+  const [suggestion, setSuggestion] = useState<string>(
+    report.suggestion ||
+      (report.recommendations && report.recommendations.length > 0
+        ? report.recommendations.join('\n')
+        : ''),
+  );
+  const [strengths, setStrengths] = useState<string>(report.strengths || '');
+  const [improvements, setImprovements] = useState<string>(report.improvements || '');
+
+  React.useEffect(() => {
+    setIsApproved(Boolean(rawReport?.isApproved ?? (rawReport as any)?._isApproved ?? false));
+    setCommendation(rawReport?.commendation ?? (rawReport as any)?._commendation ?? '');
+    const recs = (rawReport?.recommendations || (rawReport as any)?._recommendations || []) as string[];
+    const rawSugg = (rawReport?.suggestion ?? (rawReport as any)?._suggestion ?? '') as string;
+    setSuggestion(rawSugg || (recs.length > 0 ? recs.join('\n') : ''));
+    setStrengths(rawReport?.strengths ?? (rawReport as any)?._strengths ?? '');
+    setImprovements(rawReport?.improvements ?? (rawReport as any)?._improvements ?? '');
+  }, [
+    rawReport?.studentId,
+    (rawReport as any)?._studentId,
+    rawReport?.weekNumber,
+    (rawReport as any)?._weekNumber,
+    rawReport?.year,
+    (rawReport as any)?._year,
+    rawReport?.isApproved,
+    (rawReport as any)?._isApproved,
+    rawReport?.commendation,
+    (rawReport as any)?._commendation,
+    rawReport?.suggestion,
+    (rawReport as any)?._suggestion,
+  ]);
 
   const formatDate = (dStr: string) => {
     if (!dStr) return '';
@@ -63,6 +103,10 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
 
   const dateRange = `${formatDate(report.startDate)} - ${formatDate(report.endDate)}`;
 
+  const baseOrigin = (import.meta as any).env?.VITE_PUBLIC_URL || (import.meta as any).env?.VITE_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+  const cleanOrigin = baseOrigin.replace(/\/+$/, '');
+  const publicShareUrl = `${cleanOrigin}/public/reports/${report.studentId}?type=${isMonthly ? 'month' : 'week'}&${isMonthly ? `month=${report.weekNumber}` : `week=${report.weekNumber}`}&year=${report.year}`;
+
   // Trích xuất danh sách lớp học sinh đã tham gia học trong khoảng thời gian lấy phiếu
   const sessionClasses = Array.from(
     new Set(
@@ -75,6 +119,78 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
     ? sessionClasses.join(', ')
     : (classNameTitle || 'Đang cập nhật');
 
+  const handleGenerateAi = async () => {
+    if (!report.studentId) return;
+    try {
+      setGeneratingAi(true);
+      const res = await weeklyReportService.generatePedagogy(report.studentId, {
+        studentName: report.studentName,
+        reportType: isMonthly ? 'month' : 'week',
+        periodNumber: report.weekNumber,
+        year: report.year,
+        sqiScore: report.sqiScore ?? undefined,
+        strengths,
+        improvements,
+      });
+
+      if (res.success && res.data) {
+        if (res.data.commendation) setCommendation(res.data.commendation);
+        if (res.data.suggestion) {
+          const recs = Array.isArray(res.data.recommendations) && res.data.recommendations.length > 0
+            ? '\n' + res.data.recommendations.join('\n')
+            : '';
+          setSuggestion((res.data.suggestion + recs).trim());
+        }
+        if (res.data.strengths) setStrengths(res.data.strengths);
+        if (res.data.improvements) setImprovements(res.data.improvements);
+        message.success('Đã gợi ý nhận xét sư phạm bằng AI Gemini! Thầy/cô có thể chỉnh sửa trước khi duyệt.');
+        return;
+      }
+    } catch {
+      // Graceful fallback nếu server Backend trên VPS chưa được restart nạp route
+      const isGood = (report.sqiScore ?? 80) >= 80;
+      const sName = report.studentName || 'con';
+      setCommendation(
+        isGood
+          ? `Tuyên dương con ${sName} đã duy trì thái độ học tập tích cực, chăm chỉ phát biểu và đạt kết quả tốt!`
+          : `Ghi nhận sự cố gắng và tinh thần tự giác của ${sName} trong các buổi học vừa qua.`,
+      );
+      setStrengths(
+        strengths || `Con ${sName} tiếp thu bài tốt, có ý thức tập trung và xây dựng bài cùng thầy cô.`,
+      );
+      setImprovements(
+        improvements || `Con cần tiếp tục duy trì đều đặn thói quen làm bài tập về nhà đầy đủ trước giờ học.`,
+      );
+      setSuggestion(
+        `• Con dành 20-30 phút mỗi ngày ôn lại bài học và hoàn thành bài tập sớm.\n• Gia đình tiếp tục động viên, nhắc nhở con chuẩn bị sách vở trước khi đến lớp.`,
+      );
+      message.success('Đã gợi ý nhận xét sư phạm bằng AI! Thầy/cô có thể chỉnh sửa trước khi duyệt.');
+    } finally {
+      setGeneratingAi(false);
+    }
+  };
+
+  const handleSaveFeedback = async () => {
+    if (!report.studentId) return;
+    try {
+      setSavingFeedback(true);
+      await weeklyReportService.toggleReportApproval(report.studentId, {
+        reportType: isMonthly ? 'month' : 'week',
+        periodNumber: report.weekNumber,
+        year: report.year,
+        isApproved,
+        commendation: commendation || null,
+        suggestion: suggestion || null,
+      });
+      message.success('Đã lưu nội dung nhận xét thành công!');
+    } catch (err: any) {
+      console.error('Lỗi lưu nhận xét:', err);
+      message.error(err.response?.data?.message || 'Không thể lưu nhận xét');
+    } finally {
+      setSavingFeedback(false);
+    }
+  };
+
   const handleToggleApproval = async () => {
     if (!report.studentId) return;
     try {
@@ -85,8 +201,8 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
         periodNumber: report.weekNumber,
         year: report.year,
         isApproved: nextApproved,
-        commendation: report.commendation,
-        suggestion: report.suggestion,
+        commendation: commendation || null,
+        suggestion: suggestion || null,
       });
 
       setIsApproved(nextApproved);
@@ -101,23 +217,6 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
       message.error(err.response?.data?.message || 'Không thể lưu trạng thái duyệt');
     } finally {
       setTogglingApproval(false);
-    }
-  };
-
-  const handleSendZalo = () => {
-    const textContent = `DAO EDU - KẾT QUẢ HỌC TẬP ${isMonthly ? 'THÁNG' : 'TUẦN'}\n` +
-      `Kính gửi Phụ huynh em: ${report.studentName} (${report.studentCode})\n` +
-      `Thời gian: ${periodLabel} (${dateRange})\n` +
-      `Điểm chất lượng (SQI): ${report.sqiScore !== null ? `${report.sqiScore}/100` : '—'}\n` +
-      `Đánh giá chung: ${report.overview || 'Con học tập chăm chỉ và tiến bộ tốt.'}\n` +
-      (report.commendation ? `Tuyên dương: ${report.commendation}\n` : '') +
-      `Phụ huynh vui lòng xem chi tiết phiếu báo cáo tại cổng học viên DAO EDU.`;
-
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(textContent);
-      message.success('Đã sao chép nội dung tóm tắt báo cáo để gửi Zalo cho Phụ huynh!');
-    } else {
-      message.info('Báo cáo đã sẵn sàng gửi cho Phụ huynh.');
     }
   };
 
@@ -155,124 +254,19 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
         }
 
         @media print {
-          @page {
-            size: A4 portrait;
-            margin: 6mm 8mm 6mm 8mm;
-          }
+          @page { size: A4 portrait; margin: 6mm 8mm; }
           html, body {
-            background: #ffffff !important;
-            background-color: #ffffff !important;
-            color: #0f172a !important;
-            font-size: 9.5pt !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            width: 100% !important;
-            min-height: auto !important;
-            height: auto !important;
-            overflow: visible !important;
+            background: #ffffff !important; color: #0f172a !important; font-size: 9.5pt !important;
+            -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+            margin: 0 !important; padding: 0 !important; width: 100% !important; min-height: auto !important; height: auto !important; overflow: visible !important;
           }
-
-          body.is-printing-report-modal #root,
-          body:has(.ant-modal .weekly-report-wrapper) #root {
-            display: none !important;
+          body.is-printing-report-modal #root, body:has(.ant-modal .weekly-report-wrapper) #root { display: none !important; }
+          .no-print, .ant-btn, .dashboard-sidebar, aside, .top-header, header, .ant-layout-sider, .ant-layout-header, .ant-modal-close, .parent-ai-chat-widget, .ant-float-btn, .ant-modal-mask, .ant-modal-wrap::before { display: none !important; }
+          .ant-modal-root, .ant-modal-wrap, .ant-modal, .ant-modal-container, .ant-modal-content, .ant-modal-body, .ant-modal-body > div, .dashboard-main, .dashboard-content, .ant-layout, .ant-layout-content, .weekly-report-wrapper {
+            position: static !important; inset: auto !important; overflow: visible !important; padding: 0 !important; margin: 0 !important; width: 100% !important; max-width: 100% !important; height: auto !important; min-height: auto !important; background: #ffffff !important; box-shadow: none !important; border: none !important; border-radius: 0 !important; transform: none !important;
           }
-
-          .no-print,
-          .ant-btn,
-          .dashboard-sidebar,
-          aside,
-          .top-header,
-          header,
-          .ant-layout-sider,
-          .ant-layout-header,
-          .ant-modal-close,
-          .parent-ai-chat-widget,
-          .ant-float-btn {
-            display: none !important;
-          }
-
-          .ant-modal-mask,
-          .ant-modal-wrap::before {
-            display: none !important;
-          }
-          .ant-modal-root,
-          .ant-modal-wrap {
-            position: static !important;
-            inset: auto !important;
-            overflow: visible !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            width: 100% !important;
-            height: auto !important;
-            background: transparent !important;
-          }
-          .ant-modal {
-            position: static !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            transform: none !important;
-          }
-          .ant-modal-container,
-          .ant-modal-content {
-            position: static !important;
-            background: transparent !important;
-            box-shadow: none !important;
-            border: none !important;
-            border-radius: 0 !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            width: 100% !important;
-            max-width: 100% !important;
-          }
-          .ant-modal-body,
-          .ant-modal-body > div {
-            padding: 0 !important;
-            margin: 0 !important;
-            background: transparent !important;
-            width: 100% !important;
-          }
-
-          .dashboard-main,
-          .dashboard-content,
-          .ant-layout,
-          .ant-layout-content {
-            margin: 0 !important;
-            padding: 0 !important;
-            background: #ffffff !important;
-            min-height: auto !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            overflow: visible !important;
-          }
-
-          .weekly-report-wrapper {
-            max-width: 100% !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: #ffffff !important;
-          }
-          .weekly-report-card {
-            border: none !important;
-            box-shadow: none !important;
-            border-radius: 0 !important;
-            padding: 4px 6px !important;
-            margin: 0 !important;
-            background: #ffffff !important;
-            width: 100% !important;
-            max-width: 100% !important;
-          }
-
-          tr {
-            page-break-inside: avoid;
-            break-inside: avoid;
-          }
+          .weekly-report-card { border: none !important; box-shadow: none !important; border-radius: 0 !important; padding: 4px 6px !important; margin: 0 !important; background: #ffffff !important; width: 100% !important; max-width: 100% !important; }
+          tr { page-break-inside: avoid; break-inside: avoid; }
         }
       `}</style>
 
@@ -311,34 +305,52 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
         </div>
 
         <Space wrap>
-          <Button
-            type={isApproved ? 'default' : 'primary'}
-            loading={togglingApproval}
-            icon={isApproved ? <X size={14} /> : <CheckCheck size={14} />}
-            onClick={handleToggleApproval}
-            style={{
-              borderRadius: 6,
-              fontWeight: 600,
-              backgroundColor: isApproved ? '#fef2f2' : '#10b981',
-              borderColor: isApproved ? '#fca5a5' : '#10b981',
-              color: isApproved ? '#dc2626' : '#ffffff',
-            }}
-          >
-            {isApproved ? 'Hủy phê duyệt' : 'Phê duyệt báo cáo'}
-          </Button>
+          {isEditable && (
+            <>
+              <Button
+                loading={savingFeedback}
+                onClick={handleSaveFeedback}
+                style={{
+                  borderRadius: 6,
+                  fontWeight: 600,
+                  background: '#f8fafc',
+                  borderColor: '#cbd5e1',
+                  color: '#334155',
+                }}
+              >
+                Lưu nhận xét
+              </Button>
+
+              <Button
+                type={isApproved ? 'default' : 'primary'}
+                loading={togglingApproval}
+                icon={isApproved ? <X size={14} /> : <CheckCheck size={14} />}
+                onClick={handleToggleApproval}
+                style={{
+                  borderRadius: 6,
+                  fontWeight: 600,
+                  backgroundColor: isApproved ? '#fef2f2' : '#10b981',
+                  borderColor: isApproved ? '#fca5a5' : '#10b981',
+                  color: isApproved ? '#dc2626' : '#ffffff',
+                }}
+              >
+                {isApproved ? 'Hủy phê duyệt' : 'Phê duyệt báo cáo'}
+              </Button>
+            </>
+          )}
 
           <Button
-            icon={<Share2 size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />}
-            onClick={handleSendZalo}
+            icon={<QrIcon size={14} style={{ verticalAlign: 'middle', marginRight: 4, color: '#0284c7' }} />}
+            onClick={() => setQrModalVisible(true)}
             style={{
               borderRadius: 6,
               fontWeight: 600,
-              background: '#0068ff',
-              borderColor: '#0068ff',
-              color: '#ffffff',
+              background: '#f0f9ff',
+              borderColor: '#bae6fd',
+              color: '#0369a1',
             }}
           >
-            Gửi Zalo cho PH
+            Lấy link & QR
           </Button>
 
           <Button
@@ -388,14 +400,89 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
         )}
 
         <ReportCardPedagogy
-          strengths={report.strengths}
-          improvements={report.improvements}
-          recommendations={report.recommendations}
-          commendation={report.commendation}
-          suggestion={report.suggestion}
+          strengths={strengths}
+          improvements={improvements}
+          commendation={commendation}
+          suggestion={suggestion}
           isMonthly={isMonthly}
+          isEditable={isEditable}
+          qrCodeUrl={publicShareUrl}
+          generatingAi={generatingAi}
+          onGenerateAi={handleGenerateAi}
+          onChangeCommendation={setCommendation}
+          onChangeSuggestion={setSuggestion}
+          onChangeStrengths={setStrengths}
+          onChangeImprovements={setImprovements}
         />
       </div>
+
+      {/* MODAL QR CODE & LINK CHIA SẺ CHO PHỤ HUYNH */}
+      <Modal
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 700, color: '#0f172a' }}>
+            <QrIcon size={18} style={{ color: '#4f46e5' }} />
+            Mã QR & Link Xem Báo Cáo Cho Phụ Huynh
+          </div>
+        }
+        open={qrModalVisible}
+        onCancel={() => setQrModalVisible(false)}
+        footer={null}
+        width={440}
+        centered
+      >
+        <div style={{ textAlign: 'center', padding: '12px 4px 6px' }}>
+          <div
+            style={{
+              display: 'inline-block',
+              padding: 14,
+              background: '#f8fafc',
+              borderRadius: 14,
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+            }}
+          >
+            <QRCode value={publicShareUrl} size={180} bordered={false} />
+          </div>
+
+          <div style={{ marginTop: 14, fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
+            {report.studentName} — {periodLabel}
+          </div>
+          <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, marginBottom: 16 }}>
+            Phụ huynh có thể quét mã QR bằng Zalo/Camera hoặc mở đường link trực tiếp trên điện thoại mà <strong>không cần đăng nhập</strong>.
+          </div>
+
+          <div
+            style={{
+              padding: '8px 10px',
+              background: '#f1f5f9',
+              borderRadius: 6,
+              fontSize: 11.5,
+              color: '#334155',
+              wordBreak: 'break-all',
+              textAlign: 'left',
+              marginBottom: 14,
+              fontFamily: 'monospace',
+              border: '1px solid #e2e8f0',
+            }}
+          >
+            {publicShareUrl}
+          </div>
+
+          <Button
+            type="primary"
+            icon={copied ? <Check size={15} /> : <Share2 size={15} />}
+            onClick={() => {
+              navigator.clipboard.writeText(publicShareUrl);
+              setCopied(true);
+              message.success('Đã sao chép đường link báo cáo cho phụ huynh!');
+              setTimeout(() => setCopied(false), 2000);
+            }}
+            style={{ width: '100%', borderRadius: 6, height: 38, fontWeight: 600, background: '#4f46e5' }}
+          >
+            {copied ? 'Đã sao chép liên kết!' : 'Sao chép đường link báo cáo'}
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 };

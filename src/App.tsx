@@ -54,6 +54,7 @@ import { StudyMaterials } from './pages/StudyMaterials';
 import { AdminWeeklyReports } from './pages/admin/AdminWeeklyReports';
 import { TeacherWeeklyReports } from './pages/teacher/TeacherWeeklyReports';
 import { StudentWeeklyReports } from './pages/student/StudentWeeklyReports';
+import { PublicWeeklyReportPage } from './pages/public/PublicWeeklyReportPage';
 
 function App() {
   return (
@@ -64,6 +65,8 @@ function App() {
           <Route path="/" element={<PublicLanding />} />
           <Route path="/login" element={<Login />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="/public/reports/:studentId" element={<PublicWeeklyReportPage />} />
+          <Route path="/public/report/:studentId" element={<PublicWeeklyReportPage />} />
 
           {/* ===== ADMIN Routes ===== */}
           <Route
