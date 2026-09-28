@@ -107,7 +107,8 @@ export const TeacherWeeklyReports: React.FC = () => {
     return { value: w, label: `Tuần ${w} / ${selectedYear}` };
   });
 
-  const getLevelTag = (level: string) => {
+  const getLevelTag = (level?: string | null) => {
+    if (!level) return <Tag style={{ color: '#94a3b8', background: '#f8fafc', border: '1px solid #e2e8f0' }}>Chưa có dữ liệu</Tag>;
     if (level.includes('Level 5') || level.includes('Mức 5')) return <Tag color="emerald" style={{ background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' }}>Mức 5 - Xuất sắc</Tag>;
     if (level.includes('Level 4') || level.includes('Mức 4')) return <Tag color="blue" style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>Mức 4 - Giỏi</Tag>;
     if (level.includes('Level 3') || level.includes('Mức 3')) return <Tag color="gold" style={{ background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a' }}>Mức 3 - Khá</Tag>;
@@ -257,52 +258,78 @@ export const TeacherWeeklyReports: React.FC = () => {
               title: 'Chỉ số SQI',
               key: 'sqi',
               width: 130,
-              render: (_, row: StudentWeeklySummary) => (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 16, fontWeight: 800, color: '#4f46e5' }}>
-                    {row.sqiScore}
-                  </span>
-                  {row.sqiDelta > 0 ? (
-                    <Tag color="success" style={{ margin: 0, padding: '0 4px', fontSize: 11 }}>
-                      <TrendingUp size={11} style={{ verticalAlign: 'middle' }} /> +{row.sqiDelta}
-                    </Tag>
-                  ) : row.sqiDelta < 0 ? (
-                    <Tag color="error" style={{ margin: 0, padding: '0 4px', fontSize: 11 }}>
-                      <TrendingDown size={11} style={{ verticalAlign: 'middle' }} /> {row.sqiDelta}
-                    </Tag>
-                  ) : (
-                    <Tag style={{ margin: 0, padding: '0 4px', fontSize: 11 }}>
-                      <Minus size={11} style={{ verticalAlign: 'middle' }} /> 0
-                    </Tag>
-                  )}
-                </div>
-              ),
+              render: (_, row: StudentWeeklySummary) => {
+                if (!row.hasSessions || row.sqiScore === null || row.sqiScore === undefined) {
+                  return <Text style={{ color: '#94a3b8', fontWeight: 600 }}>—</Text>;
+                }
+                return (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 16, fontWeight: 800, color: '#4f46e5' }}>
+                      {row.sqiScore}
+                    </span>
+                    {row.sqiDelta !== null && row.sqiDelta !== undefined && (
+                      row.sqiDelta > 0 ? (
+                        <Tag color="success" style={{ margin: 0, padding: '0 4px', fontSize: 11 }}>
+                          <TrendingUp size={11} style={{ verticalAlign: 'middle' }} /> +{row.sqiDelta}
+                        </Tag>
+                      ) : row.sqiDelta < 0 ? (
+                        <Tag color="error" style={{ margin: 0, padding: '0 4px', fontSize: 11 }}>
+                          <TrendingDown size={11} style={{ verticalAlign: 'middle' }} /> {row.sqiDelta}
+                        </Tag>
+                      ) : (
+                        <Tag style={{ margin: 0, padding: '0 4px', fontSize: 11 }}>
+                          <Minus size={11} style={{ verticalAlign: 'middle' }} /> 0
+                        </Tag>
+                      )
+                    )}
+                  </div>
+                );
+              },
             },
             {
               title: 'Phân loại',
               key: 'level',
               width: 160,
-              render: (_, row: StudentWeeklySummary) => getLevelTag(row.level),
+              render: (_, row: StudentWeeklySummary) => {
+                if (!row.hasSessions || !row.level) {
+                  return (
+                    <Tag style={{ color: '#94a3b8', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                      Chưa có dữ liệu
+                    </Tag>
+                  );
+                }
+                return getLevelTag(row.level);
+              },
             },
             {
               title: 'Chuyên cần',
               dataIndex: 'attendanceRate',
               width: 120,
-              render: (rate: number) => (
-                <Text style={{ fontWeight: 600, color: rate >= 80 ? '#10b981' : rate >= 50 ? '#f59e0b' : '#ef4444' }}>
-                  {rate}%
-                </Text>
-              ),
+              render: (rate: number | null | undefined, row: StudentWeeklySummary) => {
+                if (!row.hasSessions || rate === null || rate === undefined) {
+                  return <Text style={{ color: '#94a3b8' }}>—</Text>;
+                }
+                return (
+                  <Text style={{ fontWeight: 600, color: rate >= 80 ? '#10b981' : rate >= 50 ? '#f59e0b' : '#ef4444' }}>
+                    {rate}%
+                  </Text>
+                );
+              },
             },
             {
               title: 'Bài tập',
               dataIndex: 'homeworkRate',
               width: 120,
-              render: (rate: number) => (
-                <Text style={{ fontWeight: 600, color: rate >= 80 ? '#10b981' : rate >= 50 ? '#f59e0b' : '#ef4444' }}>
-                  {rate}%
-                </Text>
-              ),
+              render: (rate: number | null | undefined, row: StudentWeeklySummary) => {
+                if (!row.hasSessions || rate === null || rate === undefined) {
+                  return <Text style={{ color: '#94a3b8' }}>—</Text>;
+                }
+                return (
+                  <Text style={{ fontWeight: 600, color: rate >= 80 ? '#10b981' : rate >= 50 ? '#f59e0b' : '#ef4444' }}>
+                    {rate}%
+                  </Text>
+                );
+              },
             },
             {
               title: 'Hành động',

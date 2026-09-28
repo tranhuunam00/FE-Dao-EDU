@@ -1,13 +1,13 @@
 import api from './api';
 
 export interface SqiBreakdown {
-  academic: number;
-  progress: number;
-  competency: number;
-  attendance: number;
-  homework: number;
-  attitude: number;
-  behavior: number;
+  academic: number | null;
+  progress: number | null;
+  competency: number | null;
+  attendance: number | null;
+  homework: number | null;
+  attitude: number | null;
+  behavior: number | null;
 }
 
 export interface SubjectPerformance {
@@ -61,13 +61,13 @@ export interface StudentWeeklySummary {
   studentId: string;
   studentName: string;
   studentCode: string;
-  sqiScore: number;
-  sqiDelta: number;
-  level: string;
+  sqiScore: number | null;
+  sqiDelta: number | null;
+  level: string | null;
   trend: 'up' | 'down' | 'stable' | 'new';
   hasSessions: boolean;
-  attendanceRate: number;
-  homeworkRate: number;
+  attendanceRate: number | null;
+  homeworkRate: number | null;
 }
 
 export interface ClassWeeklyReportsResponse {

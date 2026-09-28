@@ -4,8 +4,8 @@ import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import type { SqiBreakdown } from '../../services/weekly-report.service';
 
 interface ReportCardSqiBreakdownProps {
-  sqiScore: number;
-  sqiDelta?: number;
+  sqiScore?: number | null;
+  sqiDelta?: number | null;
   sqiBreakdown?: SqiBreakdown;
   overview?: string;
   isMonthly?: boolean;
@@ -18,7 +18,8 @@ export const ReportCardSqiBreakdown: React.FC<ReportCardSqiBreakdownProps> = ({
   overview,
   isMonthly,
 }) => {
-  const getLevelColor = (score: number) => {
+  const getLevelColor = (score?: number | null) => {
+    if (score === null || score === undefined) return { color: '#64748b', label: 'Chưa có dữ liệu' };
     if (score >= 90) return { color: '#16a34a', label: 'Xuất sắc (Mức 5)' };
     if (score >= 75) return { color: '#2563eb', label: 'Giỏi (Mức 4)' };
     if (score >= 60) return { color: '#d97706', label: 'Khá (Mức 3)' };
@@ -27,6 +28,11 @@ export const ReportCardSqiBreakdown: React.FC<ReportCardSqiBreakdownProps> = ({
   };
 
   const level = getLevelColor(sqiScore);
+
+  const formatCriterion = (val: number | null | undefined, maxWeight: number) => {
+    if (val === null || val === undefined) return '—';
+    return `${((val / maxWeight) * 10).toFixed(1)}/10`;
+  };
 
   return (
     <div style={{ marginBottom: 10 }}>
@@ -48,7 +54,7 @@ export const ReportCardSqiBreakdown: React.FC<ReportCardSqiBreakdownProps> = ({
                 Chỉ số chất lượng (SQI)
               </div>
               <div style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>
-                {sqiScore}{' '}
+                {sqiScore !== null && sqiScore !== undefined ? sqiScore : '—'}{' '}
                 <span style={{ fontSize: 12, fontWeight: 500, color: '#64748b' }}>/ 100</span>
               </div>
             </div>
@@ -62,7 +68,7 @@ export const ReportCardSqiBreakdown: React.FC<ReportCardSqiBreakdownProps> = ({
               </div>
             </div>
 
-            {sqiDelta !== undefined && (
+            {sqiDelta !== undefined && sqiDelta !== null && (
               <div style={{ borderLeft: '1px solid #e2e8f0', paddingLeft: 12 }}>
                 <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>
                   {isMonthly ? 'So với tháng trước' : 'So với tuần trước'}
@@ -101,49 +107,51 @@ export const ReportCardSqiBreakdown: React.FC<ReportCardSqiBreakdownProps> = ({
             <Col span={3}>
               <div style={boxStyle}>
                 <span style={labelStyle}>Học tập (30%)</span>
-                <strong style={valStyle}>{((sqiBreakdown.academic / 30) * 10).toFixed(1)}/10</strong>
+                <strong style={valStyle}>{formatCriterion(sqiBreakdown.academic, 30)}</strong>
               </div>
             </Col>
             <Col span={3}>
               <div style={boxStyle}>
                 <span style={labelStyle}>Tiến bộ (20%)</span>
-                <strong style={valStyle}>{((sqiBreakdown.progress / 20) * 10).toFixed(1)}/10</strong>
+                <strong style={valStyle}>{formatCriterion(sqiBreakdown.progress, 20)}</strong>
               </div>
             </Col>
             <Col span={3}>
               <div style={boxStyle}>
                 <span style={labelStyle}>Tiếp thu (15%)</span>
-                <strong style={valStyle}>{((sqiBreakdown.competency / 15) * 10).toFixed(1)}/10</strong>
+                <strong style={valStyle}>{formatCriterion(sqiBreakdown.competency, 15)}</strong>
               </div>
             </Col>
             <Col span={3}>
               <div style={boxStyle}>
                 <span style={labelStyle}>Chuyên cần (10%)</span>
-                <strong style={valStyle}>{((sqiBreakdown.attendance / 10) * 10).toFixed(1)}/10</strong>
+                <strong style={valStyle}>{formatCriterion(sqiBreakdown.attendance, 10)}</strong>
               </div>
             </Col>
             <Col span={3}>
               <div style={boxStyle}>
                 <span style={labelStyle}>Bài tập (10%)</span>
-                <strong style={valStyle}>{((sqiBreakdown.homework / 10) * 10).toFixed(1)}/10</strong>
+                <strong style={valStyle}>{formatCriterion(sqiBreakdown.homework, 10)}</strong>
               </div>
             </Col>
             <Col span={3}>
               <div style={boxStyle}>
                 <span style={labelStyle}>Thái độ (10%)</span>
-                <strong style={valStyle}>{((sqiBreakdown.attitude / 10) * 10).toFixed(1)}/10</strong>
+                <strong style={valStyle}>{formatCriterion(sqiBreakdown.attitude, 10)}</strong>
               </div>
             </Col>
             <Col span={3}>
               <div style={boxStyle}>
                 <span style={labelStyle}>Kỷ luật (5%)</span>
-                <strong style={valStyle}>{((sqiBreakdown.behavior / 5) * 10).toFixed(1)}/10</strong>
+                <strong style={valStyle}>{formatCriterion(sqiBreakdown.behavior, 5)}</strong>
               </div>
             </Col>
             <Col span={3}>
               <div style={{ ...boxStyle, background: '#e0e7ff', borderColor: '#000' }}>
                 <span style={{ ...labelStyle, color: '#3730a3', fontWeight: 700 }}>Tổng SQI</span>
-                <strong style={{ ...valStyle, color: '#3730a3' }}>{sqiScore}đ</strong>
+                <strong style={{ ...valStyle, color: '#3730a3' }}>
+                  {sqiScore !== null && sqiScore !== undefined ? `${sqiScore}đ` : '—'}
+                </strong>
               </div>
             </Col>
           </Row>

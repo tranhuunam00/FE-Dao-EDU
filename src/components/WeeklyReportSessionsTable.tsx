@@ -122,45 +122,49 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
                     )}
                   </td>
 
-                  {/* ĐIỂM DANH */}
+                  {/* ĐIỂM DANH: CHỈ CÓ CÓ MẶT VS VẮNG */}
                   <td style={{ ...tdStyle, textAlign: 'center' }}>
-                    {!row.isPresent ? (
-                      <span style={{ color: '#dc2626', fontWeight: 600 }}>Vắng mặt</span>
-                    ) : row.isLate ? (
-                      <span style={{ color: '#d97706', fontWeight: 600 }}>Đi trễ</span>
-                    ) : (
+                    {row.isPresent ? (
                       <span style={{ color: '#16a34a', fontWeight: 600 }}>Có mặt</span>
+                    ) : (
+                      <span style={{ color: '#dc2626', fontWeight: 600 }}>Vắng mặt</span>
                     )}
                   </td>
 
-                  {/* BÀI TẬP VỀ NHÀ */}
+                  {/* BÀI TẬP VỀ NHÀ: CHƯA CÓ THÌ ĐỂ — */}
                   <td style={tdStyle}>
                     {row.homeworkStatus === 'completed' ? (
                       <span style={{ color: '#16a34a', fontWeight: 500 }}>Đã hoàn thành</span>
                     ) : row.homeworkStatus === 'incomplete' ? (
                       <span style={{ color: '#d97706', fontWeight: 500 }}>Chưa hoàn thiện</span>
-                    ) : (
+                    ) : row.homeworkStatus === 'not_done' ? (
                       <span style={{ color: '#dc2626', fontWeight: 500 }}>Chưa làm</span>
+                    ) : (
+                      <span style={{ color: '#94a3b8' }}>—</span>
                     )}
                   </td>
 
-                  {/* TIẾP THU & NỀ NẾP */}
+                  {/* TIẾP THU & NỀ NẾP: CHƯA CÓ THÌ ĐỂ — */}
                   <td style={tdStyle}>
-                    <div>
-                      {row.understanding === 'understood' && (
-                        <span style={{ color: '#2563eb', fontWeight: 600 }}>Hiểu bài nhanh</span>
-                      )}
-                      {row.understanding === 'partially' && (
-                        <span style={{ color: '#d97706', fontWeight: 500 }}>Hiểu cơ bản</span>
-                      )}
-                      {row.understanding === 'not_understood' && (
-                        <span style={{ color: '#dc2626', fontWeight: 500 }}>Cần kèm thêm</span>
-                      )}
-                    </div>
-                    {tagsText && (
-                      <div style={{ fontSize: 10.5, color: '#64748b', marginTop: 2 }}>
-                        {tagsText}
-                      </div>
+                    {row.understanding || tagsText ? (
+                      <>
+                        {row.understanding === 'understood' && (
+                          <span style={{ color: '#2563eb', fontWeight: 600 }}>Hiểu bài nhanh</span>
+                        )}
+                        {row.understanding === 'partially' && (
+                          <span style={{ color: '#d97706', fontWeight: 500 }}>Hiểu cơ bản</span>
+                        )}
+                        {row.understanding === 'not_understood' && (
+                          <span style={{ color: '#dc2626', fontWeight: 500 }}>Cần kèm thêm</span>
+                        )}
+                        {tagsText && (
+                          <div style={{ fontSize: 10.5, color: '#64748b', marginTop: 2 }}>
+                            {tagsText}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <span style={{ color: '#94a3b8' }}>—</span>
                     )}
                   </td>
 
@@ -173,14 +177,14 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
                     )}
                   </td>
 
-                  {/* NHẬN XÉT CỦA GIÁO VIÊN */}
+                  {/* NHẬN XÉT CỦA GIÁO VIÊN: CHƯA CÓ THÌ ĐỂ — */}
                   <td style={tdStyle}>
                     {row.teacherComment ? (
                       <div style={{ fontStyle: 'italic', color: '#334155' }}>
                         "{row.teacherComment}"
                       </div>
                     ) : (
-                      <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Đầy đủ nề nếp</span>
+                      <span style={{ color: '#94a3b8' }}>—</span>
                     )}
                   </td>
                 </tr>
