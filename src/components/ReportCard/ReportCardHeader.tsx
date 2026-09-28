@@ -1,6 +1,7 @@
 import React from 'react';
 import { Typography, Row, Col } from 'antd';
-import { Calendar, User, BookOpen, GraduationCap } from 'lucide-react';
+import { Calendar, User, BookOpen } from 'lucide-react';
+import { BrandLogo } from '../common/BrandLogo';
 
 const { Title, Text } = Typography;
 
@@ -40,21 +41,7 @@ export const ReportCardHeader: React.FC<ReportCardHeaderProps> = ({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 8,
-              background: '#15803d',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-              flexShrink: 0,
-            }}
-          >
-            <GraduationCap size={22} color="#ffffff" />
-          </div>
+          <BrandLogo size={38} />
           <div>
             <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', letterSpacing: '0.04em', lineHeight: 1.2 }}>
               DAO EDU

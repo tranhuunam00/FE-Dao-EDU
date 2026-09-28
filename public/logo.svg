@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Deep Emerald to Vibrant Green Gradient -->
+    <linearGradient id="daoGreenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#047857" />
+      <stop offset="50%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+    <!-- Subtle White Overlay -->
+    <linearGradient id="whiteShine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.0"/>
+    </linearGradient>
+    <filter id="daoGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#059669" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <!-- Base Container: Smooth Rounded Squircle with Shadow -->
+  <rect x="32" y="32" width="448" height="448" rx="112" fill="url(#daoGreenGrad)" filter="url(#daoGlow)" />
+  <rect x="32" y="32" width="448" height="224" rx="112" fill="url(#whiteShine)" />
+
+  <!-- Pure White Brand Symbol (Graduation Cap & Open Book) -->
+  <g fill="none" stroke="#ffffff" stroke-width="26" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Graduation Cap Top -->
+    <path d="M256 120 L392 180 L256 240 L120 180 Z" fill="#ffffff" fill-opacity="0.25"/>
+    <path d="M356 204 v56 c0 20 -44 34 -100 34 s-100 -14 -100 -34 v-56" stroke-width="22" />
+    <!-- Tassel hanging from graduation cap -->
+    <path d="M380 185 v45" stroke-width="14" />
+    <circle cx="380" cy="235" r="7" fill="#ffffff" />
+
+    <!-- Open Book Pages -->
+    <path d="M132 296 c42 -22 82 -22 124 0 c42 -22 82 -22 124 0 v108 c-42 -22 -82 -22 -124 0 c-42 -22 -82 -22 -124 0 Z" fill="#ffffff" stroke-width="20" />
+    <!-- Book Center Divider -->
+    <path d="M256 296 v108" stroke="#059669" stroke-width="18" />
+  </g>
+</svg>

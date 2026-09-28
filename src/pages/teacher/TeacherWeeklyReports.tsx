@@ -353,7 +353,20 @@ export const TeacherWeeklyReports: React.FC = () => {
             />
           </div>
         ) : (
-          <Empty description={`Không tìm thấy dữ liệu báo cáo ${periodMode === 'month' ? `Tháng ${selectedMonth}/${selectedYear}` : `Tuần ${selectedWeek}/${selectedYear}`}.`} />
+          <div style={{ padding: '40px 20px', textAlign: 'center' }}>
+            <Empty
+              description={
+                <div style={{ marginTop: 12 }}>
+                  <Text strong style={{ fontSize: 15, display: 'block', color: 'var(--text-primary, #111827)' }}>
+                    Chưa có dữ liệu buổi học trong {periodMode === 'month' ? `Tháng ${String(selectedMonth).padStart(2, '0')}/${selectedYear}` : `Tuần ${selectedWeek}/${selectedYear}`}
+                  </Text>
+                  <Text style={{ fontSize: 13, color: 'var(--text-secondary, #6b7280)', marginTop: 4, display: 'block' }}>
+                    Học sinh này chưa có lịch học hoặc chưa được ghi nhận điểm danh trong khoảng thời gian đã chọn.
+                  </Text>
+                </div>
+              }
+            />
+          </div>
         )}
       </Modal>
     </div>

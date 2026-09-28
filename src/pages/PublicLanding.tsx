@@ -8,7 +8,6 @@ import {
   CalendarCheck,
   CheckCircle2,
   ClipboardCheck,
-  GraduationCap,
   Headphones,
   MapPin,
   Menu,
@@ -24,6 +23,7 @@ import {
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
+import { BrandLogo } from '../components/common/BrandLogo';
 import './PublicLanding.css';
 
 const contactTypeOptions = [
@@ -142,9 +142,8 @@ export default function PublicLanding() {
     >
       <div className="public-page">
         <header className="public-header">
-          <a className="public-brand" href="#top">
-            <span><GraduationCap size={24} /></span>
-            <div><strong>DAO EDU</strong><small>by DAOGROUP</small></div>
+          <a className="public-brand" href="#top" style={{ textDecoration: 'none' }}>
+            <BrandLogo size={40} showText subtitle="by DAOGROUP" />
           </a>
           <button className="public-menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-label="Mở menu">
             {menuOpen ? <X /> : <Menu />}
@@ -322,7 +321,7 @@ export default function PublicLanding() {
         </main>
 
         <footer className="public-footer">
-          <div className="public-brand"><span><GraduationCap size={21} /></span><div><strong>DAO EDU</strong><small>by DAOGROUP</small></div></div>
+          <BrandLogo size={36} showText subtitle="by DAOGROUP" />
           <p>© 2026 Công ty TNHH Đầu tư & Công nghệ DAOGROUP.</p>
           <Link to="/login">Đăng nhập hệ thống</Link>
         </footer>

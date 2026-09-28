@@ -1,9 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, LogOut, User as UserIcon, Settings, X } from 'lucide-react';
+import { LogOut, User as UserIcon, Settings, X } from 'lucide-react';
 import { useAuth, Role } from '../../context/AuthContext';
 import { SidebarNav } from './SidebarNav';
 import { Avatar, Select } from 'antd';
+import { BrandLogo } from '../../components/common/BrandLogo';
 
 interface MobileSidebarProps {
   open: boolean;
@@ -87,22 +88,11 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({ open, onClose, pro
       >
         {/* Header row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{
-              width: '38px', height: '38px', borderRadius: '10px',
-              background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', boxShadow: '0 0 12px rgba(99, 102, 241, 0.4)',
-            }}>
-              <BookOpen size={20} />
-            </div>
-            <div>
-              <div style={{ fontSize: '1.1rem', fontFamily: 'var(--font-display)', fontWeight: 800 }}>DAO EDU</div>
-              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                {getAppTitle(user?.role)}
-              </div>
-            </div>
-          </div>
+          <BrandLogo
+            size={36}
+            showText
+            subtitle={getAppTitle(user?.role)}
+          />
 
           {/* Close button */}
           <button

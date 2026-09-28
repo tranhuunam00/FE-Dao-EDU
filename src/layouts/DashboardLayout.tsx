@@ -2,13 +2,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, Role } from '../context/AuthContext';
-import { BookOpen, LogOut, User as UserIcon, Settings } from 'lucide-react';
+import { LogOut, User as UserIcon, Settings } from 'lucide-react';
 import { TopHeader, NotificationBell } from './components/TopHeader';
 import { MobileSidebar } from './components/MobileSidebar';
 import { SidebarNav } from './components/SidebarNav';
 import api from '../services/api';
 import { Select, Modal, Avatar } from 'antd';
 import { ParentAiChatWidget } from '../components/ParentAiChatWidget';
+import { BrandLogo } from '../components/common/BrandLogo';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -123,15 +124,11 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
 
         {/* Logo */}
         <div className="sidebar-logo" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div className="sidebar-logo-icon">
-              <BookOpen size={22} />
-            </div>
-            <div className="sidebar-logo-text">
-              <h1>DAO EDU</h1>
-              <span>{getAppTitle(user?.role)}</span>
-            </div>
-          </div>
+          <BrandLogo
+            size={38}
+            showText
+            subtitle={getAppTitle(user?.role)}
+          />
           <NotificationBell
             notifications={notifications}
             unreadCount={unreadCount}

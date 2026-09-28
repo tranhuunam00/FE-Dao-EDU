@@ -17,8 +17,8 @@ import {
   MailOutlined,
   LockOutlined,
   ArrowRightOutlined,
-  BookOutlined,
 } from '@ant-design/icons';
+import { BrandLogo } from '../../components/common/BrandLogo';
 
 const { Title, Text } = Typography;
 
@@ -122,25 +122,14 @@ const LoginInner: React.FC = () => {
               }}
             >
               {/* Logo */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
-                <div style={{
-                  width: '46px',
-                  height: '46px',
-                  borderRadius: '12px',
-                  background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#fff',
-                  boxShadow: '0 0 20px rgba(99, 102, 241, 0.45)'
-                }}>
-                  <BookOutlined style={{ fontSize: '24px' }} />
-                </div>
-                <div>
-                  <h2 style={{ fontSize: '1.4rem', fontFamily: 'var(--font-display)', fontWeight: 800, margin: 0, color: '#fff' }}>DAO EDU</h2>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Cổng học tập trực tuyến</span>
-                </div>
-              </div>
+              <BrandLogo
+                size={46}
+                showText
+                subtitle="Cổng học tập trực tuyến"
+                textColor="#ffffff"
+                subtitleColor="rgba(255, 255, 255, 0.7)"
+                style={{ marginBottom: '32px' }}
+              />
 
               <Title level={3} style={{ color: '#fff', marginBottom: '8px', fontFamily: 'Outfit' }}>Đăng nhập</Title>
               <Text style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'block', marginBottom: '24px' }}>
