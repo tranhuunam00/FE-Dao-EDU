@@ -210,16 +210,60 @@ export const TeacherWeeklyReports: React.FC = () => {
           </Col>
           <Col xs={24} sm={12}>
             <Card className="glass-panel" style={{ borderRadius: 12 }}>
-              <Text style={{ fontSize: 12, color: 'var(--text-secondary, #6b7280)', display: 'block', marginBottom: 6 }}>
-                Phân Bố Chất Lượng (SQI Level)
+              <Text style={{ fontSize: 12, color: 'var(--text-secondary, #6b7280)', display: 'block', marginBottom: 8 }}>
+                Phân Bố Chất Lượng Học Sinh
               </Text>
-              <Space wrap size={[6, 6]}>
-                <Tag color="success">Level 5: {classData.levelDistribution?.level5 || 0}</Tag>
-                <Tag color="blue">Level 4: {classData.levelDistribution?.level4 || 0}</Tag>
-                <Tag color="warning">Level 3: {classData.levelDistribution?.level3 || 0}</Tag>
-                <Tag color="orange">Level 2: {classData.levelDistribution?.level2 || 0}</Tag>
-                <Tag color="error">Level 1: {classData.levelDistribution?.level1 || 0}</Tag>
-              </Space>
+              {(() => {
+                const dist = classData.levelDistribution;
+                const total = classData.totalStudents || 1;
+                const levels = [
+                  { key: 'level5', label: 'Xuất sắc', count: dist?.level5 || 0, color: '#16a34a' },
+                  { key: 'level4', label: 'Giỏi', count: dist?.level4 || 0, color: '#2563eb' },
+                  { key: 'level3', label: 'Khá', count: dist?.level3 || 0, color: '#d97706' },
+                  { key: 'level2', label: 'TB', count: dist?.level2 || 0, color: '#ea580c' },
+                  { key: 'level1', label: 'Yếu', count: dist?.level1 || 0, color: '#dc2626' },
+                ];
+                return (
+                  <>
+                    <div style={{ display: 'flex', height: 22, borderRadius: 6, overflow: 'hidden', background: '#f1f5f9', marginBottom: 8 }}>
+                      {levels.map((lv) => {
+                        const pct = (lv.count / total) * 100;
+                        if (pct === 0) return null;
+                        return (
+                          <div
+                            key={lv.key}
+                            title={`${lv.label}: ${lv.count} HS (${Math.round(pct)}%)`}
+                            style={{
+                              width: `${pct}%`,
+                              background: lv.color,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#fff',
+                              fontSize: 10,
+                              fontWeight: 700,
+                              minWidth: pct > 8 ? undefined : 18,
+                              transition: 'width 0.4s ease',
+                            }}
+                          >
+                            {pct >= 12 ? `${Math.round(pct)}%` : ''}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px' }}>
+                      {levels.map((lv) => (
+                        <div key={lv.key} style={{ display: 'flex', alignItems: 'center', gap: 4, opacity: lv.count > 0 ? 1 : 0.35 }}>
+                          <span style={{ width: 8, height: 8, borderRadius: '50%', background: lv.color, display: 'inline-block' }} />
+                          <span style={{ fontSize: 11, color: 'var(--text-primary, #334155)', fontWeight: lv.count > 0 ? 600 : 400 }}>
+                            {lv.label}: <strong>{lv.count}</strong>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                );
+              })()}
             </Card>
           </Col>
         </Row>
