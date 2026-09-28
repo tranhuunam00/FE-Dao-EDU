@@ -92,6 +92,14 @@ const ClassDetailInner: React.FC = () => {
   const [kickingStudent, setKickingStudent] = useState(false);
   const [kickForm] = Form.useForm();
 
+  // Edit Dropped Date modal states
+  const [isEditDroppedDateVisible, setIsEditDroppedDateVisible] = useState(false);
+  const [editDroppedDateStudentId, setEditDroppedDateStudentId] = useState<string | null>(null);
+  const [editDroppedDateStudentName, setEditDroppedDateStudentName] = useState<string>('');
+  const [editDroppedDateJoinedDate, setEditDroppedDateJoinedDate] = useState<string | null>(null);
+  const [savingDroppedDate, setSavingDroppedDate] = useState(false);
+  const [editDroppedDateForm] = Form.useForm();
+
   // Clone Students from other class states
   const [isCloneVisible, setIsCloneVisible] = useState(false);
   const [allClasses, setAllClasses] = useState<any[]>([]);
@@ -458,6 +466,59 @@ const ClassDetailInner: React.FC = () => {
     }
   };
 
+  const handleEditDroppedDate = (
+    studentId: string,
+    studentName: string,
+    currentDroppedDate: string,
+    joinedDate?: string,
+  ) => {
+    setEditDroppedDateStudentId(studentId);
+    setEditDroppedDateStudentName(studentName);
+    setEditDroppedDateJoinedDate(joinedDate || null);
+    editDroppedDateForm.setFieldsValue({
+      droppedDate: currentDroppedDate ? dayjs(currentDroppedDate) : dayjs(),
+    });
+    setIsEditDroppedDateVisible(true);
+  };
+
+  const handleEditDroppedDateSubmit = async () => {
+    if (!id || !editDroppedDateStudentId) return;
+    try {
+      const values = await editDroppedDateForm.validateFields();
+      const droppedDateStr = values.droppedDate.format('YYYY-MM-DD');
+
+      if (editDroppedDateJoinedDate && droppedDateStr < editDroppedDateJoinedDate) {
+        message.error(`Ngày rời lớp không được trước ngày học sinh tham gia lớp (${dayjs(editDroppedDateJoinedDate).format('DD/MM/YYYY')}).`);
+        return;
+      }
+      if (classData?.finishDate && droppedDateStr > classData.finishDate) {
+        message.error(`Ngày rời lớp không được sau ngày kết thúc lớp học (${dayjs(classData.finishDate).format('DD/MM/YYYY')}).`);
+        return;
+      }
+
+      setSavingDroppedDate(true);
+      await api.put(`/classes/${id}/students/${editDroppedDateStudentId}/dropped-date`, { droppedDate: droppedDateStr });
+      message.success('Cập nhật ngày rời lớp thành công!');
+      setIsEditDroppedDateVisible(false);
+      loadAllData();
+
+      modal.info({
+        title: 'Nhắc nhở đồng bộ buổi học',
+        content: (
+          <div>
+            <p>Đã cập nhật ngày rời lớp của học sinh <strong>{editDroppedDateStudentName}</strong> thành <strong>{values.droppedDate.format('DD/MM/YYYY')}</strong>.</p>
+            <p>Nếu bạn muốn cập nhật và đồng bộ lại toàn bộ danh sách điểm danh các buổi học tương lai, hãy sử dụng chức năng <strong>Sinh lại &amp; Đồng bộ lịch học</strong>.</p>
+          </div>
+        ),
+        okText: 'Đã hiểu',
+      });
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi cập nhật ngày rời lớp');
+    } finally {
+      setSavingDroppedDate(false);
+    }
+  };
+
   const handleEditJoinDate = (studentId: string, studentName: string, currentJoinedDate: string) => {
     setEditJoinDateStudentId(studentId);
     setEditJoinDateStudentName(studentName);
@@ -706,6 +767,7 @@ const ClassDetailInner: React.FC = () => {
                 openCloneModal={openCloneModal}
                 handleEditJoinDate={handleEditJoinDate}
                 handleEditAllJoinDates={handleEditAllJoinDates}
+                handleEditDroppedDate={handleEditDroppedDate}
               />
             )
           },
@@ -1250,6 +1312,36 @@ const ClassDetailInner: React.FC = () => {
           )}
           <Text type="secondary" style={{ fontSize: '12px', display: 'block' }}>
             Lưu ý: Học sinh sẽ không tham gia các buổi học kể từ ngày này. Lịch sử điểm danh và hóa đơn trước ngày này vẫn được bảo toàn nguyên vẹn.
+          </Text>
+        </Form>
+      </Modal>
+
+      {/* Modal Chỉnh Sửa Ngày Rời Lớp (Kick) */}
+      <Modal
+        title={`Sửa ngày rời lớp: ${editDroppedDateStudentName}`}
+        open={isEditDroppedDateVisible}
+        onOk={handleEditDroppedDateSubmit}
+        onCancel={() => setIsEditDroppedDateVisible(false)}
+        confirmLoading={savingDroppedDate}
+        okText="Lưu thay đổi"
+        cancelText="Hủy"
+        width={420}
+      >
+        <Form form={editDroppedDateForm} layout="vertical" style={{ padding: '12px 0' }}>
+          <Form.Item
+            name="droppedDate"
+            label="Ngày rời lớp (Ngày bị kích) mới"
+            rules={[{ required: true, message: 'Vui lòng chọn ngày rời lớp!' }]}
+          >
+            <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+          </Form.Item>
+          {editDroppedDateJoinedDate && (
+            <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: 8 }}>
+              Ngày vào lớp của học sinh: <strong>{dayjs(editDroppedDateJoinedDate).format('DD/MM/YYYY')}</strong>
+            </Text>
+          )}
+          <Text type="secondary" style={{ fontSize: '12px', display: 'block' }}>
+            Lưu ý: Không thể chọn ngày kích trước các buổi học đã xuất hóa đơn hoặc đã điểm danh. Sau khi lưu, hãy sử dụng chức năng &quot;Sinh lại &amp; Đồng bộ lịch học&quot; nếu cần đồng bộ lại toàn bộ danh sách điểm danh.
           </Text>
         </Form>
       </Modal>

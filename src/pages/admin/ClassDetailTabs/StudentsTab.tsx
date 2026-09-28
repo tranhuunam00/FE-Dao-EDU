@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Typography, Button, Table, Tag } from 'antd';
+import { Card, Typography, Button, Table, Tag, Tooltip } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
@@ -13,6 +13,7 @@ interface StudentsTabProps {
   openCloneModal: () => void;
   handleEditJoinDate: (studentId: string, studentName: string, currentJoinedDate: string) => void;
   handleEditAllJoinDates: () => void;
+  handleEditDroppedDate: (studentId: string, studentName: string, currentDroppedDate: string, joinedDate?: string) => void;
 }
 
 export const StudentsTab: React.FC<StudentsTabProps> = ({
@@ -23,6 +24,7 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
   openCloneModal,
   handleEditJoinDate,
   handleEditAllJoinDates,
+  handleEditDroppedDate,
 }) => {
   const studentColumns = [
     {
@@ -80,18 +82,28 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
-      width: '160px',
+      width: '170px',
       render: (s: string, record: any) => {
         const isDropped = s === 'Dropped';
         const color = isDropped ? 'red' : 'green';
         const label = isDropped ? 'Đã kick' : 'Đang học';
         const droppedDateStr = record.droppedDate ? dayjs(record.droppedDate).format('DD/MM/YYYY') : null;
+        const fullName = record.student ? `${record.student.lastName} ${record.student.firstName}` : '';
         return (
           <div>
             <Tag color={color}>{label}</Tag>
-            {isDropped && droppedDateStr && (
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                Từ: {droppedDateStr}
+            {isDropped && (
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span>Từ: {droppedDateStr || 'Chưa rõ'}</span>
+                <Tooltip title="Sửa ngày rời lớp (kick)">
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<EditOutlined style={{ fontSize: '11px', color: '#6366f1' }} />}
+                    style={{ padding: '0 2px', height: '18px', lineHeight: '18px', minWidth: '18px' }}
+                    onClick={() => handleEditDroppedDate(record.studentId, fullName, record.droppedDate, record.joinedDate)}
+                  />
+                </Tooltip>
               </div>
             )}
           </div>
