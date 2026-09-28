@@ -5,6 +5,8 @@ interface ReportCardPedagogyProps {
   strengths?: string;
   improvements?: string;
   recommendations?: string[];
+  commendation?: string | null;
+  suggestion?: string | null;
   isMonthly?: boolean;
 }
 
@@ -12,6 +14,8 @@ export const ReportCardPedagogy: React.FC<ReportCardPedagogyProps> = ({
   strengths,
   improvements,
   recommendations,
+  commendation,
+  suggestion,
   isMonthly,
 }) => {
   const cleanStrengths = (strengths || '')
@@ -35,9 +39,29 @@ export const ReportCardPedagogy: React.FC<ReportCardPedagogyProps> = ({
           marginBottom: 8,
         }}
       >
-        <div style={{ fontSize: 11.5, fontWeight: 700, color: '#1e293b', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+        <div style={{ fontSize: 11.5, fontWeight: 700, color: '#1e293b', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
           Nhận Xét Của Giáo Viên {isMonthly ? 'Trong Tháng' : 'Trong Tuần'}
         </div>
+
+        {/* COMMENDATION / TUYÊN DƯƠNG NẾU CÓ */}
+        {commendation && (
+          <div
+            style={{
+              background: '#fefce8',
+              border: '1px solid #fde047',
+              borderRadius: 4,
+              padding: '6px 10px',
+              marginBottom: 8,
+            }}
+          >
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: '#ca8a04', marginBottom: 2 }}>
+              🎖️ Tuyên dương & Khen thưởng:
+            </div>
+            <div style={{ fontSize: 11.5, color: '#854d0e', lineHeight: 1.5, fontWeight: 500 }}>
+              {commendation}
+            </div>
+          </div>
+        )}
 
         <Row gutter={[10, 8]}>
           <Col xs={24} sm={12}>
@@ -61,6 +85,19 @@ export const ReportCardPedagogy: React.FC<ReportCardPedagogyProps> = ({
               </div>
             </div>
           </Col>
+
+          {suggestion && (
+            <Col span={24}>
+              <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: 4, padding: '6px 10px' }}>
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: '#2563eb', marginBottom: 2 }}>
+                  Gợi ý rèn luyện cho con:
+                </div>
+                <div style={{ fontSize: 11.5, color: '#334155', lineHeight: 1.5 }}>
+                  {suggestion}
+                </div>
+              </div>
+            </Col>
+          )}
 
           <Col span={24}>
             <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 4, padding: '6px 10px' }}>
@@ -124,4 +161,3 @@ export const ReportCardPedagogy: React.FC<ReportCardPedagogyProps> = ({
     </div>
   );
 };
-

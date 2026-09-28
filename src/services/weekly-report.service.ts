@@ -31,11 +31,14 @@ export interface WeeklyReportData {
   sqiBreakdown: SqiBreakdown;
   subjectPerformances: SubjectPerformance[];
   overview: string;
+  commendation?: string | null;
+  suggestion?: string | null;
   strengths: string;
   improvements: string;
   recommendations: string[];
   sessions?: Array<{
     classSessionId: string;
+    className?: string;
     subjectName: string;
     date?: string;
     isPresent: boolean;
@@ -48,6 +51,9 @@ export interface WeeklyReportData {
     teacherComment?: string | null;
   }>;
   isApproved: boolean;
+  approvedAt?: string | null;
+  approvedBy?: string | null;
+  sentToZaloAt?: string | null;
 }
 
 export interface WeeklyReportResponse {
@@ -68,6 +74,7 @@ export interface StudentWeeklySummary {
   hasSessions: boolean;
   attendanceRate: number | null;
   homeworkRate: number | null;
+  isApproved?: boolean;
 }
 
 export interface ClassWeeklyReportsResponse {
@@ -138,4 +145,22 @@ export const weeklyReportService = {
     const response = await api.get(`/weekly-reports/my-report/monthly?${params.toString()}`);
     return response.data;
   },
+
+  // 6. Giáo viên / Admin: Phê duyệt / Hủy duyệt báo cáo học sinh
+  toggleReportApproval: async (
+    studentId: string,
+    payload: {
+      reportType: 'week' | 'month';
+      periodNumber: number;
+      year: number;
+      isApproved: boolean;
+      commendation?: string | null;
+      suggestion?: string | null;
+    },
+  ): Promise<{ success: boolean; data: any; message?: string }> => {
+    const response = await api.post(`/weekly-reports/student/${studentId}/toggle-approval`, payload);
+    return response.data;
+  },
 };
+
+export default weeklyReportService;

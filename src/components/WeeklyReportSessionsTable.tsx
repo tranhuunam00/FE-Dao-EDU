@@ -231,11 +231,6 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
                           <div style={{ fontWeight: 600, color: '#0f172a' }}>
                             {row.date ? formatDate(row.date) : `Buổi ${idx + 1}`}
                           </div>
-                          {row.className && (
-                            <div style={{ fontSize: 10.5, color: '#64748b', marginTop: 1 }}>
-                              {row.className}
-                            </div>
-                          )}
                         </td>
 
                         {/* ĐIỂM DANH: CHỈ CÓ CÓ MẶT VS VẮNG MẶT */}

@@ -1,7 +1,7 @@
-import React from 'react';
-import { Button } from 'antd';
-import { Printer } from 'lucide-react';
-import type { WeeklyReportData } from '../services/weekly-report.service';
+import React, { useState } from 'react';
+import { Button, Tag, Space, message } from 'antd';
+import { Printer, CheckCheck, X, Share2 } from 'lucide-react';
+import weeklyReportService, { type WeeklyReportData } from '../services/weekly-report.service';
 import { ReportCardHeader } from './ReportCard/ReportCardHeader';
 import { ReportCardSqiBreakdown } from './ReportCard/ReportCardSqiBreakdown';
 import { WeeklyReportSessionsTable } from './WeeklyReportSessionsTable';
@@ -12,6 +12,7 @@ interface WeeklyReportCardProps {
   isMonthly?: boolean;
   classNameTitle?: string;
   onPrint?: () => void;
+  onApprovalChanged?: (isApproved: boolean) => void;
 }
 
 export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
@@ -19,6 +20,7 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
   isMonthly = false,
   classNameTitle,
   onPrint,
+  onApprovalChanged,
 }) => {
   const r = (rawReport || {}) as any;
   const report = {
@@ -34,11 +36,19 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
     sqiBreakdown: rawReport?.sqiBreakdown || r._sqiBreakdown,
     subjectPerformances: rawReport?.subjectPerformances || r._subjectPerformances || [],
     overview: rawReport?.overview || r._overview || '',
+    commendation: rawReport?.commendation || r._commendation || null,
+    suggestion: rawReport?.suggestion || r._suggestion || null,
     strengths: rawReport?.strengths || r._strengths || '',
     improvements: rawReport?.improvements || r._improvements || '',
     recommendations: rawReport?.recommendations || r._recommendations || [],
     sessions: rawReport?.sessions || r._sessions || [],
+    isApproved: rawReport?.isApproved ?? r._isApproved ?? false,
+    approvedBy: rawReport?.approvedBy || r._approvedBy || null,
+    approvedAt: rawReport?.approvedAt || r._approvedAt || null,
   };
+
+  const [isApproved, setIsApproved] = useState<boolean>(report.isApproved);
+  const [togglingApproval, setTogglingApproval] = useState<boolean>(false);
 
   const formatDate = (dStr: string) => {
     if (!dStr) return '';
@@ -65,12 +75,57 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
     ? sessionClasses.join(', ')
     : (classNameTitle || 'Đang cập nhật');
 
+  const handleToggleApproval = async () => {
+    if (!report.studentId) return;
+    try {
+      setTogglingApproval(true);
+      const nextApproved = !isApproved;
+      await weeklyReportService.toggleReportApproval(report.studentId, {
+        reportType: isMonthly ? 'month' : 'week',
+        periodNumber: report.weekNumber,
+        year: report.year,
+        isApproved: nextApproved,
+        commendation: report.commendation,
+        suggestion: report.suggestion,
+      });
+
+      setIsApproved(nextApproved);
+      message.success(
+        nextApproved ? 'Đã phê duyệt và phát hành báo cáo thành công!' : 'Đã hủy phê duyệt báo cáo.'
+      );
+      if (onApprovalChanged) {
+        onApprovalChanged(nextApproved);
+      }
+    } catch (err: any) {
+      console.error('Lỗi duyệt báo cáo:', err);
+      message.error(err.response?.data?.message || 'Không thể lưu trạng thái duyệt');
+    } finally {
+      setTogglingApproval(false);
+    }
+  };
+
+  const handleSendZalo = () => {
+    const textContent = `DAO EDU - KẾT QUẢ HỌC TẬP ${isMonthly ? 'THÁNG' : 'TUẦN'}\n` +
+      `Kính gửi Phụ huynh em: ${report.studentName} (${report.studentCode})\n` +
+      `Thời gian: ${periodLabel} (${dateRange})\n` +
+      `Điểm chất lượng (SQI): ${report.sqiScore !== null ? `${report.sqiScore}/100` : '—'}\n` +
+      `Đánh giá chung: ${report.overview || 'Con học tập chăm chỉ và tiến bộ tốt.'}\n` +
+      (report.commendation ? `Tuyên dương: ${report.commendation}\n` : '') +
+      `Phụ huynh vui lòng xem chi tiết phiếu báo cáo tại cổng học viên DAO EDU.`;
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(textContent);
+      message.success('Đã sao chép nội dung tóm tắt báo cáo để gửi Zalo cho Phụ huynh!');
+    } else {
+      message.info('Báo cáo đã sẵn sàng gửi cho Phụ huynh.');
+    }
+  };
+
   const handlePrint = () => {
     if (onPrint) {
       onPrint();
       return;
     }
-    // Check if we are inside an Ant Design modal
     const isModal = Boolean(document.querySelector('.ant-modal .weekly-report-wrapper'));
     if (isModal) {
       document.body.classList.add('is-printing-report-modal');
@@ -92,7 +147,6 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
     <div className="weekly-report-wrapper" style={{ maxWidth: 880, margin: '0 auto', padding: 0 }}>
       {/* PRINT CSS TO ENFORCE CLEAN A4 PAGE FIT WITHOUT WASTING PAPER */}
       <style>{`
-        /* Zero out modal padding on screen */
         .ant-modal:has(.weekly-report-wrapper) .ant-modal-container,
         .ant-modal:has(.weekly-report-wrapper) .ant-modal-content,
         .ant-modal:has(.weekly-report-wrapper) .ant-modal-body,
@@ -103,14 +157,13 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
         @media print {
           @page {
             size: A4 portrait;
-            margin: 6mm 10mm 6mm 10mm;
+            margin: 6mm 8mm 6mm 8mm;
           }
-          /* Reset root, body, html to pure white background without margins */
           html, body {
             background: #ffffff !important;
             background-color: #ffffff !important;
             color: #0f172a !important;
-            font-size: 10pt !important;
+            font-size: 9.5pt !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
             margin: 0 !important;
@@ -121,13 +174,11 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
             overflow: visible !important;
           }
 
-          /* When inside modal: hide the whole dashboard background (#root) */
           body.is-printing-report-modal #root,
           body:has(.ant-modal .weekly-report-wrapper) #root {
             display: none !important;
           }
 
-          /* Hide app chrome, navigation, headers and buttons */
           .no-print,
           .ant-btn,
           .dashboard-sidebar,
@@ -142,7 +193,6 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
             display: none !important;
           }
 
-          /* Reset Ant Design modal overlay & wrappers so only the card renders */
           .ant-modal-mask,
           .ant-modal-wrap::before {
             display: none !important;
@@ -188,7 +238,6 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
             width: 100% !important;
           }
 
-          /* Reset page layout container when printed directly on page */
           .dashboard-main,
           .dashboard-content,
           .ant-layout,
@@ -202,7 +251,6 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
             overflow: visible !important;
           }
 
-          /* Clean A4 document card styling - NO SHADOW, NO BORDER, FULL WIDTH */
           .weekly-report-wrapper {
             max-width: 100% !important;
             width: 100% !important;
@@ -221,43 +269,6 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
             max-width: 100% !important;
           }
 
-          /* Tighten internal component paddings for standard A4 fit */
-          .report-header-section {
-            margin-bottom: 8px !important;
-          }
-          .report-header-branding {
-            padding-bottom: 6px !important;
-            margin-bottom: 8px !important;
-          }
-          .report-header-title {
-            margin: 6px 0 8px !important;
-          }
-          .report-header-info {
-            padding: 6px 10px !important;
-            margin-bottom: 8px !important;
-          }
-          .report-sqi-hero {
-            padding: 6px 10px !important;
-            margin-bottom: 6px !important;
-          }
-          .report-sqi-grid {
-            margin-bottom: 8px !important;
-          }
-          .report-sessions-table {
-            margin-top: 6px !important;
-            margin-bottom: 6px !important;
-          }
-          .report-pedagogy-section {
-            margin-top: 6px !important;
-          }
-          .report-pedagogy-box {
-            padding: 6px 10px !important;
-            margin-bottom: 8px !important;
-          }
-          .report-signature-section {
-            margin-top: 8px !important;
-          }
-
           tr {
             page-break-inside: avoid;
             break-inside: avoid;
@@ -266,20 +277,84 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
       `}</style>
 
       {/* ACTION BAR (HIDDEN IN PRINT) */}
-      <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
-        <Button
-          type="primary"
-          icon={<Printer size={15} style={{ verticalAlign: 'middle', marginRight: 4 }} />}
-          onClick={handlePrint}
-          style={{
-            background: '#1e293b',
-            borderColor: '#1e293b',
-            borderRadius: 6,
-            fontWeight: 600,
-          }}
-        >
-          Xuất file PDF / In phiếu A4
-        </Button>
+      <div
+        className="no-print"
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 10,
+          marginBottom: 12,
+          padding: '8px 12px',
+          background: 'var(--card-bg, #f8fafc)',
+          borderRadius: 8,
+          border: '1px solid var(--border-color, #e2e8f0)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {isApproved ? (
+            <Tag color="success" style={{ margin: 0, padding: '4px 10px', fontSize: 12, fontWeight: 600 }}>
+              <CheckCheck size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+              Đã phê duyệt phát hành
+            </Tag>
+          ) : (
+            <Tag color="warning" style={{ margin: 0, padding: '4px 10px', fontSize: 12, fontWeight: 600 }}>
+              Bản nháp / Chờ duyệt
+            </Tag>
+          )}
+          {report.approvedBy && isApproved && (
+            <span style={{ fontSize: 11.5, color: '#64748b' }}>
+              (Duyệt bởi: <strong>{report.approvedBy}</strong>)
+            </span>
+          )}
+        </div>
+
+        <Space wrap>
+          <Button
+            type={isApproved ? 'default' : 'primary'}
+            loading={togglingApproval}
+            icon={isApproved ? <X size={14} /> : <CheckCheck size={14} />}
+            onClick={handleToggleApproval}
+            style={{
+              borderRadius: 6,
+              fontWeight: 600,
+              backgroundColor: isApproved ? '#fef2f2' : '#10b981',
+              borderColor: isApproved ? '#fca5a5' : '#10b981',
+              color: isApproved ? '#dc2626' : '#ffffff',
+            }}
+          >
+            {isApproved ? 'Hủy phê duyệt' : 'Phê duyệt báo cáo'}
+          </Button>
+
+          <Button
+            icon={<Share2 size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />}
+            onClick={handleSendZalo}
+            style={{
+              borderRadius: 6,
+              fontWeight: 600,
+              background: '#0068ff',
+              borderColor: '#0068ff',
+              color: '#ffffff',
+            }}
+          >
+            Gửi Zalo cho PH
+          </Button>
+
+          <Button
+            type="primary"
+            icon={<Printer size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />}
+            onClick={handlePrint}
+            style={{
+              background: '#1e293b',
+              borderColor: '#1e293b',
+              borderRadius: 6,
+              fontWeight: 600,
+            }}
+          >
+            Xuất PDF / In A4
+          </Button>
+        </Space>
       </div>
 
       {/* A4 REPORT CARD DOCUMENT */}
@@ -316,6 +391,8 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
           strengths={report.strengths}
           improvements={report.improvements}
           recommendations={report.recommendations}
+          commendation={report.commendation}
+          suggestion={report.suggestion}
           isMonthly={isMonthly}
         />
       </div>
