@@ -84,6 +84,14 @@ const ClassDetailInner: React.FC = () => {
   const [editAllJoinDatesForm] = Form.useForm();
   const [savingAllJoinDates, setSavingAllJoinDates] = useState(false);
 
+  // Kick Student modal states
+  const [isKickModalVisible, setIsKickModalVisible] = useState(false);
+  const [kickStudentId, setKickStudentId] = useState<string | null>(null);
+  const [kickStudentName, setKickStudentName] = useState<string>('');
+  const [kickStudentJoinedDate, setKickStudentJoinedDate] = useState<string | null>(null);
+  const [kickingStudent, setKickingStudent] = useState(false);
+  const [kickForm] = Form.useForm();
+
   // Clone Students from other class states
   const [isCloneVisible, setIsCloneVisible] = useState(false);
   const [allClasses, setAllClasses] = useState<any[]>([]);
@@ -391,23 +399,52 @@ const ClassDetailInner: React.FC = () => {
     }
   };
 
-  const handleKickStudent = (studentId: string, studentName: string) => {
-    modal.confirm({
-      title: 'Xác nhận xóa học sinh',
-      content: `Bạn có chắc chắn muốn kick học sinh ${studentName} ra khỏi lớp này? Các buổi điểm danh trong quá khứ vẫn được lưu lại để tính buổi học, các buổi tương lai chưa điểm danh sẽ bị hủy.`,
-      okText: 'Đồng ý',
-      okType: 'danger',
-      cancelText: 'Hủy',
-      onOk: async () => {
-        try {
-          await api.delete(`/classes/${id}/students/${studentId}`);
-          message.success('Đã kick học sinh thành công (trạng thái Dropped)');
-          loadAllData();
-        } catch (err: any) {
-          message.error(err.response?.data?.message || 'Lỗi khi xóa học sinh');
-        }
-      }
+  const handleKickStudent = (studentId: string, studentName: string, joinedDate?: string) => {
+    setKickStudentId(studentId);
+    setKickStudentName(studentName);
+    setKickStudentJoinedDate(joinedDate || null);
+    kickForm.setFieldsValue({
+      droppedDate: dayjs(),
     });
+    setIsKickModalVisible(true);
+  };
+
+  const handleKickStudentSubmit = async () => {
+    if (!id || !kickStudentId) return;
+    try {
+      const values = await kickForm.validateFields();
+      const droppedDateStr = values.droppedDate ? values.droppedDate.format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD');
+
+      if (kickStudentJoinedDate && droppedDateStr < kickStudentJoinedDate) {
+        message.error(`Ngày rời lớp không được trước ngày học sinh vào lớp (${dayjs(kickStudentJoinedDate).format('DD/MM/YYYY')}).`);
+        return;
+      }
+      if (classData?.finishDate && droppedDateStr > classData.finishDate) {
+        message.error(`Ngày rời lớp không được sau ngày kết thúc lớp học (${dayjs(classData.finishDate).format('DD/MM/YYYY')}).`);
+        return;
+      }
+
+      setKickingStudent(true);
+      await api.delete(`/classes/${id}/students/${kickStudentId}?droppedDate=${droppedDateStr}`);
+      message.success('Đã kick học sinh khỏi lớp thành công!');
+      setIsKickModalVisible(false);
+      loadAllData();
+
+      modal.info({
+        title: 'Nhắc nhở đồng bộ buổi học',
+        content: (
+          <div>
+            <p>Học sinh <strong>{kickStudentName}</strong> đã được chuyển sang trạng thái <strong>Đã kick (Dropped)</strong> từ ngày <strong>{dayjs(droppedDateStr).format('DD/MM/YYYY')}</strong>.</p>
+            <p>Các buổi học tương lai chưa diễn ra đã được dọn dẹp. Nếu bạn muốn sinh lại hoặc đồng bộ toàn bộ lịch học của lớp, hãy sử dụng chức năng <strong>Sinh lại &amp; Đồng bộ lịch học</strong>.</p>
+          </div>
+        ),
+        okText: 'Đã hiểu',
+      });
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi kích học sinh khỏi lớp');
+    } finally {
+      setKickingStudent(false);
+    }
   };
 
   const handleReAddStudent = async (studentId: string) => {
@@ -1182,6 +1219,37 @@ const ClassDetailInner: React.FC = () => {
           </Form.Item>
           <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginTop: '8px' }}>
             Lưu ý: Thao tác này chỉ cập nhật ngày vào lớp cho tất cả học sinh đang học trong lớp. Để sinh lại hoặc đồng bộ danh sách buổi học, bạn sử dụng chức năng &quot;Sinh lại &amp; Đồng bộ lịch học&quot;.
+          </Text>
+        </Form>
+      </Modal>
+
+      {/* Modal Xác Nhận Kick Học Sinh Có Chọn Ngày Kích */}
+      <Modal
+        title={`Xác nhận kích học sinh: ${kickStudentName}`}
+        open={isKickModalVisible}
+        onOk={handleKickStudentSubmit}
+        onCancel={() => setIsKickModalVisible(false)}
+        confirmLoading={kickingStudent}
+        okText="Xác nhận kick"
+        okButtonProps={{ danger: true }}
+        cancelText="Hủy"
+        width={450}
+      >
+        <Form form={kickForm} layout="vertical" style={{ padding: '12px 0' }}>
+          <Form.Item
+            name="droppedDate"
+            label="Ngày rời lớp (Ngày bị kích)"
+            rules={[{ required: true, message: 'Vui lòng chọn ngày rời lớp!' }]}
+          >
+            <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+          </Form.Item>
+          {kickStudentJoinedDate && (
+            <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: 8 }}>
+              Ngày vào lớp của học sinh: <strong>{dayjs(kickStudentJoinedDate).format('DD/MM/YYYY')}</strong>
+            </Text>
+          )}
+          <Text type="secondary" style={{ fontSize: '12px', display: 'block' }}>
+            Lưu ý: Học sinh sẽ không tham gia các buổi học kể từ ngày này. Lịch sử điểm danh và hóa đơn trước ngày này vẫn được bảo toàn nguyên vẹn.
           </Text>
         </Form>
       </Modal>

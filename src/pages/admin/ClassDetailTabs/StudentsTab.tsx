@@ -8,7 +8,7 @@ const { Title, Text } = Typography;
 interface StudentsTabProps {
   classData: any;
   setIsAddStudentVisible: (v: boolean) => void;
-  handleKickStudent: (id: string, name: string) => void;
+  handleKickStudent: (id: string, name: string, joinedDate?: string) => void;
   handleReAddStudent: (id: string) => void;
   openCloneModal: () => void;
   handleEditJoinDate: (studentId: string, studentName: string, currentJoinedDate: string) => void;
@@ -80,11 +80,22 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
-      width: '150px',
-      render: (s: string) => {
-        const color = s === 'Active' ? 'green' : 'red';
-        const label = s === 'Active' ? 'Đang học' : 'Đã kick (Dropped)';
-        return <Tag color={color}>{label}</Tag>;
+      width: '160px',
+      render: (s: string, record: any) => {
+        const isDropped = s === 'Dropped';
+        const color = isDropped ? 'red' : 'green';
+        const label = isDropped ? 'Đã kick' : 'Đang học';
+        const droppedDateStr = record.droppedDate ? dayjs(record.droppedDate).format('DD/MM/YYYY') : null;
+        return (
+          <div>
+            <Tag color={color}>{label}</Tag>
+            {isDropped && droppedDateStr && (
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                Từ: {droppedDateStr}
+              </div>
+            )}
+          </div>
+        );
       },
     },
     {
@@ -99,7 +110,7 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
               danger
               type="text"
               icon={<DeleteOutlined />}
-              onClick={() => handleKickStudent(record.studentId, fullName)}
+              onClick={() => handleKickStudent(record.studentId, fullName, record.joinedDate)}
             />
           );
         } else if (record.status === 'Dropped') {
