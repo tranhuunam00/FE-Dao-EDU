@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Card, Table, Tag, Select, Row, Col, Typography, Button, Modal, Spin, Empty, Space, Segmented } from 'antd';
+import { Card, Table, Tag, Select, Row, Col, Typography, Button, Modal, Spin, Empty, Segmented } from 'antd';
 import { TrendingUp, TrendingDown, Minus, Eye } from 'lucide-react';
 import api from '../../services/api';
 import { weeklyReportService } from '../../services/weekly-report.service';
