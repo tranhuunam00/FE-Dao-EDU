@@ -457,7 +457,7 @@ export const useAdminSessionAttendance = ({
       cancelText: 'Hủy',
       onOk: async () => {
         try {
-          const { data } = await api.post(`/classes/sessions/${currentSession.id}/revert`);
+          const { data } = await api.post(`/classes/sessions/${currentSession.id}/revert-to-scheduled`);
           message.success('Đã chuyển về Chưa diễn ra!');
           setCurrentSession(data);
           onReload();
