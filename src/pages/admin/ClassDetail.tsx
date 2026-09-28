@@ -1156,7 +1156,7 @@ const ClassDetailInner: React.FC = () => {
             <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
           </Form.Item>
           <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginTop: '8px' }}>
-            Lưu ý: Hệ thống sẽ tự động đồng bộ lại điểm danh cho học sinh này. Các buổi học chưa diễn ra hoặc các buổi tương lai sẽ có mặt học sinh kể từ ngày vào lớp mới. Các buổi học trước ngày vào lớp mới sẽ tự động bị loại bỏ khỏi bảng điểm danh của học sinh.
+            Lưu ý: Thao tác này chỉ cập nhật ngày vào lớp của học sinh. Để sinh lại hoặc đồng bộ danh sách buổi học theo ngày mới, bạn sử dụng chức năng &quot;Sinh lại &amp; Đồng bộ lịch học&quot;.
           </Text>
         </Form>
       </Modal>
@@ -1181,7 +1181,7 @@ const ClassDetailInner: React.FC = () => {
             <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
           </Form.Item>
           <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginTop: '8px' }}>
-            Lưu ý: Hệ thống sẽ áp dụng ngày này cho <strong>TẤT CẢ</strong> học sinh đang học trong lớp và tự động đồng bộ lại điểm danh cho toàn bộ học sinh. Các buổi học cũ trước ngày này sẽ xóa bản ghi điểm danh để không ảnh hưởng báo cáo vắng học.
+            Lưu ý: Thao tác này chỉ cập nhật ngày vào lớp cho tất cả học sinh đang học trong lớp. Để sinh lại hoặc đồng bộ danh sách buổi học, bạn sử dụng chức năng &quot;Sinh lại &amp; Đồng bộ lịch học&quot;.
           </Text>
         </Form>
       </Modal>
