@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Card, Table, Tag, Select, Row, Col, Typography, Button, Modal, Spin, Empty, Space } from 'antd';
+import { Card, Table, Tag, Select, Row, Col, Typography, Button, Modal, Spin, Empty, Space, Segmented } from 'antd';
 import { TrendingUp, TrendingDown, Minus, Eye } from 'lucide-react';
 import api from '../../services/api';
 import { weeklyReportService } from '../../services/weekly-report.service';
@@ -29,6 +29,8 @@ export const TeacherWeeklyReports: React.FC = () => {
   };
 
   const currentYear = new Date().getFullYear();
+  const [periodMode, setPeriodMode] = useState<'month' | 'week'>('month');
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [selectedWeek, setSelectedWeek] = useState<number>(getCurrentWeek());
 
@@ -82,7 +84,9 @@ export const TeacherWeeklyReports: React.FC = () => {
     setModalVisible(true);
     setModalLoading(true);
     try {
-      const res = await weeklyReportService.getStudentReport(studentId, selectedWeek, selectedYear);
+      const res = periodMode === 'month'
+        ? await weeklyReportService.getStudentMonthlyReport(studentId, selectedMonth, selectedYear)
+        : await weeklyReportService.getStudentReport(studentId, selectedWeek, selectedYear);
       if (res.success && res.data) {
         setModalReport(res.data);
       } else {
@@ -102,11 +106,11 @@ export const TeacherWeeklyReports: React.FC = () => {
   });
 
   const getLevelTag = (level: string) => {
-    if (level.includes('Level 5')) return <Tag color="emerald" style={{ background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' }}>Level 5 - Xuất sắc</Tag>;
-    if (level.includes('Level 4')) return <Tag color="blue" style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>Level 4 - Giỏi</Tag>;
-    if (level.includes('Level 3')) return <Tag color="gold" style={{ background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a' }}>Level 3 - Khá</Tag>;
-    if (level.includes('Level 2')) return <Tag color="orange" style={{ background: '#fff7ed', color: '#c2410c', border: '1px solid #fed7aa' }}>Level 2 - Trung bình</Tag>;
-    return <Tag color="red" style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}>Level 1 - Yếu</Tag>;
+    if (level.includes('Level 5') || level.includes('Mức 5')) return <Tag color="emerald" style={{ background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' }}>Mức 5 - Xuất sắc</Tag>;
+    if (level.includes('Level 4') || level.includes('Mức 4')) return <Tag color="blue" style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>Mức 4 - Giỏi</Tag>;
+    if (level.includes('Level 3') || level.includes('Mức 3')) return <Tag color="gold" style={{ background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a' }}>Mức 3 - Khá</Tag>;
+    if (level.includes('Level 2') || level.includes('Mức 2')) return <Tag color="orange" style={{ background: '#fff7ed', color: '#c2410c', border: '1px solid #fed7aa' }}>Mức 2 - Trung bình</Tag>;
+    return <Tag color="red" style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}>Mức 1 - Cần cố gắng</Tag>;
   };
 
   return (
@@ -142,6 +146,32 @@ export const TeacherWeeklyReports: React.FC = () => {
               label: `${c.className} (${c.classCode})`,
             }))}
           />
+          <Segmented
+            value={periodMode}
+            onChange={(v) => setPeriodMode(v as 'month' | 'week')}
+            options={[
+              { label: 'Theo Tháng', value: 'month' },
+              { label: 'Theo Tuần', value: 'week' },
+            ]}
+          />
+          {periodMode === 'month' ? (
+            <Select
+              value={selectedMonth}
+              onChange={(m) => setSelectedMonth(m)}
+              style={{ width: 120 }}
+              options={Array.from({ length: 12 }, (_, i) => ({
+                value: i + 1,
+                label: `Tháng ${String(i + 1).padStart(2, '0')}`,
+              }))}
+            />
+          ) : (
+            <Select
+              value={selectedWeek}
+              onChange={(w) => setSelectedWeek(w)}
+              style={{ width: 150 }}
+              options={weekOptions}
+            />
+          )}
           <Select
             value={selectedYear}
             onChange={(y) => setSelectedYear(y)}
@@ -151,12 +181,6 @@ export const TeacherWeeklyReports: React.FC = () => {
               { value: 2026, label: '2026' },
               { value: 2027, label: '2027' },
             ]}
-          />
-          <Select
-            value={selectedWeek}
-            onChange={(w) => setSelectedWeek(w)}
-            style={{ width: 150 }}
-            options={weekOptions}
           />
         </div>
       </div>
@@ -306,20 +330,28 @@ export const TeacherWeeklyReports: React.FC = () => {
         width={920}
         destroyOnClose
         style={{ top: 20 }}
+        styles={{
+          container: { padding: 0 },
+          body: { background: '#ffffff', padding: 0 }
+        }}
       >
         {modalLoading ? (
           <div style={{ textAlign: 'center', padding: '60px 0' }}>
             <Spin size="large" />
             <div style={{ marginTop: 12, color: 'var(--text-secondary, #6b7280)' }}>
-              Đang tải thiệp báo cáo tuần của học sinh...
+              Đang tải phiếu báo cáo kết quả học tập...
             </div>
           </div>
         ) : modalReport ? (
-          <div style={{ paddingTop: 16 }}>
-            <WeeklyReportCard report={modalReport} />
+          <div>
+            <WeeklyReportCard
+              report={modalReport}
+              isMonthly={periodMode === 'month'}
+              classNameTitle={classData?.className}
+            />
           </div>
         ) : (
-          <Empty description="Không tìm thấy báo cáo cho tuần này." />
+          <Empty description={`Không tìm thấy dữ liệu báo cáo ${periodMode === 'month' ? `Tháng ${selectedMonth}/${selectedYear}` : `Tuần ${selectedWeek}/${selectedYear}`}.`} />
         )}
       </Modal>
     </div>

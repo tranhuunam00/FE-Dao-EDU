@@ -1,27 +1,25 @@
 import React from 'react';
-import { Card, Tag, Row, Col, Progress, Table, Typography, Space, Button } from 'antd';
-import {
-  Trophy,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  Sparkles,
-  AlertCircle,
-  Printer,
-  Calendar,
-  BookOpen,
-} from 'lucide-react';
+import { Button } from 'antd';
+import { Printer } from 'lucide-react';
 import type { WeeklyReportData } from '../services/weekly-report.service';
+import { ReportCardHeader } from './ReportCard/ReportCardHeader';
+import { ReportCardSqiBreakdown } from './ReportCard/ReportCardSqiBreakdown';
 import { WeeklyReportSessionsTable } from './WeeklyReportSessionsTable';
-
-const { Title, Text, Paragraph } = Typography;
+import { ReportCardPedagogy } from './ReportCard/ReportCardPedagogy';
 
 interface WeeklyReportCardProps {
   report: WeeklyReportData;
+  isMonthly?: boolean;
+  classNameTitle?: string;
   onPrint?: () => void;
 }
 
-export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({ report: rawReport, onPrint }) => {
+export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
+  report: rawReport,
+  isMonthly = false,
+  classNameTitle,
+  onPrint,
+}) => {
   const r = (rawReport || {}) as any;
   const report = {
     ...rawReport,
@@ -42,16 +40,6 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({ report: rawR
     sessions: rawReport?.sessions || r._sessions || [],
   };
 
-  const getLevelColor = (score: number) => {
-    if (score >= 90) return { color: '#10b981', bg: 'rgba(16, 185, 129, 0.12)', label: 'Level 5 - Xuất sắc' };
-    if (score >= 75) return { color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.12)', label: 'Level 4 - Giỏi' };
-    if (score >= 60) return { color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.12)', label: 'Level 3 - Khá' };
-    if (score >= 45) return { color: '#f97316', bg: 'rgba(249, 115, 22, 0.12)', label: 'Level 2 - Trung bình' };
-    return { color: '#ef4444', bg: 'rgba(239, 68, 68, 0.12)', label: 'Level 1 - Yếu' };
-  };
-
-  const levelInfo = getLevelColor(report.sqiScore);
-
   const formatDate = (dStr: string) => {
     if (!dStr) return '';
     const parts = dStr.split('-');
@@ -59,469 +47,278 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({ report: rawR
     return dStr;
   };
 
-  const handleDefaultPrint = () => {
+  const periodLabel = isMonthly
+    ? `Tháng ${String(report.weekNumber).padStart(2, '0')}/${report.year}`
+    : `Tuần ${report.weekNumber}/${report.year}`;
+
+  const dateRange = `${formatDate(report.startDate)} - ${formatDate(report.endDate)}`;
+
+  // Trích xuất danh sách lớp học sinh đã tham gia học trong khoảng thời gian lấy phiếu
+  const sessionClasses = Array.from(
+    new Set(
+      (report.sessions || [])
+        .map((s: any) => s.className?.trim())
+        .filter((c: any) => Boolean(c))
+    )
+  );
+  const attendedClasses = sessionClasses.length > 0
+    ? sessionClasses.join(', ')
+    : (classNameTitle || 'Đang cập nhật');
+
+  const handlePrint = () => {
     if (onPrint) {
       onPrint();
-    } else {
-      window.print();
+      return;
     }
+    // Check if we are inside an Ant Design modal
+    const isModal = Boolean(document.querySelector('.ant-modal .weekly-report-wrapper'));
+    if (isModal) {
+      document.body.classList.add('is-printing-report-modal');
+    } else {
+      document.body.classList.add('is-printing-report');
+    }
+
+    const cleanup = () => {
+      document.body.classList.remove('is-printing-report-modal', 'is-printing-report');
+      window.removeEventListener('afterprint', cleanup);
+    };
+
+    window.addEventListener('afterprint', cleanup);
+    window.print();
+    setTimeout(cleanup, 2000);
   };
 
   return (
-    <div className="weekly-report-container" style={{ maxWidth: 880, margin: '0 auto', paddingBottom: 24 }}>
-      {/* ACTION BAR */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+    <div className="weekly-report-wrapper" style={{ maxWidth: 880, margin: '0 auto', padding: 0 }}>
+      {/* PRINT CSS TO ENFORCE CLEAN A4 PAGE FIT WITHOUT WASTING PAPER */}
+      <style>{`
+        /* Zero out modal padding on screen */
+        .ant-modal:has(.weekly-report-wrapper) .ant-modal-container,
+        .ant-modal:has(.weekly-report-wrapper) .ant-modal-content,
+        .ant-modal:has(.weekly-report-wrapper) .ant-modal-body,
+        .ant-modal:has(.weekly-report-wrapper) .ant-modal-body > div {
+          padding: 0 !important;
+        }
+
+        @media print {
+          @page {
+            size: A4 portrait;
+            margin: 6mm 10mm 6mm 10mm;
+          }
+          /* Reset root, body, html to pure white background without margins */
+          html, body {
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            font-size: 10pt !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            min-height: auto !important;
+            height: auto !important;
+            overflow: visible !important;
+          }
+
+          /* When inside modal: hide the whole dashboard background (#root) */
+          body.is-printing-report-modal #root,
+          body:has(.ant-modal .weekly-report-wrapper) #root {
+            display: none !important;
+          }
+
+          /* Hide app chrome, navigation, headers and buttons */
+          .no-print,
+          .ant-btn,
+          .dashboard-sidebar,
+          aside,
+          .top-header,
+          header,
+          .ant-layout-sider,
+          .ant-layout-header,
+          .ant-modal-close,
+          .parent-ai-chat-widget,
+          .ant-float-btn {
+            display: none !important;
+          }
+
+          /* Reset Ant Design modal overlay & wrappers so only the card renders */
+          .ant-modal-mask,
+          .ant-modal-wrap::before {
+            display: none !important;
+          }
+          .ant-modal-root,
+          .ant-modal-wrap {
+            position: static !important;
+            inset: auto !important;
+            overflow: visible !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            background: transparent !important;
+          }
+          .ant-modal {
+            position: static !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            transform: none !important;
+          }
+          .ant-modal-container,
+          .ant-modal-content {
+            position: static !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+          .ant-modal-body,
+          .ant-modal-body > div {
+            padding: 0 !important;
+            margin: 0 !important;
+            background: transparent !important;
+            width: 100% !important;
+          }
+
+          /* Reset page layout container when printed directly on page */
+          .dashboard-main,
+          .dashboard-content,
+          .ant-layout,
+          .ant-layout-content {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            min-height: auto !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            overflow: visible !important;
+          }
+
+          /* Clean A4 document card styling - NO SHADOW, NO BORDER, FULL WIDTH */
+          .weekly-report-wrapper {
+            max-width: 100% !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+          }
+          .weekly-report-card {
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            padding: 4px 6px !important;
+            margin: 0 !important;
+            background: #ffffff !important;
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+
+          /* Tighten internal component paddings for standard A4 fit */
+          .report-header-section {
+            margin-bottom: 8px !important;
+          }
+          .report-header-branding {
+            padding-bottom: 6px !important;
+            margin-bottom: 8px !important;
+          }
+          .report-header-title {
+            margin: 6px 0 8px !important;
+          }
+          .report-header-info {
+            padding: 6px 10px !important;
+            margin-bottom: 8px !important;
+          }
+          .report-sqi-hero {
+            padding: 6px 10px !important;
+            margin-bottom: 6px !important;
+          }
+          .report-sqi-grid {
+            margin-bottom: 8px !important;
+          }
+          .report-sessions-table {
+            margin-top: 6px !important;
+            margin-bottom: 6px !important;
+          }
+          .report-pedagogy-section {
+            margin-top: 6px !important;
+          }
+          .report-pedagogy-box {
+            padding: 6px 10px !important;
+            margin-bottom: 8px !important;
+          }
+          .report-signature-section {
+            margin-top: 8px !important;
+          }
+
+          tr {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+        }
+      `}</style>
+
+      {/* ACTION BAR (HIDDEN IN PRINT) */}
+      <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
         <Button
           type="primary"
-          icon={<Printer size={16} />}
-          onClick={handleDefaultPrint}
+          icon={<Printer size={15} style={{ verticalAlign: 'middle', marginRight: 4 }} />}
+          onClick={handlePrint}
           style={{
-            background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
-            borderColor: 'transparent',
-            borderRadius: 8,
-            boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)',
+            background: '#1e293b',
+            borderColor: '#1e293b',
+            borderRadius: 6,
+            fontWeight: 600,
           }}
         >
-          In / Tải thiệp báo cáo
+          Xuất file PDF / In phiếu A4
         </Button>
       </div>
 
-      {/* MAIN REPORT CARD */}
-      <Card
-        className="glass-panel"
+      {/* A4 REPORT CARD DOCUMENT */}
+      <div
+        className="weekly-report-card"
         style={{
-          borderRadius: 16,
-          border: '1px solid var(--border-color, rgba(229, 231, 235, 0.5))',
-          background: 'var(--card-bg, #ffffff)',
-          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.05)',
-          overflow: 'hidden',
+          background: '#ffffff',
+          padding: '8px 12px',
         }}
-        styles={{ body: { padding: '24px 28px' } }}
       >
-        {/* HEADER */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 12,
-            paddingBottom: 20,
-            borderBottom: '1px dashed var(--border-color, #e5e7eb)',
-          }}
-        >
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span
-                style={{
-                  background: 'linear-gradient(135deg, #4f46e5, #9333ea)',
-                  color: '#fff',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: '0.08em',
-                  padding: '3px 10px',
-                  borderRadius: 20,
-                  textTransform: 'uppercase',
-                }}
-              >
-                Educare AI
-              </span>
-              <Text style={{ fontSize: 13, color: 'var(--text-secondary, #6b7280)' }}>
-                Báo cáo chất lượng học tập
-              </Text>
-            </div>
-            <Title level={3} style={{ margin: '8px 0 0', color: 'var(--text-primary, #111827)' }}>
-              {report.studentName || 'Học sinh'}{' '}
-              {report.studentCode && (
-                <Text style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-secondary, #6b7280)' }}>
-                  ({report.studentCode})
-                </Text>
-              )}
-            </Title>
-          </div>
+        <ReportCardHeader
+          studentName={report.studentName}
+          studentCode={report.studentCode}
+          className={classNameTitle}
+          activeClasses={attendedClasses}
+          periodLabel={periodLabel}
+          dateRange={dateRange}
+          isMonthly={isMonthly}
+        />
 
-          <div style={{ textAlign: 'right' }}>
-            <Tag
-              icon={<Calendar size={13} style={{ marginRight: 4, verticalAlign: 'middle' }} />}
-              style={{
-                fontSize: 13,
-                padding: '4px 12px',
-                borderRadius: 8,
-                background: 'rgba(99, 102, 241, 0.08)',
-                color: '#4f46e5',
-                border: 'none',
-                fontWeight: 600,
-              }}
-            >
-              Tuần {report.weekNumber} / {report.year}
-            </Tag>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary, #6b7280)', marginTop: 4 }}>
-              {formatDate(report.startDate)} - {formatDate(report.endDate)}
-            </div>
-          </div>
-        </div>
+        <ReportCardSqiBreakdown
+          sqiScore={report.sqiScore}
+          sqiDelta={report.sqiDelta}
+          sqiBreakdown={report.sqiBreakdown}
+          overview={report.overview}
+          isMonthly={isMonthly}
+        />
 
-        {/* HERO SQI SECTION */}
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 20,
-            margin: '24px 0',
-            padding: '20px 24px',
-            borderRadius: 14,
-            background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.04) 0%, rgba(168, 85, 247, 0.04) 100%)',
-            border: '1px solid rgba(99, 102, 241, 0.12)',
-          }}
-        >
-          {/* SQI SCORE & LEVEL */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            <div
-              style={{
-                width: 88,
-                height: 88,
-                borderRadius: '50%',
-                background: levelInfo.bg,
-                border: `3px solid ${levelInfo.color}`,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: `0 8px 20px ${levelInfo.bg}`,
-              }}
-            >
-              <span style={{ fontSize: 28, fontWeight: 800, color: levelInfo.color, lineHeight: 1 }}>
-                {report.sqiScore}
-              </span>
-              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-secondary, #6b7280)', marginTop: 2 }}>
-                / 100 SQI
-              </span>
-            </div>
-
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 18, fontWeight: 700, color: levelInfo.color }}>
-                  {levelInfo.label}
-                </span>
-                {report.sqiDelta > 0 ? (
-                  <Tag color="success" style={{ borderRadius: 6, fontWeight: 700 }}>
-                    <TrendingUp size={13} style={{ marginRight: 2, verticalAlign: 'middle' }} />
-                    +{report.sqiDelta} điểm
-                  </Tag>
-                ) : report.sqiDelta < 0 ? (
-                  <Tag color="error" style={{ borderRadius: 6, fontWeight: 700 }}>
-                    <TrendingDown size={13} style={{ marginRight: 2, verticalAlign: 'middle' }} />
-                    {report.sqiDelta} điểm
-                  </Tag>
-                ) : (
-                  <Tag color="default" style={{ borderRadius: 6, fontWeight: 600 }}>
-                    <Minus size={13} style={{ marginRight: 2, verticalAlign: 'middle' }} />
-                    Giữ vững
-                  </Tag>
-                )}
-              </div>
-              <Paragraph style={{ margin: '6px 0 0', color: 'var(--text-secondary, #4b5563)', fontSize: 14 }}>
-                {report.overview}
-              </Paragraph>
-            </div>
-          </div>
-
-          <div style={{ textAlign: 'right', minWidth: 160 }}>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary, #6b7280)', marginBottom: 4 }}>
-              Đánh giá chất lượng tổng thể
-            </div>
-            <Progress
-              percent={report.sqiScore}
-              strokeColor={{ '0%': '#6366f1', '100%': levelInfo.color }}
-              showInfo={false}
-              size={['100%', 10]}
-            />
-          </div>
-        </div>
-
-        {/* TIÊU CHÍ CHẤT LƯỢNG HỌC TẬP (QUY CHUẨN THANG 10) */}
-        {report.sqiBreakdown && (
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, flexWrap: 'wrap', gap: 8 }}>
-              <div>
-                <Text style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary, #6b7280)' }}>
-                  Cấu Trúc Đánh Giá Chất Lượng Học Tập (SQI - Thang Điểm 10)
-                </Text>
-                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
-                  * Các tiêu chí được quy chuẩn về thang điểm 10 kết hợp trọng số để tính điểm SQI tổng kết tuần
-                </div>
-              </div>
-              {report.sqiDelta !== undefined && report.sqiDelta !== 0 && (
-                <Text style={{ fontSize: 12, fontWeight: 600, color: report.sqiDelta > 0 ? '#10b981' : '#ef4444' }}>
-                  {report.sqiDelta > 0 ? `▲ Tăng +${report.sqiDelta} điểm so với tuần trước` : `▼ Giảm ${report.sqiDelta} điểm so với tuần trước`}
-                </Text>
-              )}
-            </div>
-            <Row gutter={[10, 10]} style={{ marginTop: 10 }}>
-              <Col xs={12} sm={6} md={3}>
-                <div style={factorBoxStyle}>
-                  <Text style={factorTitleStyle}>Học tập (30%)</Text>
-                  <span style={factorValStyle}>{((report.sqiBreakdown.academic / 30) * 10).toFixed(1)}/10</span>
-                </div>
-              </Col>
-              <Col xs={12} sm={6} md={3}>
-                <div style={factorBoxStyle}>
-                  <Text style={factorTitleStyle}>Tiến bộ (20%)</Text>
-                  <span style={factorValStyle}>{((report.sqiBreakdown.progress / 20) * 10).toFixed(1)}/10</span>
-                </div>
-              </Col>
-              <Col xs={12} sm={6} md={3}>
-                <div style={factorBoxStyle}>
-                  <Text style={factorTitleStyle}>Tiếp thu (15%)</Text>
-                  <span style={factorValStyle}>{((report.sqiBreakdown.competency / 15) * 10).toFixed(1)}/10</span>
-                </div>
-              </Col>
-              <Col xs={12} sm={6} md={3}>
-                <div style={factorBoxStyle}>
-                  <Text style={factorTitleStyle}>Chuyên cần (10%)</Text>
-                  <span style={factorValStyle}>{((report.sqiBreakdown.attendance / 10) * 10).toFixed(1)}/10</span>
-                </div>
-              </Col>
-              <Col xs={12} sm={6} md={3}>
-                <div style={factorBoxStyle}>
-                  <Text style={factorTitleStyle}>Bài tập (10%)</Text>
-                  <span style={factorValStyle}>{((report.sqiBreakdown.homework / 10) * 10).toFixed(1)}/10</span>
-                </div>
-              </Col>
-              <Col xs={12} sm={6} md={3}>
-                <div style={factorBoxStyle}>
-                  <Text style={factorTitleStyle}>Thái độ (10%)</Text>
-                  <span style={factorValStyle}>{((report.sqiBreakdown.attitude / 10) * 10).toFixed(1)}/10</span>
-                </div>
-              </Col>
-              <Col xs={12} sm={6} md={3}>
-                <div style={factorBoxStyle}>
-                  <Text style={factorTitleStyle}>Kỷ luật (5%)</Text>
-                  <span style={factorValStyle}>{((report.sqiBreakdown.behavior / 5) * 10).toFixed(1)}/10</span>
-                </div>
-              </Col>
-              <Col xs={12} sm={6} md={3}>
-                <div style={{ ...factorBoxStyle, background: 'rgba(99, 102, 241, 0.08)', borderColor: 'rgba(99, 102, 241, 0.3)' }}>
-                  <Text style={{ ...factorTitleStyle, color: '#4f46e5', fontWeight: 700 }}>Tổng SQI</Text>
-                  <span style={{ ...factorValStyle, color: '#4f46e5' }}>{report.sqiScore}đ</span>
-                </div>
-              </Col>
-            </Row>
-          </div>
+        {report.sessions && report.sessions.length > 0 && (
+          <WeeklyReportSessionsTable sessions={report.sessions} isMonthly={isMonthly} />
         )}
 
-        {/* SUBJECT PERFORMANCES TABLE */}
-        {report.subjectPerformances && report.subjectPerformances.length > 0 && (
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 6 }}>
-              <Text style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary, #6b7280)' }}>
-                Kết Quả Học Tập Theo Môn
-              </Text>
-              <Text style={{ fontSize: 12, color: 'var(--text-secondary, #6b7280)' }}>
-                So sánh điểm tuần này với tuần liền trước
-              </Text>
-            </div>
-            <Table
-              size="small"
-              pagination={false}
-              style={{ marginTop: 8 }}
-              rowKey="subjectName"
-              dataSource={report.subjectPerformances}
-              columns={[
-                {
-                  title: 'Môn học',
-                  dataIndex: 'subjectName',
-                  render: (name: string) => (
-                    <Space orientation="horizontal" size={8}>
-                      <BookOpen size={15} color="#4f46e5" />
-                      <Text strong>{name}</Text>
-                    </Space>
-                  ),
-                },
-                {
-                  title: 'Điểm tuần trước',
-                  key: 'previousScore',
-                  width: 140,
-                  render: (_: any, row: any) => {
-                    if (row.previousScore !== undefined && row.previousScore !== null) {
-                      return (
-                        <Text strong style={{ fontSize: 13, color: '#4b5563' }}>
-                          {row.previousScore} / 10
-                        </Text>
-                      );
-                    }
-                    return <Tag color="default" style={{ fontSize: 11, borderRadius: 6 }}>Chưa có</Tag>;
-                  },
-                },
-                {
-                  title: 'Điểm tuần này',
-                  key: 'score',
-                  render: (_: any, row: any) => (
-                    <Space size={8} wrap>
-                      <Text
-                        strong
-                        style={{
-                          fontSize: 14,
-                          color: row.score >= 8 ? '#10b981' : row.score >= 6.5 ? '#3b82f6' : '#f59e0b',
-                        }}
-                      >
-                        {row.score} / 10
-                      </Text>
-                      {row.isEstimated ? (
-                        <Tag color="cyan" style={{ fontSize: 11, borderRadius: 10, margin: 0 }}>
-                          Đánh giá buổi học
-                        </Tag>
-                      ) : (
-                        <Tag color="purple" style={{ fontSize: 11, borderRadius: 10, margin: 0 }}>
-                          Điểm kiểm tra
-                        </Tag>
-                      )}
-                    </Space>
-                  ),
-                },
-                {
-                  title: 'So với tuần trước',
-                  key: 'trend',
-                  render: (_: any, row: any) => {
-                    const tr = row.trend;
-                    const delta = row.scoreDelta;
-                    if (tr === 'up') {
-                      const dStr = delta !== undefined && delta > 0 ? ` (+${delta})` : '';
-                      return (
-                        <Tag color="success" style={{ fontWeight: 600, borderRadius: 6 }}>
-                          <TrendingUp size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> Tăng tiến{dStr}
-                        </Tag>
-                      );
-                    }
-                    if (tr === 'down') {
-                      const dStr = delta !== undefined ? ` (${delta})` : '';
-                      return (
-                        <Tag color="error" style={{ fontWeight: 600, borderRadius: 6 }}>
-                          <TrendingDown size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> Giảm sút{dStr}
-                        </Tag>
-                      );
-                    }
-                    if (tr === 'new') {
-                      return <Tag color="processing" style={{ fontWeight: 600, borderRadius: 6 }}>Môn mới tuần này</Tag>;
-                    }
-                    const dStr = delta !== undefined ? ` (${delta > 0 ? '+' + delta : delta})` : ' (0.0)';
-                    return (
-                      <Tag color="default" style={{ fontWeight: 600, borderRadius: 6 }}>
-                        <Minus size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> Ổn định{dStr}
-                      </Tag>
-                    );
-                  },
-                },
-              ]}
-            />
-          </div>
-        )}
-
-        {/* CHI TIẾT TỪNG BUỔI HỌC TRONG TUẦN */}
-        <WeeklyReportSessionsTable sessions={report.sessions} />
-
-        {/* 3 PEDAGOGICAL CARDS (STRENGTHS, IMPROVEMENTS, RECOMMENDATIONS) */}
-        <Row gutter={[16, 16]}>
-          {/* STRENGTHS */}
-          <Col xs={24} md={12}>
-            <div
-              style={{
-                background: 'rgba(16, 185, 129, 0.06)',
-                border: '1px solid rgba(16, 185, 129, 0.25)',
-                borderRadius: 12,
-                padding: '16px 18px',
-                height: '100%',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <Trophy size={18} color="#10b981" />
-                <Text strong style={{ color: '#047857', fontSize: 14 }}>
-                  Điểm Mạnh Trong Tuần
-                </Text>
-              </div>
-              <Paragraph style={{ margin: 0, color: 'var(--text-primary, #1f2937)', fontSize: 13.5, lineHeight: 1.6 }}>
-                {report.strengths || 'Học sinh duy trì nỗ lực trong các buổi học.'}
-              </Paragraph>
-            </div>
-          </Col>
-
-          {/* IMPROVEMENTS */}
-          <Col xs={24} md={12}>
-            <div
-              style={{
-                background: 'rgba(245, 158, 11, 0.06)',
-                border: '1px solid rgba(245, 158, 11, 0.25)',
-                borderRadius: 12,
-                padding: '16px 18px',
-                height: '100%',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <AlertCircle size={18} color="#d97706" />
-                <Text strong style={{ color: '#b45309', fontSize: 14 }}>
-                  Cần Cải Thiện
-                </Text>
-              </div>
-              <Paragraph style={{ margin: 0, color: 'var(--text-primary, #1f2937)', fontSize: 13.5, lineHeight: 1.6 }}>
-                {report.improvements || 'Tiếp tục phát huy nề nếp học tập.'}
-              </Paragraph>
-            </div>
-          </Col>
-
-          {/* RECOMMENDATIONS FOR PARENTS */}
-          <Col span={24}>
-            <div
-              style={{
-                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, rgba(168, 85, 247, 0.06) 100%)',
-                border: '1px solid rgba(99, 102, 241, 0.25)',
-                borderRadius: 12,
-                padding: '18px 20px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                <Sparkles size={18} color="#6366f1" />
-                <Text strong style={{ color: '#4338ca', fontSize: 14.5 }}>
-                  Khuyến Nghị Tuần Tới Dành Cho Phụ Huynh
-                </Text>
-              </div>
-              <ul style={{ margin: 0, paddingLeft: 20 }}>
-                {(report.recommendations || []).map((rec, idx) => (
-                  <li key={idx} style={{ color: 'var(--text-primary, #1f2937)', fontSize: 13.5, marginBottom: 6 }}>
-                    {rec}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </Col>
-        </Row>
-      </Card>
+        <ReportCardPedagogy
+          strengths={report.strengths}
+          improvements={report.improvements}
+          recommendations={report.recommendations}
+          isMonthly={isMonthly}
+        />
+      </div>
     </div>
   );
-};
-
-const factorBoxStyle: React.CSSProperties = {
-  background: 'rgba(0, 0, 0, 0.02)',
-  border: '1px solid var(--border-color, #e5e7eb)',
-  borderRadius: 8,
-  padding: '8px 10px',
-  textAlign: 'center',
-};
-
-const factorTitleStyle: React.CSSProperties = {
-  fontSize: 11,
-  color: 'var(--text-secondary, #6b7280)',
-  display: 'block',
-  whiteSpace: 'nowrap',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-};
-
-const factorValStyle: React.CSSProperties = {
-  fontSize: 13,
-  fontWeight: 700,
-  color: 'var(--text-primary, #111827)',
-  display: 'block',
-  marginTop: 2,
 };

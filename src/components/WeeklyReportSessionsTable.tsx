@@ -1,11 +1,9 @@
 import React from 'react';
-import { Table, Tag, Typography, Space } from 'antd';
-import { Calendar, CheckCircle2, XCircle, Clock, MessageSquare, Award } from 'lucide-react';
-
-const { Text } = Typography;
+import { Calendar } from 'lucide-react';
 
 interface SessionDetail {
   classSessionId: string;
+  className?: string;
   subjectName: string;
   date?: string;
   isPresent: boolean;
@@ -20,9 +18,26 @@ interface SessionDetail {
 
 interface WeeklyReportSessionsTableProps {
   sessions: SessionDetail[];
+  isMonthly?: boolean;
 }
 
-export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps> = ({ sessions }) => {
+const BEHAVIOR_TAG_VI_MAP: Record<string, string> = {
+  attentive: 'Tập trung',
+  active: 'Hăng hái phát biểu',
+  distracted: 'Chưa tập trung',
+  talkative: 'Nói chuyện riêng',
+  phone: 'Dùng điện thoại',
+  disruptive: 'Nhắc nhở nề nếp',
+  sleepy: 'Buồn ngủ',
+  late_submission: 'Nộp bài muộn',
+  cooperative: 'Hợp tác tốt',
+  creative: 'Sáng tạo',
+};
+
+export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps> = ({
+  sessions,
+  isMonthly = false,
+}) => {
   if (!sessions || sessions.length === 0) return null;
 
   const formatDate = (dStr?: string) => {
@@ -32,122 +47,149 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
     return dStr;
   };
 
-  const columns = [
-    {
-      title: 'Buổi học / Môn học',
-      key: 'subject',
-      render: (_: any, row: SessionDetail) => (
-        <div>
-          <Text strong style={{ color: 'var(--text-primary, #111827)' }}>
-            {row.subjectName}
-          </Text>
-          {row.date && (
-            <div style={{ fontSize: 12, color: 'var(--text-secondary, #6b7280)', marginTop: 2 }}>
-              <Calendar size={12} style={{ verticalAlign: 'middle', marginRight: 4 }} />
-              {formatDate(row.date)}
-            </div>
-          )}
-        </div>
-      ),
-    },
-    {
-      title: 'Điểm danh',
-      key: 'attendance',
-      width: 110,
-      render: (_: any, row: SessionDetail) => {
-        if (!row.isPresent) {
-          return (
-            <Tag color="error" icon={<XCircle size={12} style={{ verticalAlign: 'middle', marginRight: 3 }} />}>
-              Vắng mặt
-            </Tag>
-          );
-        }
-        if (row.isLate) {
-          return (
-            <Tag color="warning" icon={<Clock size={12} style={{ verticalAlign: 'middle', marginRight: 3 }} />}>
-              Đi trễ
-            </Tag>
-          );
-        }
-        return (
-          <Tag color="success" icon={<CheckCircle2 size={12} style={{ verticalAlign: 'middle', marginRight: 3 }} />}>
-            Có mặt
-          </Tag>
-        );
-      },
-    },
-    {
-      title: 'Bài tập về nhà',
-      key: 'homework',
-      width: 130,
-      render: (_: any, row: SessionDetail) => {
-        const hw = row.homeworkStatus;
-        if (hw === 'completed') return <Tag color="green">Đã hoàn thành</Tag>;
-        if (hw === 'incomplete') return <Tag color="orange">Chưa hoàn thiện</Tag>;
-        return <Tag color="red">Chưa làm</Tag>;
-      },
-    },
-    {
-      title: 'Tiếp thu & Nề nếp',
-      key: 'understanding',
-      render: (_: any, row: SessionDetail) => {
-        const und = row.understanding;
-        return (
-          <Space direction="vertical" size={2}>
-            {und === 'understood' && <Tag color="blue">Hiểu bài nhanh</Tag>}
-            {und === 'partially' && <Tag color="gold">Hiểu cơ bản</Tag>}
-            {und === 'not_understood' && <Tag color="red">Cần kèm thêm</Tag>}
-            {row.behaviorTags && row.behaviorTags.length > 0 && (
-              <div style={{ fontSize: 11, color: 'var(--text-secondary, #6b7280)' }}>
-                {row.behaviorTags.join(', ')}
-              </div>
-            )}
-          </Space>
-        );
-      },
-    },
-    {
-      title: 'Điểm số',
-      key: 'score',
-      width: 90,
-      align: 'center' as const,
-      render: (_: any, row: SessionDetail) =>
-        row.score ? (
-          <Tag color="purple" icon={<Award size={12} style={{ verticalAlign: 'middle', marginRight: 2 }} />}>
-            {row.score}đ
-          </Tag>
-        ) : (
-          <Text type="secondary">—</Text>
-        ),
-    },
-    {
-      title: 'Nhận xét của giáo viên',
-      key: 'comment',
-      render: (_: any, row: SessionDetail) =>
-        row.teacherComment ? (
-          <div style={{ fontSize: 13, color: 'var(--text-primary, #1f2937)', fontStyle: 'italic' }}>
-            <MessageSquare size={13} style={{ verticalAlign: 'middle', marginRight: 6, color: '#6366f1' }} />
-            "{row.teacherComment}"
-          </div>
-        ) : (
-          <Text type="secondary" style={{ fontSize: 12 }}>Chưa có ghi chú</Text>
-        ),
-    },
-  ];
+  const formatBehaviorTags = (tags?: string[]) => {
+    if (!tags || tags.length === 0) return null;
+    return tags.map((t) => BEHAVIOR_TAG_VI_MAP[t.toLowerCase()] || t).join(', ');
+  };
+
+  const thStyle: React.CSSProperties = {
+    padding: '5px 6px',
+    fontSize: 11,
+    fontWeight: 700,
+    color: '#1e293b',
+    background: '#f8fafc',
+    border: '1px solid #cbd5e1',
+    textTransform: 'uppercase',
+  };
+
+  const tdStyle: React.CSSProperties = {
+    padding: '5px 6px',
+    fontSize: 11,
+    color: '#0f172a',
+    background: '#ffffff',
+    border: '1px solid #cbd5e1',
+    verticalAlign: 'middle',
+  };
 
   return (
-    <div style={{ marginTop: 24, marginBottom: 20 }}>
-      <Text style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary, #6b7280)' }}>
-        Chi Tiết Từng Buổi Học Trong Tuần
-      </Text>
-      <Table
-        size="small"
-        pagination={false}
-        style={{ marginTop: 8 }}
-        rowKey={(record) => record.classSessionId}
-        dataSource={sessions}
-        columns={columns}
-      />
+    <div className="report-sessions-table" style={{ marginTop: 8, marginBottom: 8 }}>
+      <div
+        style={{
+          fontSize: 12,
+          fontWeight: 700,
+          color: '#1e293b',
+          textTransform: 'uppercase',
+          marginBottom: 6,
+          letterSpacing: '0.02em',
+        }}
+      >
+        {isMonthly ? 'Chi Tiết Các Buổi Học Trong Tháng' : 'Chi Tiết Các Buổi Học Trong Tuần'} ({sessions.length} buổi)
+      </div>
+
+      <div style={{ width: '100%', overflowX: 'auto' }}>
+        <table
+          style={{
+            width: '100%',
+            borderCollapse: 'collapse',
+            background: '#ffffff',
+            color: '#0f172a',
+          }}
+        >
+          <thead>
+            <tr>
+              <th style={{ ...thStyle, width: '22%' }}>Buổi học / Môn học</th>
+              <th style={{ ...thStyle, width: '12%', textAlign: 'center' }}>Điểm danh</th>
+              <th style={{ ...thStyle, width: '15%' }}>Bài tập về nhà</th>
+              <th style={{ ...thStyle, width: '20%' }}>Tiếp thu & Nề nếp</th>
+              <th style={{ ...thStyle, width: '9%', textAlign: 'center' }}>Điểm số</th>
+              <th style={{ ...thStyle, width: '22%' }}>Nhận xét của giáo viên</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sessions.map((row, idx) => {
+              const tagsText = formatBehaviorTags(row.behaviorTags);
+
+              return (
+                <tr key={row.classSessionId || idx}>
+                  {/* MÔN HỌC & NGÀY */}
+                  <td style={tdStyle}>
+                    <div style={{ fontWeight: 600, color: '#0f172a' }}>{row.subjectName}</div>
+                    {row.date && (
+                      <div style={{ fontSize: 11, color: '#64748b', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Calendar size={11} color="#64748b" />
+                        <span>{formatDate(row.date)}</span>
+                      </div>
+                    )}
+                  </td>
+
+                  {/* ĐIỂM DANH */}
+                  <td style={{ ...tdStyle, textAlign: 'center' }}>
+                    {!row.isPresent ? (
+                      <span style={{ color: '#dc2626', fontWeight: 600 }}>Vắng mặt</span>
+                    ) : row.isLate ? (
+                      <span style={{ color: '#d97706', fontWeight: 600 }}>Đi trễ</span>
+                    ) : (
+                      <span style={{ color: '#16a34a', fontWeight: 600 }}>Có mặt</span>
+                    )}
+                  </td>
+
+                  {/* BÀI TẬP VỀ NHÀ */}
+                  <td style={tdStyle}>
+                    {row.homeworkStatus === 'completed' ? (
+                      <span style={{ color: '#16a34a', fontWeight: 500 }}>Đã hoàn thành</span>
+                    ) : row.homeworkStatus === 'incomplete' ? (
+                      <span style={{ color: '#d97706', fontWeight: 500 }}>Chưa hoàn thiện</span>
+                    ) : (
+                      <span style={{ color: '#dc2626', fontWeight: 500 }}>Chưa làm</span>
+                    )}
+                  </td>
+
+                  {/* TIẾP THU & NỀ NẾP */}
+                  <td style={tdStyle}>
+                    <div>
+                      {row.understanding === 'understood' && (
+                        <span style={{ color: '#2563eb', fontWeight: 600 }}>Hiểu bài nhanh</span>
+                      )}
+                      {row.understanding === 'partially' && (
+                        <span style={{ color: '#d97706', fontWeight: 500 }}>Hiểu cơ bản</span>
+                      )}
+                      {row.understanding === 'not_understood' && (
+                        <span style={{ color: '#dc2626', fontWeight: 500 }}>Cần kèm thêm</span>
+                      )}
+                    </div>
+                    {tagsText && (
+                      <div style={{ fontSize: 10.5, color: '#64748b', marginTop: 2 }}>
+                        {tagsText}
+                      </div>
+                    )}
+                  </td>
+
+                  {/* ĐIỂM SỐ */}
+                  <td style={{ ...tdStyle, textAlign: 'center' }}>
+                    {row.score ? (
+                      <span style={{ fontWeight: 700, color: '#0f172a' }}>{row.score}đ</span>
+                    ) : (
+                      <span style={{ color: '#94a3b8' }}>—</span>
+                    )}
+                  </td>
+
+                  {/* NHẬN XÉT CỦA GIÁO VIÊN */}
+                  <td style={tdStyle}>
+                    {row.teacherComment ? (
+                      <div style={{ fontStyle: 'italic', color: '#334155' }}>
+                        "{row.teacherComment}"
+                      </div>
+                    ) : (
+                      <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Đầy đủ nề nếp</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
+

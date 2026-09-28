@@ -111,12 +111,30 @@ export const weeklyReportService = {
     return response.data;
   },
 
-  // 3. Giáo viên / Admin: Xem chi tiết báo cáo của 1 học sinh cụ thể
+  // 3. Giáo viên / Admin: Xem chi tiết báo cáo tuần của 1 học sinh cụ thể
   getStudentReport: async (studentId: string, week?: number, year?: number): Promise<WeeklyReportResponse> => {
     const params = new URLSearchParams();
     if (week) params.append('week', String(week));
     if (year) params.append('year', String(year));
     const response = await api.get(`/weekly-reports/student/${studentId}?${params.toString()}`);
+    return response.data;
+  },
+
+  // 4. Giáo viên / Admin: Xem chi tiết báo cáo tháng của 1 học sinh
+  getStudentMonthlyReport: async (studentId: string, month: number, year: number): Promise<WeeklyReportResponse> => {
+    const params = new URLSearchParams();
+    params.append('month', String(month));
+    params.append('year', String(year));
+    const response = await api.get(`/weekly-reports/student/${studentId}/monthly?${params.toString()}`);
+    return response.data;
+  },
+
+  // 5. Phụ huynh / Học sinh: Tự động lấy báo cáo tháng của con
+  getMyMonthlyReport: async (month: number, year: number): Promise<WeeklyReportResponse> => {
+    const params = new URLSearchParams();
+    params.append('month', String(month));
+    params.append('year', String(year));
+    const response = await api.get(`/weekly-reports/my-report/monthly?${params.toString()}`);
     return response.data;
   },
 };
