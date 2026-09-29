@@ -1,4 +1,5 @@
 import React from 'react';
+import { Check, X } from 'lucide-react';
 
 interface SessionDetail {
   classSessionId: string;
@@ -42,18 +43,19 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
   }, {});
 
   const thStyle: React.CSSProperties = {
-    padding: '6px 6px',
-    fontSize: 10.5,
+    padding: '5px 4px',
+    fontSize: 10,
     fontWeight: 700,
     color: '#1e293b',
     background: '#f8fafc',
     border: '1px solid #cbd5e1',
     textTransform: 'uppercase',
+    whiteSpace: 'nowrap',
   };
 
   const tdStyle: React.CSSProperties = {
-    padding: '5px 6px',
-    fontSize: 10.5,
+    padding: '4px 4px',
+    fontSize: 10,
     color: '#0f172a',
     background: '#ffffff',
     border: '1px solid #cbd5e1',
@@ -61,8 +63,8 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
   };
 
   const totalRowTdStyle: React.CSSProperties = {
-    padding: '6px 6px',
-    fontSize: 10.5,
+    padding: '5px 4px',
+    fontSize: 10,
     fontWeight: 700,
     color: '#0f172a',
     background: '#f1f5f9',
@@ -136,6 +138,14 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
     return <span style={{ color: '#10b981', fontWeight: 600 }}>Tốt</span>;
   };
 
+  // Màu theo 4 nấc tỷ lệ: 0->0.25: Đỏ, 0.25->0.5: Xám, 0.5->0.75: Xanh dương (Giỏi), 0.75->1: Xanh lá
+  const getRateColor = (ratio: number): string => {
+    if (ratio >= 0.75) return '#16a34a'; // Xanh lá (0.75 - 1.0)
+    if (ratio >= 0.5) return '#2563eb';  // Xanh dương - Giỏi (0.5 - 0.75)
+    if (ratio >= 0.25) return '#64748b'; // Xám (0.25 - 0.5)
+    return '#dc2626';                    // Đỏ (0 - 0.25)
+  };
+
   return (
     <div className="report-sessions-table" style={{ marginTop: 8, marginBottom: 8 }}>
       <div
@@ -151,10 +161,11 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
         {isMonthly ? 'Chi Tiết Các Buổi Học Trong Tháng' : 'Chi Tiết Các Buổi Học Trong Tuần'} ({sessions.length} buổi)
       </div>
 
-      <div style={{ width: '100%', overflowX: 'auto' }}>
+      <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
         <table
           style={{
             width: '100%',
+            minWidth: 620,
             borderCollapse: 'collapse',
             background: '#ffffff',
             color: '#0f172a',
@@ -163,14 +174,15 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
         >
           <thead>
             <tr>
-              <th style={{ ...thStyle, width: '18%' }}>Buổi học / Ngày</th>
-              <th style={{ ...thStyle, width: '9%', textAlign: 'center' }}>Điểm danh</th>
-              <th style={{ ...thStyle, width: '10%', textAlign: 'center' }}>Bài tập</th>
-              <th style={{ ...thStyle, width: '10%', textAlign: 'center' }}>Tiếp thu</th>
-              <th style={{ ...thStyle, width: '10%', textAlign: 'center' }}>Tương tác</th>
-              <th style={{ ...thStyle, width: '10%', textAlign: 'center' }}>Nề nếp</th>
-              <th style={{ ...thStyle, width: '8%', textAlign: 'center' }}>Điểm số</th>
-              <th style={{ ...thStyle, width: '25%' }}>Nhận xét của giáo viên</th>
+              <th style={{ ...thStyle, width: '4%', textAlign: 'center' }}>STT</th>
+              <th style={{ ...thStyle, width: '11%' }}>Ngày</th>
+              <th style={{ ...thStyle, width: '5%', textAlign: 'center' }}>Điểm danh</th>
+              <th style={{ ...thStyle, width: '8%', textAlign: 'center' }}>Bài tập</th>
+              <th style={{ ...thStyle, width: '8%', textAlign: 'center' }}>Tiếp thu</th>
+              <th style={{ ...thStyle, width: '8%', textAlign: 'center' }}>Tương tác</th>
+              <th style={{ ...thStyle, width: '8%', textAlign: 'center' }}>Nề nếp</th>
+              <th style={{ ...thStyle, width: '7%', textAlign: 'center' }}>Điểm số</th>
+              <th style={{ ...thStyle, width: '41%' }}>Nhận xét của giáo viên</th>
             </tr>
           </thead>
           <tbody>
@@ -178,19 +190,23 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
               // Thống kê hàng tổng của môn
               const totalSub = subSessions.length;
               const presentCount = subSessions.filter((s) => s.isPresent).length;
+              const presentRatio = totalSub > 0 ? presentCount / totalSub : 0;
 
               const hwSessions = subSessions.filter((s) => Boolean(s.homeworkStatus));
               const hwDone = hwSessions.filter(
                 (s) => s.homeworkStatus === 'completed' || s.homeworkStatus === 'done',
               ).length;
+              const hwRatio = hwSessions.length > 0 ? hwDone / hwSessions.length : 0;
 
               const underSessions = subSessions.filter((s) => Boolean(s.understanding));
               const underGood = underSessions.filter(
                 (s) => s.understanding === 'understood' || s.understanding === 'quick' || s.understanding === 'normal',
               ).length;
+              const underRatio = underSessions.length > 0 ? underGood / underSessions.length : 0;
 
               const partSessions = subSessions.filter((s) => Boolean(s.participation));
               const partActive = partSessions.filter((s) => s.participation === 'active').length;
+              const partRatio = partSessions.length > 0 ? partActive / partSessions.length : 0;
 
               const behSessions = subSessions.filter(
                 (s) => Array.isArray(s.behaviorTags) && s.behaviorTags.length > 0,
@@ -202,6 +218,7 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
                 );
                 return !isWarning;
               }).length;
+              const behRatio = behSessions.length > 0 ? behGood / behSessions.length : 0;
 
               const validScores = subSessions
                 .map((s) => (s.score ? Number(String(s.score).replace(',', '.')) : null))
@@ -210,13 +227,14 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
               const avgScore = validScores.length > 0
                 ? (validScores.reduce((a, b) => a + b, 0) / validScores.length).toFixed(1)
                 : null;
+              const scoreRatio = avgScore !== null ? Number(avgScore) / 10 : null;
 
               return (
                 <React.Fragment key={subject || gIdx}>
                   {/* TIÊU ĐỀ PHÂN TÁCH MÔN HỌC */}
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={9}
                       style={{
                         padding: '6px 10px',
                         background: '#e2e8f0',
@@ -237,55 +255,65 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
                   {subSessions.map((row, idx) => {
                     return (
                       <tr key={row.classSessionId || `${gIdx}-${idx}`}>
+                        {/* STT */}
+                        <td style={{ ...tdStyle, textAlign: 'center', fontWeight: 600, color: '#64748b', whiteSpace: 'nowrap' }}>
+                          {idx + 1}
+                        </td>
+
                         {/* BUỔI HỌC / NGÀY */}
-                        <td style={tdStyle}>
+                        <td style={{ ...tdStyle, whiteSpace: 'nowrap' }}>
                           <div style={{ fontWeight: 600, color: '#0f172a' }}>
                             {row.date ? formatDate(row.date) : `Buổi ${idx + 1}`}
                           </div>
                         </td>
 
-                        {/* ĐIỂM DANH: CHỈ CÓ CÓ MẶT VS VẮNG MẶT */}
-                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                        {/* ĐIỂM DANH: TÍCH XANH HOẶC X ĐỎ */}
+                        <td style={{ ...tdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
                           {row.isPresent ? (
-                            <span style={{ color: '#16a34a', fontWeight: 600 }}>Có mặt</span>
+                            <span title="Có mặt" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <Check size={16} strokeWidth={2.8} style={{ color: '#16a34a' }} />
+                            </span>
                           ) : (
-                            <span style={{ color: '#dc2626', fontWeight: 600 }}>Vắng mặt</span>
+                            <span title="Vắng mặt" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <X size={16} strokeWidth={2.8} style={{ color: '#dc2626' }} />
+                            </span>
                           )}
                         </td>
 
                         {/* BÀI TẬP */}
-                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                        <td style={{ ...tdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
                           {renderHomework(row.homeworkStatus)}
                         </td>
 
                         {/* TIẾP THU */}
-                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                        <td style={{ ...tdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
                           {renderUnderstanding(row.understanding)}
                         </td>
 
                         {/* TƯƠNG TÁC */}
-                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                        <td style={{ ...tdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
                           {renderParticipation(row.participation)}
                         </td>
 
                         {/* NỀ NẾP */}
-                        <td style={{ ...tdStyle, textAlign: 'center' }}>
+                        <td style={{ ...tdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
                           {renderBehavior(row.behaviorTags)}
                         </td>
 
                         {/* ĐIỂM SỐ */}
-                        <td style={{ ...tdStyle, textAlign: 'center' }}>
-                          {row.score ? (
-                            <span style={{ fontWeight: 700, color: '#0f172a' }}>{row.score}đ</span>
-                          ) : (
-                            <span style={{ color: '#94a3b8' }}>—</span>
-                          )}
+                        <td style={{ ...tdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
+                          {(() => {
+                            if (!row.score) return <span style={{ color: '#94a3b8' }}>—</span>;
+                            const numScore = Number(String(row.score).replace(',', '.'));
+                            const color = !isNaN(numScore) ? getRateColor(numScore / 10) : '#0f172a';
+                            return <span style={{ fontWeight: 700, color }}>{row.score}</span>;
+                          })()}
                         </td>
 
                         {/* NHẬN XÉT CỦA GIÁO VIÊN */}
-                        <td style={tdStyle}>
+                        <td style={{ ...tdStyle, minWidth: 180 }}>
                           {row.teacherComment ? (
-                            <div style={{ fontStyle: 'italic', color: '#334155' }}>
+                            <div style={{ fontStyle: 'italic', color: '#334155', lineHeight: 1.4, wordBreak: 'break-word' }}>
                               "{row.teacherComment}"
                             </div>
                           ) : (
@@ -298,45 +326,45 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
 
                   {/* HÀNG TỔNG KẾT CHO MÔN HỌC NÀY */}
                   <tr>
-                    <td style={totalRowTdStyle}>
-                      <div>Tổng kết môn ({totalSub} buổi)</div>
+                    <td colSpan={2} style={totalRowTdStyle}>
+                      <div>Tổng kết ({totalSub} buổi)</div>
                     </td>
-                    <td style={{ ...totalRowTdStyle, textAlign: 'center' }}>
-                      <span style={{ color: '#16a34a' }}>{presentCount}</span>/{totalSub} có mặt
+                    <td style={{ ...totalRowTdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
+                      <span style={{ color: getRateColor(presentRatio) }}>{presentCount}/{totalSub}</span>
                     </td>
-                    <td style={{ ...totalRowTdStyle, textAlign: 'center' }}>
+                    <td style={{ ...totalRowTdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
                       {hwSessions.length > 0 ? (
-                        <span>{hwDone}/{hwSessions.length} đã làm</span>
+                        <span style={{ color: getRateColor(hwRatio) }}>{hwDone}/{hwSessions.length}</span>
                       ) : (
                         <span style={{ color: '#94a3b8', fontWeight: 400 }}>—</span>
                       )}
                     </td>
-                    <td style={{ ...totalRowTdStyle, textAlign: 'center' }}>
+                    <td style={{ ...totalRowTdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
                       {underSessions.length > 0 ? (
-                        <span>{underGood}/{underSessions.length} hiểu bài</span>
+                        <span style={{ color: getRateColor(underRatio) }}>{underGood}/{underSessions.length}</span>
                       ) : (
                         <span style={{ color: '#94a3b8', fontWeight: 400 }}>—</span>
                       )}
                     </td>
-                    <td style={{ ...totalRowTdStyle, textAlign: 'center' }}>
+                    <td style={{ ...totalRowTdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
                       {partSessions.length > 0 ? (
-                        <span>{partActive}/{partSessions.length} hăng hái</span>
+                        <span style={{ color: getRateColor(partRatio) }}>{partActive}/{partSessions.length}</span>
                       ) : (
                         <span style={{ color: '#94a3b8', fontWeight: 400 }}>—</span>
                       )}
                     </td>
-                    <td style={{ ...totalRowTdStyle, textAlign: 'center' }}>
+                    <td style={{ ...totalRowTdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
                       {behSessions.length > 0 ? (
-                        <span style={{ color: behGood === behSessions.length ? '#16a34a' : '#d97706' }}>
-                          {behGood}/{behSessions.length} tốt
+                        <span style={{ color: getRateColor(behRatio) }}>
+                          {behGood}/{behSessions.length}
                         </span>
                       ) : (
                         <span style={{ color: '#94a3b8', fontWeight: 400 }}>—</span>
                       )}
                     </td>
-                    <td style={{ ...totalRowTdStyle, textAlign: 'center' }}>
-                      {avgScore !== null ? (
-                        <span style={{ color: '#1e40af' }}>ĐTB: {avgScore}đ</span>
+                    <td style={{ ...totalRowTdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
+                      {avgScore !== null && scoreRatio !== null ? (
+                        <span style={{ color: getRateColor(scoreRatio) }}>{avgScore}</span>
                       ) : (
                         <span style={{ color: '#94a3b8', fontWeight: 400 }}>—</span>
                       )}
@@ -352,3 +380,4 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
     </div>
   );
 };
+
