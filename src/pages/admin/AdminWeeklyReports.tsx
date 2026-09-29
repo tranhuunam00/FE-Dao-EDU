@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Card, Table, Tag, Select, Row, Col, Typography, Button, Modal, Spin, Empty, Segmented, Checkbox, message, Space } from 'antd';
-import { TrendingUp, TrendingDown, Minus, Eye, Share2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Eye, Share2, Download } from 'lucide-react';
 import api from '../../services/api';
 import { weeklyReportService } from '../../services/weekly-report.service';
 import type { StudentWeeklySummary, WeeklyReportData } from '../../services/weekly-report.service';
 import { WeeklyReportCard } from '../../components/WeeklyReportCard';
+import { LevelDistributionBar } from '../teacher/components/LevelDistributionBar';
+import { exportToExcel } from '../../utils/export';
 
 const { Title, Text } = Typography;
 
@@ -135,13 +137,51 @@ export const AdminWeeklyReports: React.FC = () => {
     return <Tag color="red" style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}>Mức 1 - Cần cố gắng</Tag>;
   };
 
+  const handleExportSqiReport = () => {
+    if (!classData || !classData.students || classData.students.length === 0) {
+      message.warning('Chưa có dữ liệu học sinh để xuất.');
+      return;
+    }
+    const currentClass = classes.find((c) => c.id === selectedClassId);
+    const className = currentClass ? currentClass.className : 'Lop';
+    const periodLabel = periodMode === 'month' ? `Thang_${selectedMonth}_${selectedYear}` : `Tuan_${selectedWeek}_${selectedYear}`;
+
+    const baseOrigin = (import.meta as any).env?.VITE_PUBLIC_URL || (import.meta as any).env?.VITE_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+    const cleanOrigin = baseOrigin.replace(/\/+$/, '');
+    const periodNumber = periodMode === 'month' ? selectedMonth : selectedWeek;
+
+    const exportData = classData.students.map((s: StudentWeeklySummary, idx: number) => {
+      const publicLink = `${cleanOrigin}/public/reports/${s.studentId}?type=${periodMode}&${periodMode === 'month' ? `month=${periodNumber}` : `week=${periodNumber}`}&year=${selectedYear}`;
+      return {
+        stt: idx + 1,
+        studentCode: s.studentCode || '',
+        studentName: s.studentName,
+        sqiScore: s.sqiScore !== null && s.sqiScore !== undefined ? s.sqiScore : '—',
+        level: s.level || 'Chưa xếp loại',
+        attendanceRate: s.attendanceRate !== null && s.attendanceRate !== undefined ? `${s.attendanceRate}%` : '—',
+        homeworkRate: s.homeworkRate !== null && s.homeworkRate !== undefined ? `${s.homeworkRate}%` : '—',
+        isApproved: s.isApproved ? 'Đã duyệt' : 'Bản nháp',
+        isSent: s.sentToZaloAt ? 'Đã gửi' : 'Chưa gửi',
+        qrLink: publicLink,
+      };
+    });
+
+    exportToExcel(
+      exportData,
+      `Bao_cao_SQI_${className.replace(/\s+/g, '_')}_${periodLabel}`,
+      ['STT', 'Mã HS', 'Họ và tên học sinh', 'Điểm SQI', 'Xếp loại', 'Chuyên cần', 'Bài tập', 'Duyệt', 'Gửi PH', 'Link xem & QR Online'],
+      ['stt', 'studentCode', 'studentName', 'sqiScore', 'level', 'attendanceRate', 'homeworkRate', 'isApproved', 'isSent', 'qrLink'],
+      `Báo cáo SQI ${className}`
+    );
+  };
+
   return (
     <div style={{ padding: '4px 8px 32px' }}>
       {/* HEADER CONTROLS */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16, marginBottom: 20 }}>
         <div>
           <Title level={4} style={{ margin: 0, color: 'var(--text-primary, #111827)' }}>
-            📊 Quản Trị Báo Cáo Tuần & Chất Lượng SQI
+            Quản Trị Báo Cáo Tuần & Chất Lượng SQI
           </Title>
           <Text style={{ fontSize: 13, color: 'var(--text-secondary, #6b7280)' }}>
             Giám sát chất lượng học tập, chỉ số SQI và phân bổ học sinh theo tuần toàn hệ thống
@@ -191,6 +231,14 @@ export const AdminWeeklyReports: React.FC = () => {
             style={{ width: 90 }}
             options={[{ value: 2025, label: '2025' }, { value: 2026, label: '2026' }, { value: 2027, label: '2027' }]}
           />
+          <Button
+            type="primary"
+            icon={<Download size={14} />}
+            onClick={handleExportSqiReport}
+            style={{ background: '#4f46e5', borderColor: '#4338ca' }}
+          >
+            Xuất Excel & Link QR
+          </Button>
         </div>
       </div>
 
@@ -219,56 +267,10 @@ export const AdminWeeklyReports: React.FC = () => {
               <Text style={{ fontSize: 12, color: 'var(--text-secondary, #6b7280)', display: 'block', marginBottom: 8 }}>
                 Phân Bố Chất Lượng Học Sinh
               </Text>
-              {(() => {
-                const dist = classData.levelDistribution;
-                const total = classData.totalStudents || 1;
-                const levels = [
-                  { key: 'level5', label: 'Xuất sắc', count: dist?.level5 || 0, color: '#16a34a', bg: '#dcfce7' },
-                  { key: 'level4', label: 'Giỏi', count: dist?.level4 || 0, color: '#2563eb', bg: '#dbeafe' },
-                  { key: 'level3', label: 'Khá', count: dist?.level3 || 0, color: '#d97706', bg: '#fef3c7' },
-                  { key: 'level2', label: 'TB', count: dist?.level2 || 0, color: '#ea580c', bg: '#ffedd5' },
-                  { key: 'level1', label: 'Yếu', count: dist?.level1 || 0, color: '#dc2626', bg: '#fee2e2' },
-                ];
-                return (
-                  <>
-                    <div style={{ display: 'flex', height: 22, borderRadius: 6, overflow: 'hidden', background: '#f1f5f9', marginBottom: 8 }}>
-                      {levels.map((lv) => {
-                        const pct = (lv.count / total) * 100;
-                        if (pct === 0) return null;
-                        return (
-                          <div
-                            key={lv.key}
-                            title={`${lv.label}: ${lv.count} HS (${Math.round(pct)}%)`}
-                            style={{
-                              width: `${pct}%`,
-                              background: lv.color,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: '#fff',
-                              fontSize: 10,
-                              fontWeight: 700,
-                              minWidth: pct > 8 ? undefined : 18,
-                              transition: 'width 0.4s ease',
-                            }}
-                          >
-                            {lv.count}
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                      {levels.map((lv) => (
-                        <div key={lv.key} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11.5 }}>
-                          <span style={{ width: 8, height: 8, borderRadius: '50%', background: lv.color }} />
-                          <span style={{ color: 'var(--text-secondary, #6b7280)' }}>{lv.label}:</span>
-                          <strong style={{ color: 'var(--text-primary, #111827)' }}>{lv.count}</strong>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                );
-              })()}
+              <LevelDistributionBar
+                distribution={classData.levelDistribution}
+                totalStudents={classData.totalStudents}
+              />
             </Card>
           </Col>
         </Row>
