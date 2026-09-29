@@ -1,6 +1,6 @@
-import React from 'react';
-import { Card, Typography, Button, Table, Tag, Popconfirm, Tooltip } from 'antd';
-import { PlusOutlined, DeleteOutlined, SyncOutlined } from '@ant-design/icons';
+import React, { useMemo, useState, useEffect } from 'react';
+import { Card, Typography, Button, Table, Tag, Popconfirm, Tooltip, Select, Space } from 'antd';
+import { PlusOutlined, DeleteOutlined, SyncOutlined, CalendarOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -44,18 +44,60 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
   handleDeleteSession,
   isAdmin
 }) => {
+  // Danh sách các tháng duy nhất có trong dữ liệu buổi học
+  const monthOptions = useMemo(() => {
+    const monthMap = new Map<string, number>();
+    sessions.forEach((s) => {
+      if (s.date) {
+        const m = dayjs(s.date).format('YYYY-MM');
+        monthMap.set(m, (monthMap.get(m) || 0) + 1);
+      }
+    });
+
+    const sortedMonths = Array.from(monthMap.keys()).sort();
+    return sortedMonths.map((m) => {
+      const [year, month] = m.split('-');
+      return {
+        value: m,
+        label: `Tháng ${month}/${year} (${monthMap.get(m)} buổi)`,
+      };
+    });
+  }, [sessions]);
+
+  // Mặc định chọn tháng hiện tại, hoặc tháng gần nhất có buổi học
+  const defaultMonth = useMemo(() => {
+    const currentMonth = dayjs().format('YYYY-MM');
+    const hasCurrent = monthOptions.some((opt) => opt.value === currentMonth);
+    if (hasCurrent) return currentMonth;
+    return monthOptions[0]?.value || 'ALL';
+  }, [monthOptions]);
+
+  const [selectedMonth, setSelectedMonth] = useState<string>('ALL');
+
+  useEffect(() => {
+    if (defaultMonth && selectedMonth === 'ALL' && monthOptions.length > 0) {
+      setSelectedMonth(defaultMonth);
+    }
+  }, [defaultMonth, monthOptions]);
+
+  // Lọc danh sách buổi học theo tháng đã chọn
+  const filteredSessions = useMemo(() => {
+    if (selectedMonth === 'ALL') return sessions;
+    return sessions.filter((s) => dayjs(s.date).format('YYYY-MM') === selectedMonth);
+  }, [sessions, selectedMonth]);
+
   const sessionColumns = [
     {
       title: 'Ngày học',
       dataIndex: 'date',
       key: 'date',
-      width: '150px',
+      width: '140px',
       render: (text: string) => <Text strong style={{ color: 'var(--text-primary)' }}>{dayjs(text).format('DD/MM/YYYY')}</Text>,
     },
     {
       title: 'Giờ học',
       key: 'time',
-      width: '150px',
+      width: '130px',
       render: (_: any, record: ClassSession) => `${(record.startTime || '').substring(0, 5)} - ${(record.endTime || '').substring(0, 5)}`,
     },
     {
@@ -88,7 +130,7 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
-      width: '160px',
+      width: '140px',
       render: (s: string) => {
         let color = 'blue';
         let label = 'Chưa diễn ra';
@@ -109,7 +151,7 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
     {
       title: 'Tính học phí',
       key: 'isBilled',
-      width: '140px',
+      width: '130px',
       render: (_: any, record: ClassSession) => {
         if (record.isBilled) {
           return <Tag color="success">Đã tính tiền</Tag>;
@@ -120,7 +162,7 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
     {
       title: 'Hành động',
       key: 'action',
-      width: '240px',
+      width: '220px',
       render: (_: any, record: ClassSession) => {
         const isWageBilled = Boolean(
           record.isWageBilled ||
@@ -197,21 +239,41 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
 
   return (
     <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <Title level={5} style={{ color: 'var(--text-primary)', margin: 0 }}>Danh sách các buổi học</Title>
           <Text type="secondary" style={{ fontSize: '13px' }}>
-            Các buổi học được sinh tự động dựa trên Lịch học cố định từ ngày Khai giảng.
+            Hiển thị {filteredSessions.length} / {sessions.length} buổi học theo lịch cố định và đột xuất.
           </Text>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+
+        {/* BỘ LỌC THÁNG VÀ CÁC THAO TÁC */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          {monthOptions.length > 0 && (
+            <Space>
+              <Text strong style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
+                <CalendarOutlined style={{ marginRight: 4 }} />
+                Lọc theo tháng:
+              </Text>
+              <Select
+                value={selectedMonth}
+                onChange={setSelectedMonth}
+                style={{ width: 220 }}
+                options={[
+                  { value: 'ALL', label: `Tất cả các tháng (${sessions.length} buổi)` },
+                  ...monthOptions,
+                ]}
+              />
+            </Space>
+          )}
+
           <Button
             type="dashed"
             icon={<SyncOutlined />}
             onClick={openGenerateSessionsModal}
             style={{ color: '#a5b4fc', borderColor: '#6366f1' }}
           >
-            {sessions.length === 0 ? 'Sinh danh sách buổi học' : 'Sinh lại / Đồng bộ lịch học'}
+            {sessions.length === 0 ? 'Sinh danh sách buổi học' : 'Sinh lại / Đồng bộ'}
           </Button>
           <Button
             type="primary"
@@ -223,12 +285,13 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
           </Button>
         </div>
       </div>
+
       <Table
         columns={sessionColumns}
-        dataSource={sessions}
+        dataSource={filteredSessions}
         rowKey="id"
         size="small"
-        pagination={{ pageSize: 20 }}
+        pagination={filteredSessions.length > 20 ? { pageSize: 20 } : false}
       />
     </Card>
   );

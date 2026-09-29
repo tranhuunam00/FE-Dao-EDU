@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { X, Save, Play, CheckCircle2, UserCheck, Sparkles } from 'lucide-react';
+import { X, Save, Play, CheckCircle2, UserCheck, Sparkles, Download } from 'lucide-react';
 import { AttendanceTabContent } from './components/AttendanceTabContent';
 import { EvaluationsTabContent } from './components/EvaluationsTabContent';
 import { useSessionAttendanceAndEvaluation } from './components/useSessionAttendanceAndEvaluation';
+import { exportToExcel } from '../../utils/export';
 
 interface AttendanceModalProps {
   session: any;
@@ -46,6 +47,48 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
 
   const isLocked = attendanceLocked;
   const isScheduled = sessionStatus === 'Scheduled';
+
+  const handleExportSession = () => {
+    if (!attendances || attendances.length === 0) {
+      alert('Chưa có danh sách học sinh để xuất.');
+      return;
+    }
+    const exportData = attendances.map((a, idx) => {
+      const evalItem = evaluations[a.studentId] || ({} as any);
+      const statusLabel = a.isPresent
+        ? 'Có mặt'
+        : a.reason === 'Excused'
+        ? 'Nghỉ có phép'
+        : a.reason === 'Late'
+        ? 'Đi muộn'
+        : 'Nghỉ không phép';
+
+      const hwText = evalItem.criteria?.homework === 'done' ? 'Làm đủ' : evalItem.criteria?.homework === 'missing' ? 'Thiếu BTVN' : 'Không có';
+      const undText = evalItem.criteria?.understanding === 'quick' ? 'Tiếp thu nhanh' : evalItem.criteria?.understanding === 'slow' ? 'Chậm' : 'Bình thường';
+      const behText = evalItem.criteria?.behavior === 'good' ? 'Tốt' : evalItem.criteria?.behavior === 'talkative' ? 'Nói chuyện' : 'Mất tập trung';
+
+      return {
+        stt: idx + 1,
+        studentId: a.student?.studentId || a.studentId,
+        studentName: `${a.student?.lastName || ''} ${a.student?.firstName || ''}`.trim(),
+        status: statusLabel,
+        absenceNote: a.note || '',
+        homework: hwText,
+        understanding: undText,
+        behavior: behText,
+        score: evalItem.evaluationScore || '—',
+        feedback: evalItem.evaluationComment || '',
+      };
+    });
+
+    exportToExcel(
+      exportData,
+      `Diem_danh_Danh_gia_${(session.className || 'Lop').replace(/\s+/g, '_')}_${session.date || ''}`,
+      ['STT', 'Mã học sinh', 'Họ và tên', 'Điểm danh', 'Ghi chú vắng', 'BTVN', 'Tiếp thu', 'Nề nếp', 'Điểm đánh giá', 'Nhận xét buổi học'],
+      ['stt', 'studentId', 'studentName', 'status', 'absenceNote', 'homework', 'understanding', 'behavior', 'score', 'feedback'],
+      'Đánh giá buổi học'
+    );
+  };
 
   return (
     <div
@@ -222,46 +265,57 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-          <button className="btn btn-outline" onClick={onClose} disabled={submitting}>
-            Đóng
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={handleExportSession}
+            style={{ display: 'flex', gap: '6px', alignItems: 'center', borderColor: 'var(--primary)', color: 'var(--primary)' }}
+          >
+            <Download size={15} /> Xuất kết quả buổi học Excel
           </button>
-          {isLocked && !isScheduled && (
-            <button
-              className="btn btn-primary"
-              onClick={() => saveAllData(false)}
-              disabled={submitting}
-              style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
-            >
-              <Save size={16} /> Cập nhật đánh giá
+
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <button className="btn btn-outline" onClick={onClose} disabled={submitting}>
+              Đóng
             </button>
-          )}
-          {!isLocked && !isScheduled && (
-            <>
+            {isLocked && !isScheduled && (
               <button
                 className="btn btn-primary"
                 onClick={() => saveAllData(false)}
                 disabled={submitting}
-                style={{
-                  display: 'flex',
-                  gap: '8px',
-                  alignItems: 'center',
-                  background: 'var(--accent, #a855f7)',
-                  borderColor: 'var(--accent, #a855f7)',
-                }}
-              >
-                <Save size={16} /> Lưu tạm
-              </button>
-              <button
-                className="btn btn-primary"
-                onClick={() => saveAllData(true)}
-                disabled={submitting}
                 style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
               >
-                <CheckCircle2 size={16} /> Chốt điểm danh & Kết thúc
+                <Save size={16} /> Cập nhật đánh giá
               </button>
-            </>
-          )}
+            )}
+            {!isLocked && !isScheduled && (
+              <>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => saveAllData(false)}
+                  disabled={submitting}
+                  style={{
+                    display: 'flex',
+                    gap: '8px',
+                    alignItems: 'center',
+                    background: 'var(--accent, #a855f7)',
+                    borderColor: 'var(--accent, #a855f7)',
+                  }}
+                >
+                  <Save size={16} /> Lưu tạm
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => saveAllData(true)}
+                  disabled={submitting}
+                  style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
+                >
+                  <CheckCircle2 size={16} /> Chốt điểm danh & Kết thúc
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

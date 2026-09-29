@@ -152,17 +152,21 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
       const sName = report.studentName || 'con';
       setCommendation(
         isGood
-          ? `Tuyên dương con ${sName} đã duy trì thái độ học tập tích cực, chăm chỉ phát biểu và đạt kết quả tốt!`
-          : `Ghi nhận sự cố gắng và tinh thần tự giác của ${sName} trong các buổi học vừa qua.`,
+          ? `Tuyên dương con ${sName} đã duy trì thái độ học tập rất tích cực, chủ động phát biểu xây dựng bài và đạt kết quả SQI xuất sắc!`
+          : `Thầy cô ghi nhận sự cố gắng, tính tự giác và tinh thần vượt khó của con ${sName} trong suốt các buổi học vừa qua.`,
       );
       setStrengths(
-        strengths || `Con ${sName} tiếp thu bài tốt, có ý thức tập trung và xây dựng bài cùng thầy cô.`,
+        isGood
+          ? `Con ${sName} có khả năng tiếp thu bài nhanh, tư duy logic tốt và chủ động thảo luận các dạng bài học cùng thầy cô và các bạn.`
+          : `Con ${sName} có ý thức lắng nghe giảng bài, tuân thủ tốt nội quy lớp học và luôn cố gắng hoàn thành nhiệm vụ được giao.`,
       );
       setImprovements(
-        improvements || `Con cần tiếp tục duy trì đều đặn thói quen làm bài tập về nhà đầy đủ trước giờ học.`,
+        isGood
+          ? `Con cần chú ý rèn luyện tính cẩn thận trong các bước trình bày chi tiết và chủ động thử sức thêm với các bài tập nâng cao.`
+          : `Con cần dành thêm thời gian ôn tập kiến thức sau mỗi buổi học và duy trì thói quen làm bài tập về nhà đầy đủ trước khi lên lớp.`,
       );
       setSuggestion(
-        `• Con dành 20-30 phút mỗi ngày ôn lại bài học và hoàn thành bài tập sớm.\n• Gia đình tiếp tục động viên, nhắc nhở con chuẩn bị sách vở trước khi đến lớp.`,
+        `• Học sinh: Dành 25-30 phút mỗi ngày xem lại bài giảng trọng tâm và tự giác hoàn thành bài tập đúng hạn.\n• Gia đình: Phụ huynh tiếp tục động viên, nhắc nhở con kiểm tra lại bài vở vào buổi tối để con tự tin và tiến bộ vượt bậc.`,
       );
       message.success('Đã gợi ý nhận xét sư phạm bằng AI! Thầy/cô có thể chỉnh sửa trước khi duyệt.');
     } finally {

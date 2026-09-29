@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { exportToExcel } from '../../utils/export';
 
 export const TeacherCalendar: React.FC<{ embeddedSessions?: any[], onSessionClick?: (session: any) => void }> = ({ embeddedSessions, onSessionClick }) => {
   const [sessions, setSessions] = useState<any[]>(embeddedSessions || []);
@@ -65,19 +66,59 @@ export const TeacherCalendar: React.FC<{ embeddedSessions?: any[], onSessionClic
 
   if (loading) return <div style={{ padding: '40px', color: 'var(--text-secondary)' }}>Đang tải lịch học...</div>;
 
+  const handleExportSchedule = () => {
+    if (!sessions || sessions.length === 0) {
+      alert('Chưa có dữ liệu lịch dạy để xuất.');
+      return;
+    }
+    const exportData = sessions.map((s, idx) => ({
+      stt: idx + 1,
+      date: s.date,
+      time: `${(s.startTime || '').slice(0, 5)} - ${(s.endTime || '').slice(0, 5)}`,
+      className: s.className || s.class?.name || 'Chưa rõ',
+      room: s.roomName || s.room?.name || 'Chưa xếp phòng',
+      role: s.isMainTeacher ? 'Giáo viên chính' : 'Trợ giảng',
+      status: s.status === 'Completed' ? 'Đã hoàn thành' : s.status === 'Cancelled' ? 'Nghỉ học' : 'Sắp diễn ra',
+      attendance: s.hasAttendance ? 'Đã điểm danh' : 'Chưa điểm danh',
+    }));
+
+    exportToExcel(
+      exportData,
+      `Lich_day_Giao_vien_${monthNames[month]}_${year}`,
+      ['STT', 'Ngày học', 'Giờ học', 'Lớp học', 'Phòng học', 'Vai trò', 'Trạng thái', 'Điểm danh'],
+      ['stt', 'date', 'time', 'className', 'room', 'role', 'status', 'attendance'],
+      `Lịch dạy ${monthNames[month]}`
+    );
+  };
+
   const isEmbedded = !!embeddedSessions;
 
   const content = (
     <>
       {/* Calendar Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <h3 style={{ fontSize: '1.4rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
               {monthNames[month]} {year}
             </h3>
             <button onClick={todayMonth} className="btn" style={{ padding: '6px 12px', fontSize: '0.85rem', background: 'rgba(255,255,255,0.05)' }}>Hôm nay</button>
           </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button
+              onClick={handleExportSchedule}
+              className="btn btn-outline"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                fontSize: '0.85rem',
+                borderColor: 'var(--primary)',
+                color: 'var(--primary)',
+              }}
+            >
+              <Download size={15} /> Xuất lịch dạy Excel
+            </button>
             <button onClick={prevMonth} className="btn" style={{ padding: '8px', background: 'rgba(255,255,255,0.05)' }}><ChevronLeft size={20} /></button>
             <button onClick={nextMonth} className="btn" style={{ padding: '8px', background: 'rgba(255,255,255,0.05)' }}><ChevronRight size={20} /></button>
           </div>

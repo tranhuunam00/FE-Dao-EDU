@@ -4,11 +4,13 @@ import {
   Building2,
   CalendarDays,
   CheckCircle2,
+  Download,
   RefreshCw,
   Search,
   Users,
 } from 'lucide-react';
 import api from '../../services/api';
+import { exportToExcel } from '../../utils/export';
 
 interface Student {
   enrollmentId: string;
@@ -133,8 +135,34 @@ const TeacherClasses: React.FC = () => {
     );
   }, [selectedClass, studentSearch]);
 
+  const handleExportStudentList = () => {
+    if (!selectedClass || !selectedClass.students || selectedClass.students.length === 0) {
+      alert('Chưa có học sinh nào trong lớp để xuất.');
+      return;
+    }
+    const exportData = selectedClass.students.map((s, idx) => ({
+      stt: idx + 1,
+      studentId: s.studentId,
+      name: `${s.lastName} ${s.firstName}`.trim(),
+      nickName: s.nickName || '',
+      gender: s.gender === 'Female' ? 'Nữ' : 'Nam',
+      mobile: s.mobile || '',
+      email: s.email || '',
+      joinedDate: formatDate(s.joinedDate),
+      status: s.enrollmentStatus === 'Active' ? 'Đang học' : s.enrollmentStatus,
+    }));
+
+    exportToExcel(
+      exportData,
+      `Danh_sach_hoc_sinh_${selectedClass.className.replace(/\s+/g, '_')}`,
+      ['STT', 'Mã học sinh', 'Họ và tên', 'Biệt danh', 'Giới tính', 'Số điện thoại', 'Email', 'Ngày vào lớp', 'Trạng thái'],
+      ['stt', 'studentId', 'name', 'nickName', 'gender', 'mobile', 'email', 'joinedDate', 'status'],
+      selectedClass.className.slice(0, 30)
+    );
+  };
+
   if (loading) {
-    return <div style={{ color: 'var(--text-secondary)' }}>Đang tải danh sách lớp...</div>;
+    return <div style={{ padding: 40, color: 'var(--text-secondary)' }}>Đang tải danh sách lớp...</div>;
   }
 
   return (
@@ -292,9 +320,27 @@ const TeacherClasses: React.FC = () => {
                           {selectedClass.classCode} · {selectedClass.courseName} {selectedClass.levelName}
                         </div>
                       </div>
-                      {selectedClass.isMainTeacher && (
-                        <span className="badge badge-teacher">Giáo viên chính</span>
-                      )}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <button
+                          type="button"
+                          onClick={handleExportStudentList}
+                          className="btn btn-outline"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '6px 14px',
+                            fontSize: '0.85rem',
+                            borderColor: 'var(--primary)',
+                            color: 'var(--primary)',
+                          }}
+                        >
+                          <Download size={15} /> Xuất danh sách học sinh Excel
+                        </button>
+                        {selectedClass.isMainTeacher && (
+                          <span className="badge badge-teacher">Giáo viên chính</span>
+                        )}
+                      </div>
                     </div>
                     <div
                       style={{
