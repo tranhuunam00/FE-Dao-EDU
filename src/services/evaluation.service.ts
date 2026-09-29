@@ -63,31 +63,47 @@ export const evaluationService = {
       evaluationComment: item.comment ?? item.evaluationComment ?? null,
       isAiGenerated: item.isAiGenerated ?? false,
       isApprovedByTeacher: item.isApproved ?? item.isApprovedByTeacher ?? false,
-      criteria: item.criteria || {
+      criteria: {
         homework:
-          item.homeworkStatus === 'not_done' || item.homeworkStatus === 'NotDone'
+          item.criteria?.homework ||
+          (item.homeworkStatus === 'not_done' || item.homeworkStatus === 'NotDone' || item.homeworkStatus === 'missing'
             ? 'missing'
-            : item.homeworkStatus === 'completed' || item.homeworkStatus === 'Completed'
+            : item.homeworkStatus === 'completed' || item.homeworkStatus === 'Completed' || item.homeworkStatus === 'done'
             ? 'done'
-            : undefined,
+            : item.homeworkStatus === 'none'
+            ? 'none'
+            : undefined),
         participation:
-          item.participation === 'active' || item.participation === 'Active'
+          item.criteria?.participation ||
+          (item.participation === 'active' || item.participation === 'Active'
             ? 'active'
             : item.participation === 'passive' || item.participation === 'Passive'
             ? 'passive'
-            : 'normal',
+            : item.participation === 'normal'
+            ? 'normal'
+            : item.participation
+            ? 'normal'
+            : undefined),
         understanding:
-          item.understanding === 'understood' || item.understanding === 'Understood' || item.understanding === 'quick'
+          item.criteria?.understanding ||
+          (item.understanding === 'understood' || item.understanding === 'Understood' || item.understanding === 'quick'
             ? 'quick'
             : item.understanding === 'not_understood' || item.understanding === 'NotUnderstood' || item.understanding === 'slow'
             ? 'slow'
-            : 'normal',
+            : item.understanding === 'normal' || item.understanding === 'partially'
+            ? 'normal'
+            : item.understanding
+            ? 'normal'
+            : undefined),
         behavior:
-          item.behaviorTags?.includes('distracted') || item.behaviorTags?.includes('Distracted')
+          item.criteria?.behavior ||
+          (item.behaviorTags?.includes('distracted') || item.behaviorTags?.includes('Distracted') || item.behaviorTags?.includes('unfocused')
             ? 'unfocused'
             : item.behaviorTags?.includes('talkative') || item.behaviorTags?.includes('Talkative')
             ? 'talkative'
-            : 'good',
+            : (item.behaviorTags && item.behaviorTags.length > 0) || item.behavior === 'good' || item.behaviorTags?.includes('attentive')
+            ? 'good'
+            : undefined),
       },
       updatedAt: item.updatedAt,
     }));
