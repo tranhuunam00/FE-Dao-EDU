@@ -61,10 +61,20 @@ export const useSessionAttendanceAndEvaluation = ({
           evaluationService.getSessionEvaluations(session.id).catch(() => []),
         ]);
 
-        const normalizedAtt = (attRes.data || []).map((a: any) => ({
-          ...a,
-          attendanceType: a.verifyMethod ? a.attendanceType : 'manual',
-        }));
+        const normalizedAtt = (attRes.data || [])
+          .map((a: any) => ({
+            ...a,
+            attendanceType: a.verifyMethod ? a.attendanceType : 'manual',
+          }))
+          .sort((a: any, b: any) => {
+            const aFirst = a.student?.firstName || '';
+            const bFirst = b.student?.firstName || '';
+            const comp = aFirst.localeCompare(bFirst, 'vi', { sensitivity: 'base' });
+            if (comp !== 0) return comp;
+            const aLast = a.student?.lastName || '';
+            const bLast = b.student?.lastName || '';
+            return aLast.localeCompare(bLast, 'vi', { sensitivity: 'base' });
+          });
         setAttendances(normalizedAtt);
 
         const evalRecord: Record<string, StudentSessionEvaluationItem> = {};

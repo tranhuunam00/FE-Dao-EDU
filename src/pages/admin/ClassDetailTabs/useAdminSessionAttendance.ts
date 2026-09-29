@@ -99,6 +99,15 @@ export const useAdminSessionAttendance = ({
                 studentId: cs.student?.studentId || cs.studentId,
               },
             };
+          })
+          .sort((a: any, b: any) => {
+            const aFirst = a.student?.firstName || '';
+            const bFirst = b.student?.firstName || '';
+            const comp = aFirst.localeCompare(bFirst, 'vi', { sensitivity: 'base' });
+            if (comp !== 0) return comp;
+            const aLast = a.student?.lastName || '';
+            const bLast = b.student?.lastName || '';
+            return aLast.localeCompare(bLast, 'vi', { sensitivity: 'base' });
           });
         setSessionAttendance(mapped);
 
