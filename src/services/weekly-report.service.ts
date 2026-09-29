@@ -1,13 +1,14 @@
 import api from './api';
 
 export interface SqiBreakdown {
-  academic: number | null;
-  progress: number | null;
-  competency: number | null;
   attendance: number | null;
   homework: number | null;
-  attitude: number | null;
   behavior: number | null;
+  participation: number | null;
+  academic?: number | null;
+  progress?: number | null;
+  competency?: number | null;
+  attitude?: number | null;
 }
 
 export interface SubjectPerformance {

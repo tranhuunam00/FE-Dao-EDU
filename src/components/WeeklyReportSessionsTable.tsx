@@ -124,16 +124,16 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
   const renderBehavior = (tags?: string[]) => {
     if (!tags || tags.length === 0) return <span style={{ color: '#94a3b8' }}>—</span>;
     const t = tags.map((x) => x.toLowerCase());
-    if (t.includes('unfocused') || t.includes('distracted')) {
+    if (t.includes('unfocused') || t.includes('distracted') || t.includes('phone') || t.includes('sleepy')) {
       return <span style={{ color: '#ef4444', fontWeight: 600 }}>Mất tập trung</span>;
     }
-    if (t.includes('talkative')) {
+    if (t.includes('talkative') || t.includes('disruptive')) {
       return <span style={{ color: '#f59e0b', fontWeight: 600 }}>Nói chuyện</span>;
     }
-    if (t.includes('good')) {
+    if (t.includes('good') || t.includes('attentive') || t.includes('cooperative') || t.includes('creative')) {
       return <span style={{ color: '#10b981', fontWeight: 600 }}>Tốt</span>;
     }
-    return <span style={{ color: '#94a3b8' }}>—</span>;
+    return <span style={{ color: '#10b981', fontWeight: 600 }}>Tốt</span>;
   };
 
   return (
@@ -197,7 +197,10 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
               );
               const behGood = behSessions.filter((s) => {
                 const t = (s.behaviorTags || []).map((x) => x.toLowerCase());
-                return t.includes('good') && !t.includes('talkative') && !t.includes('unfocused') && !t.includes('distracted');
+                const isWarning = t.some((x) =>
+                  ['unfocused', 'distracted', 'phone', 'sleepy', 'talkative', 'disruptive'].includes(x),
+                );
+                return !isWarning;
               }).length;
 
               const validScores = subSessions

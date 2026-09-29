@@ -30,7 +30,7 @@ export const ReportCardSqiBreakdown: React.FC<ReportCardSqiBreakdownProps> = ({
 
   const formatCriterion = (val: number | null | undefined, maxWeight: number) => {
     if (val === null || val === undefined) return '—';
-    return `${((val / maxWeight) * 10).toFixed(1)}/10`;
+    return `${val} / ${maxWeight}đ`;
   };
 
   return (
@@ -99,7 +99,7 @@ export const ReportCardSqiBreakdown: React.FC<ReportCardSqiBreakdownProps> = ({
         )}
       </div>
 
-      {/* 7 FACTOR TABLE (COMPACT 2-COLUMN SPLIT TABLE) */}
+      {/* 4 FACTOR TABLE (COMPACT 2-COLUMN SPLIT TABLE) */}
       {sqiBreakdown && (
         <div className="report-sqi-table-container" style={{ marginBottom: 6 }}>
           <table
@@ -116,61 +116,43 @@ export const ReportCardSqiBreakdown: React.FC<ReportCardSqiBreakdownProps> = ({
               <tr style={{ background: '#f8fafc', borderBottom: '1px solid #cbd5e1' }}>
                 <th style={{ width: '36px', textAlign: 'center', padding: '3px 4px', color: '#475569', fontWeight: 600 }}>STT</th>
                 <th style={{ textAlign: 'left', padding: '3px 8px', color: '#475569', fontWeight: 600 }}>Chỉ số đánh giá</th>
-                <th style={{ width: '75px', textAlign: 'center', padding: '3px 6px', color: '#475569', fontWeight: 600, borderRight: '1px solid #cbd5e1' }}>Điểm</th>
+                <th style={{ width: '85px', textAlign: 'center', padding: '3px 6px', color: '#475569', fontWeight: 600, borderRight: '1px solid #cbd5e1' }}>Điểm đạt</th>
                 <th style={{ width: '36px', textAlign: 'center', padding: '3px 4px', color: '#475569', fontWeight: 600 }}>STT</th>
                 <th style={{ textAlign: 'left', padding: '3px 8px', color: '#475569', fontWeight: 600 }}>Chỉ số đánh giá</th>
-                <th style={{ width: '75px', textAlign: 'center', padding: '3px 6px', color: '#475569', fontWeight: 600 }}>Điểm</th>
+                <th style={{ width: '85px', textAlign: 'center', padding: '3px 6px', color: '#475569', fontWeight: 600 }}>Điểm đạt</th>
               </tr>
             </thead>
             <tbody>
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ textAlign: 'center', padding: '2.5px 4px', color: '#64748b' }}>1</td>
-                <td style={{ padding: '2.5px 8px', color: '#1e293b' }}>Học tập (30%)</td>
-                <td style={{ textAlign: 'center', padding: '2.5px 6px', fontWeight: 600, color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>
-                  {formatCriterion(sqiBreakdown.academic, 30)}
+                <td style={{ textAlign: 'center', padding: '3px 4px', color: '#64748b' }}>1</td>
+                <td style={{ padding: '3px 8px', color: '#1e293b', fontWeight: 500 }}>Chuyên cần (30%)</td>
+                <td style={{ textAlign: 'center', padding: '3px 6px', fontWeight: 600, color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>
+                  {formatCriterion(sqiBreakdown.attendance, 30)}
                 </td>
-                <td style={{ textAlign: 'center', padding: '2.5px 4px', color: '#64748b' }}>5</td>
-                <td style={{ padding: '2.5px 8px', color: '#1e293b' }}>Bài tập (10%)</td>
-                <td style={{ textAlign: 'center', padding: '2.5px 6px', fontWeight: 600, color: '#0f172a' }}>
-                  {formatCriterion(sqiBreakdown.homework, 10)}
-                </td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ textAlign: 'center', padding: '2.5px 4px', color: '#64748b' }}>2</td>
-                <td style={{ padding: '2.5px 8px', color: '#1e293b' }}>Tiến bộ (20%)</td>
-                <td style={{ textAlign: 'center', padding: '2.5px 6px', fontWeight: 600, color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>
-                  {formatCriterion(sqiBreakdown.progress, 20)}
-                </td>
-                <td style={{ textAlign: 'center', padding: '2.5px 4px', color: '#64748b' }}>6</td>
-                <td style={{ padding: '2.5px 8px', color: '#1e293b' }}>Thái độ (10%)</td>
-                <td style={{ textAlign: 'center', padding: '2.5px 6px', fontWeight: 600, color: '#0f172a' }}>
-                  {formatCriterion(sqiBreakdown.attitude, 10)}
+                <td style={{ textAlign: 'center', padding: '3px 4px', color: '#64748b' }}>2</td>
+                <td style={{ padding: '3px 8px', color: '#1e293b', fontWeight: 500 }}>Làm bài tập (30%)</td>
+                <td style={{ textAlign: 'center', padding: '3px 6px', fontWeight: 600, color: '#0f172a' }}>
+                  {formatCriterion(sqiBreakdown.homework, 30)}
                 </td>
               </tr>
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ textAlign: 'center', padding: '2.5px 4px', color: '#64748b' }}>3</td>
-                <td style={{ padding: '2.5px 8px', color: '#1e293b' }}>Tiếp thu (15%)</td>
-                <td style={{ textAlign: 'center', padding: '2.5px 6px', fontWeight: 600, color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>
-                  {formatCriterion(sqiBreakdown.competency, 15)}
+                <td style={{ textAlign: 'center', padding: '3px 4px', color: '#64748b' }}>3</td>
+                <td style={{ padding: '3px 8px', color: '#1e293b', fontWeight: 500 }}>Tuân thủ nội quy (20%)</td>
+                <td style={{ textAlign: 'center', padding: '3px 6px', fontWeight: 600, color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>
+                  {formatCriterion(sqiBreakdown.behavior, 20)}
                 </td>
-                <td style={{ textAlign: 'center', padding: '2.5px 4px', color: '#64748b' }}>7</td>
-                <td style={{ padding: '2.5px 8px', color: '#1e293b' }}>Kỷ luật (5%)</td>
-                <td style={{ textAlign: 'center', padding: '2.5px 6px', fontWeight: 600, color: '#0f172a' }}>
-                  {formatCriterion(sqiBreakdown.behavior, 5)}
+                <td style={{ textAlign: 'center', padding: '3px 4px', color: '#64748b' }}>4</td>
+                <td style={{ padding: '3px 8px', color: '#1e293b', fontWeight: 500 }}>Tích cực tham gia (20%)</td>
+                <td style={{ textAlign: 'center', padding: '3px 6px', fontWeight: 600, color: '#0f172a' }}>
+                  {formatCriterion(sqiBreakdown.participation ?? sqiBreakdown.attitude, 20)}
                 </td>
               </tr>
               <tr style={{ background: '#eef2ff' }}>
-                <td style={{ textAlign: 'center', padding: '2.5px 4px', color: '#64748b' }}>4</td>
-                <td style={{ padding: '2.5px 8px', color: '#1e293b' }}>Chuyên cần (10%)</td>
-                <td style={{ textAlign: 'center', padding: '2.5px 6px', fontWeight: 600, color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>
-                  {formatCriterion(sqiBreakdown.attendance, 10)}
+                <td colSpan={4} style={{ padding: '3px 8px', color: '#3730a3', fontWeight: 700, borderRight: '1px solid #cbd5e1' }}>
+                  ★ Tổng điểm chất lượng SQI: {level.label}
                 </td>
-                <td style={{ textAlign: 'center', padding: '2.5px 4px', color: '#4338ca', fontWeight: 700 }}>★</td>
-                <td style={{ padding: '2.5px 8px', color: '#3730a3', fontWeight: 700 }}>
-                  Tổng điểm SQI ({level.label})
-                </td>
-                <td style={{ textAlign: 'center', padding: '2.5px 6px', color: '#3730a3', fontWeight: 700, fontSize: '11.5px' }}>
-                  {sqiScore !== null && sqiScore !== undefined ? `${sqiScore}đ` : '—'}
+                <td colSpan={2} style={{ textAlign: 'center', padding: '3px 8px', color: '#3730a3', fontWeight: 700, fontSize: '12px' }}>
+                  {sqiScore !== null && sqiScore !== undefined ? `${sqiScore} / 100đ` : '—'}
                 </td>
               </tr>
             </tbody>
