@@ -230,9 +230,9 @@ export const useSessionAttendanceAndEvaluation = ({
   const handleBatchGenerateAi = async () => {
     try {
       setBatchGenerating(true);
-      const candidates = attendances
-        .filter((a) => a.isPresent)
-        .map((a) => {
+      const presentStudents = attendances.filter((a) => a.isPresent);
+      const targetStudents = presentStudents.length > 0 ? presentStudents : attendances;
+      const candidates = targetStudents.map((a) => {
           const currentEval = evaluations[a.studentId];
           const hasCriteria = Boolean(
             currentEval?.criteria?.homework ||
@@ -241,9 +241,12 @@ export const useSessionAttendanceAndEvaluation = ({
             currentEval?.criteria?.behavior
           );
           const effectiveCriteria = hasCriteria ? currentEval?.criteria : defaultCriteria;
+          const firstName = a.student?.firstName || '';
+          const lastName = a.student?.lastName || '';
+          const studentName = `${lastName} ${firstName}`.trim() || 'Học sinh';
           return {
             studentId: a.studentId,
-            studentName: `${a.student.lastName} ${a.student.firstName}`,
+            studentName,
             className: session.className,
             date: session.date,
             criteria: effectiveCriteria,
@@ -251,7 +254,7 @@ export const useSessionAttendanceAndEvaluation = ({
         });
 
       if (candidates.length === 0) {
-        message.warning('Không có học sinh có mặt để tạo nhận xét.');
+        message.warning('Không có học sinh nào trong danh sách.');
         return;
       }
 

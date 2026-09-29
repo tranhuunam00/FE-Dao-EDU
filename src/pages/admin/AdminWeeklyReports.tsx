@@ -288,6 +288,9 @@ export const AdminWeeklyReports: React.FC = () => {
             {
               title: 'Học sinh',
               key: 'student',
+              sorter: (a: StudentWeeklySummary, b: StudentWeeklySummary) =>
+                (a.studentName || '').localeCompare(b.studentName || '', 'vi', { sensitivity: 'base' }),
+              defaultSortOrder: 'ascend' as const,
               render: (_, row: StudentWeeklySummary) => (
                 <div>
                   <Text strong style={{ color: 'var(--text-primary, #111827)' }}>{row.studentName}</Text>

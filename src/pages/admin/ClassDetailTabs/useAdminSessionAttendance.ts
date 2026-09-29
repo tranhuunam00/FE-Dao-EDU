@@ -212,9 +212,9 @@ export const useAdminSessionAttendance = ({
   const handleBatchGenerateAi = async () => {
     try {
       setBatchGenerating(true);
-      const candidates = sessionAttendance
-        .filter((a) => a.isPresent)
-        .map((a) => {
+      const presentStudents = sessionAttendance.filter((a) => a.isPresent);
+      const targetStudents = presentStudents.length > 0 ? presentStudents : sessionAttendance;
+      const candidates = targetStudents.map((a) => {
           const currentEval = sessionEvaluations[a.studentId];
           const hasCriteria = Boolean(
             currentEval?.criteria?.homework ||
@@ -223,9 +223,12 @@ export const useAdminSessionAttendance = ({
             currentEval?.criteria?.behavior
           );
           const effectiveCriteria = hasCriteria ? currentEval?.criteria : defaultCriteria;
+          const firstName = a.student?.firstName || '';
+          const lastName = a.student?.lastName || '';
+          const studentName = `${lastName} ${firstName}`.trim() || a.student?.name || 'Học sinh';
           return {
             studentId: a.studentId,
-            studentName: a.student?.name || '',
+            studentName,
             className: classData?.className,
             date: currentSession.date,
             criteria: effectiveCriteria,
@@ -233,7 +236,7 @@ export const useAdminSessionAttendance = ({
         });
 
       if (candidates.length === 0) {
-        message.warning('Không có học sinh có mặt để tạo nhận xét.');
+        message.warning('Không có học sinh nào trong danh sách.');
         return;
       }
 
@@ -268,7 +271,8 @@ export const useAdminSessionAttendance = ({
         message.success(`Đã tạo nhận xét AI & điền tiêu chí đánh giá cho ${res.results.length} học sinh.`);
       }
     } catch (err: any) {
-      message.error(err.response?.data?.message || 'Lỗi khi sinh nhận xét hàng loạt.');
+      const errMsg = err.response?.data?.message || err.message || 'Lỗi khi sinh nhận xét hàng loạt.';
+      message.error(errMsg);
     } finally {
       setBatchGenerating(false);
     }
