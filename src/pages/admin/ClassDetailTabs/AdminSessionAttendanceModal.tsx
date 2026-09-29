@@ -124,19 +124,9 @@ export const AdminSessionAttendanceModal: React.FC<AdminSessionAttendanceModalPr
   return (
     <Modal
       title={
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginRight: 32 }}>
-          <div>
-            <CalendarOutlined style={{ color: '#6366f1', marginRight: 8 }} />
-            Buổi học ngày: {dayjs(currentSession.date).format('DD/MM/YYYY')}
-          </div>
-          <Button
-            size="small"
-            icon={<DownloadOutlined />}
-            onClick={handleExportSession}
-            style={{ color: '#0284c7', borderColor: '#38bdf8' }}
-          >
-            Xuất Excel đánh giá buổi học
-          </Button>
+        <div>
+          <CalendarOutlined style={{ color: '#6366f1', marginRight: 8 }} />
+          Buổi học ngày: {dayjs(currentSession.date).format('DD/MM/YYYY')}
         </div>
       }
       open={visible}
