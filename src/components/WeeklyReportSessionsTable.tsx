@@ -124,16 +124,16 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
   const renderBehavior = (tags?: string[]) => {
     if (!tags || tags.length === 0) return <span style={{ color: '#94a3b8' }}>—</span>;
     const t = tags.map((x) => x.toLowerCase());
-    if (t.includes('unfocused') || t.includes('distracted') || t.includes('phone') || t.includes('sleepy')) {
-      return <span style={{ color: '#dc2626', fontWeight: 600 }}>Mất tập trung</span>;
+    if (t.includes('unfocused') || t.includes('distracted')) {
+      return <span style={{ color: '#ef4444', fontWeight: 600 }}>Mất tập trung</span>;
     }
-    if (t.includes('talkative') || t.includes('disruptive')) {
-      return <span style={{ color: '#d97706', fontWeight: 600 }}>Nói chuyện</span>;
+    if (t.includes('talkative')) {
+      return <span style={{ color: '#f59e0b', fontWeight: 600 }}>Nói chuyện</span>;
     }
-    if (t.includes('good') || t.includes('attentive') || t.includes('cooperative') || t.includes('creative')) {
-      return <span style={{ color: '#16a34a', fontWeight: 600 }}>Tốt</span>;
+    if (t.includes('good')) {
+      return <span style={{ color: '#10b981', fontWeight: 600 }}>Tốt</span>;
     }
-    return <span style={{ color: '#16a34a', fontWeight: 600 }}>Tốt</span>;
+    return <span style={{ color: '#94a3b8' }}>—</span>;
   };
 
   return (
@@ -191,6 +191,14 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
 
               const partSessions = subSessions.filter((s) => Boolean(s.participation));
               const partActive = partSessions.filter((s) => s.participation === 'active').length;
+
+              const behSessions = subSessions.filter(
+                (s) => Array.isArray(s.behaviorTags) && s.behaviorTags.length > 0,
+              );
+              const behGood = behSessions.filter((s) => {
+                const t = (s.behaviorTags || []).map((x) => x.toLowerCase());
+                return t.includes('good') && !t.includes('talkative') && !t.includes('unfocused') && !t.includes('distracted');
+              }).length;
 
               const validScores = subSessions
                 .map((s) => (s.score ? Number(String(s.score).replace(',', '.')) : null))
@@ -315,7 +323,13 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
                       )}
                     </td>
                     <td style={{ ...totalRowTdStyle, textAlign: 'center' }}>
-                      <span style={{ color: '#16a34a' }}>{presentCount}/{totalSub} tốt</span>
+                      {behSessions.length > 0 ? (
+                        <span style={{ color: behGood === behSessions.length ? '#16a34a' : '#d97706' }}>
+                          {behGood}/{behSessions.length} tốt
+                        </span>
+                      ) : (
+                        <span style={{ color: '#94a3b8', fontWeight: 400 }}>—</span>
+                      )}
                     </td>
                     <td style={{ ...totalRowTdStyle, textAlign: 'center' }}>
                       {avgScore !== null ? (
