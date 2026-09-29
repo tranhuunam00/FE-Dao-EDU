@@ -148,14 +148,14 @@ export const EvaluationsTabContent: React.FC<EvaluationsTabContentProps> = ({
       </div>
 
       <div style={{ overflowX: 'auto' }}>
-        <table className="custom-table" style={{ width: '100%', minWidth: '850px' }}>
+        <table className="custom-table" style={{ width: '100%', minWidth: '880px' }}>
           <thead>
             <tr>
-              <th style={{ width: '50px', textAlign: 'center' }}>STT</th>
-              <th style={{ width: '160px' }}>Học sinh</th>
-              <th style={{ width: '80px', textAlign: 'center' }}>Điểm số</th>
-              <th style={{ width: '280px' }}>Đánh giá 1-Chạm</th>
-              <th style={{ minWidth: '280px' }}>Nhận xét buổi học (AI / Giáo viên)</th>
+              <th style={{ width: '45px', textAlign: 'center' }}>STT</th>
+              <th style={{ width: '150px' }}>Học sinh</th>
+              <th style={{ width: '70px', textAlign: 'center' }}>Điểm số</th>
+              <th style={{ width: '260px' }}>ĐÁNH GIÁ 1-CHẠM</th>
+              <th style={{ minWidth: '350px' }}>NHẬN XÉT BUỔI HỌC (AI / GIÁO VIÊN)</th>
             </tr>
           </thead>
           <tbody>

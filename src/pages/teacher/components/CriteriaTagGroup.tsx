@@ -15,78 +15,94 @@ interface OptionConfig {
   activeBorder: string;
 }
 
+const YES_NO_OPTIONS: OptionConfig[] = [
+  { key: 'yes', label: 'Yes', activeBg: 'rgba(16, 185, 129, 0.18)', activeColor: '#10b981', activeBorder: 'rgba(16, 185, 129, 0.5)' },
+  { key: 'no', label: 'No', activeBg: 'rgba(239, 68, 68, 0.18)', activeColor: '#ef4444', activeBorder: 'rgba(239, 68, 68, 0.5)' },
+];
+
 const CRITERIA_CONFIG: Record<
-  keyof EvaluationCriteria,
+  'attendance' | 'homework' | 'behavior' | 'participation',
   {
     title: string;
     options: OptionConfig[];
   }
 > = {
+  attendance: {
+    title: 'Chuyên cần',
+    options: YES_NO_OPTIONS,
+  },
   homework: {
-    title: 'Bài tập',
-    options: [
-      { key: 'done', label: 'Đã làm', activeBg: 'rgba(16, 185, 129, 0.18)', activeColor: '#10b981', activeBorder: 'rgba(16, 185, 129, 0.4)' },
-      { key: 'missing', label: 'Chưa làm', activeBg: 'rgba(239, 68, 68, 0.18)', activeColor: '#ef4444', activeBorder: 'rgba(239, 68, 68, 0.4)' },
-      { key: 'none', label: 'Không có', activeBg: 'rgba(156, 163, 175, 0.18)', activeColor: '#9ca3af', activeBorder: 'rgba(156, 163, 175, 0.4)' },
-    ],
-  },
-  understanding: {
-    title: 'Tiếp thu',
-    options: [
-      { key: 'quick', label: 'Hiểu nhanh', activeBg: 'rgba(59, 130, 246, 0.18)', activeColor: '#3b82f6', activeBorder: 'rgba(59, 130, 246, 0.4)' },
-      { key: 'normal', label: 'Hiểu bài', activeBg: 'rgba(16, 185, 129, 0.18)', activeColor: '#10b981', activeBorder: 'rgba(16, 185, 129, 0.4)' },
-      { key: 'slow', label: 'Cần kèm', activeBg: 'rgba(245, 158, 11, 0.18)', activeColor: '#f59e0b', activeBorder: 'rgba(245, 158, 11, 0.4)' },
-    ],
-  },
-  participation: {
-    title: 'Tương tác',
-    options: [
-      { key: 'active', label: 'Hăng hái', activeBg: 'rgba(16, 185, 129, 0.18)', activeColor: '#10b981', activeBorder: 'rgba(16, 185, 129, 0.4)' },
-      { key: 'normal', label: 'Bình thường', activeBg: 'rgba(156, 163, 175, 0.18)', activeColor: '#9ca3af', activeBorder: 'rgba(156, 163, 175, 0.4)' },
-      { key: 'passive', label: 'Ít nói', activeBg: 'rgba(245, 158, 11, 0.18)', activeColor: '#f59e0b', activeBorder: 'rgba(245, 158, 11, 0.4)' },
-    ],
+    title: 'Làm BTVN',
+    options: YES_NO_OPTIONS,
   },
   behavior: {
-    title: 'Nề nếp',
-    options: [
-      { key: 'good', label: 'Tốt', activeBg: 'rgba(16, 185, 129, 0.18)', activeColor: '#10b981', activeBorder: 'rgba(16, 185, 129, 0.4)' },
-      { key: 'talkative', label: 'Nói chuyện', activeBg: 'rgba(245, 158, 11, 0.18)', activeColor: '#f59e0b', activeBorder: 'rgba(245, 158, 11, 0.4)' },
-      { key: 'unfocused', label: 'Mất tập trung', activeBg: 'rgba(239, 68, 68, 0.18)', activeColor: '#ef4444', activeBorder: 'rgba(239, 68, 68, 0.4)' },
-    ],
+    title: 'Tuân thủ NQ',
+    options: YES_NO_OPTIONS,
+  },
+  participation: {
+    title: 'Tích cực PB',
+    options: YES_NO_OPTIONS,
   },
 };
 
 export const CriteriaTagGroup: React.FC<CriteriaTagGroupProps> = ({ criteria, onChange, disabled }) => {
-  const handleSelect = (category: keyof EvaluationCriteria, val: string) => {
+  const handleSelect = (category: keyof typeof CRITERIA_CONFIG, val: string) => {
     if (disabled) return;
-    const currentVal = criteria[category];
+    const currentVal = (criteria as any)[category];
     onChange({
       ...criteria,
       [category]: currentVal === val ? undefined : val,
     });
   };
 
+  const getCategoryIcon = (cat: string) => {
+    switch (cat) {
+      case 'attendance': return '⏱️';
+      case 'homework': return '📚';
+      case 'behavior': return '🛡️';
+      case 'participation': return '🙋';
+      default: return '•';
+    }
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem' }}>
-      {(Object.keys(CRITERIA_CONFIG) as Array<keyof EvaluationCriteria>).map((cat) => {
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.78rem', width: '100%' }}>
+      {(Object.keys(CRITERIA_CONFIG) as Array<keyof typeof CRITERIA_CONFIG>).map((cat) => {
         const conf = CRITERIA_CONFIG[cat];
-        const selectedVal = criteria[cat];
+        const selectedVal = (criteria as any)[cat];
 
         return (
-          <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-            <span
+          <div
+            key={cat}
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '6px',
+            }}
+          >
+            <div
               style={{
-                minWidth: '55px',
-                color: 'var(--text-secondary)',
+                width: '95px',
+                minWidth: '95px',
+                color: 'var(--text-secondary, #475569)',
                 fontWeight: 600,
-                fontSize: '0.75rem',
+                fontSize: '0.73rem',
+                paddingTop: '2px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                whiteSpace: 'nowrap',
               }}
             >
-              {conf.title}:
-            </span>
-            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+              <span>{getCategoryIcon(cat)}</span>
+              <span>{conf.title}:</span>
+            </div>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
               {conf.options.map((opt) => {
-                const isSelected = selectedVal === opt.key;
+                const isSelected = selectedVal === opt.key ||
+                  (opt.key === 'yes' && ['on_time', 'makeup', 'excellent', 'done', 'completed', 'good', 'attentive', 'active_raise_hand', 'proactive_ask', 'active', 'answer_well'].includes(selectedVal)) ||
+                  (opt.key === 'no' && ['absent_unexcused', 'absent_excused', 'not_done', 'missing', 'disruptive', 'cannot_answer'].includes(selectedVal));
+
                 return (
                   <button
                     key={opt.key}
@@ -94,17 +110,34 @@ export const CriteriaTagGroup: React.FC<CriteriaTagGroupProps> = ({ criteria, on
                     disabled={disabled}
                     onClick={() => handleSelect(cat, opt.key)}
                     style={{
-                      border: isSelected ? `1px solid ${opt.activeBorder}` : '1px solid var(--card-border, rgba(255,255,255,0.1))',
-                      backgroundColor: isSelected ? opt.activeBg : 'transparent',
-                      color: isSelected ? opt.activeColor : 'var(--text-secondary)',
-                      borderRadius: '4px',
-                      padding: '2px 7px',
-                      fontSize: '0.75rem',
-                      fontWeight: isSelected ? 600 : 400,
+                      border: isSelected ? `1.5px solid ${opt.activeBorder}` : '1px solid var(--border-color, rgba(148, 163, 184, 0.28))',
+                      backgroundColor: isSelected ? opt.activeBg : 'rgba(248, 250, 252, 0.03)',
+                      color: isSelected ? opt.activeColor : 'var(--text-secondary, #475569)',
+                      borderRadius: '9999px',
+                      padding: '2px 14px',
+                      fontSize: '0.74rem',
+                      fontWeight: isSelected ? 700 : 500,
                       cursor: disabled ? 'not-allowed' : 'pointer',
-                      transition: 'all var(--transition-fast, 0.15s ease)',
+                      transition: 'all 0.15s ease',
+                      whiteSpace: 'nowrap',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      lineHeight: '1.4',
+                      boxShadow: isSelected ? `0 1px 4px ${opt.activeBorder}` : 'none',
                     }}
                   >
+                    {isSelected && (
+                      <span
+                        style={{
+                          width: '5px',
+                          height: '5px',
+                          borderRadius: '50%',
+                          backgroundColor: opt.activeColor,
+                          display: 'inline-block',
+                        }}
+                      />
+                    )}
                     {opt.label}
                   </button>
                 );

@@ -397,6 +397,7 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
           sqiBreakdown={report.sqiBreakdown}
           overview={report.overview}
           isMonthly={isMonthly}
+          sessions={report.sessions}
         />
 
         {report.sessions && report.sessions.length > 0 && (

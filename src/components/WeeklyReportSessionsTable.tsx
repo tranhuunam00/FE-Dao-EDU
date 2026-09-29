@@ -8,10 +8,12 @@ interface SessionDetail {
   date?: string;
   isPresent: boolean;
   isLate?: boolean;
+  attendanceStatus?: string;
   homeworkStatus?: string;
   participation?: string;
   understanding?: string;
   behaviorTags?: string[];
+  behaviorStatus?: string;
   score?: string | null;
   teacherComment?: string | null;
 }
@@ -75,67 +77,90 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
     verticalAlign: 'middle',
   };
 
-  const renderHomework = (status?: string) => {
-    if (!status) return <span style={{ color: '#94a3b8' }}>—</span>;
-    const s = status.toLowerCase();
-    if (s === 'completed' || s === 'done') {
-      return <span style={{ color: '#16a34a', fontWeight: 600 }}>Đã làm</span>;
+  const renderIconCheckOrX = (isPass: boolean | null | undefined, title?: string) => {
+    if (isPass === null || isPass === undefined) {
+      return <span style={{ color: '#94a3b8' }}>—</span>;
     }
-    if (s === 'incomplete') {
-      return <span style={{ color: '#d97706', fontWeight: 600 }}>Chưa xong</span>;
+    if (isPass) {
+      return (
+        <span title={title || 'Đạt'} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Check size={16} strokeWidth={2.8} style={{ color: '#16a34a' }} />
+        </span>
+      );
     }
-    if (s === 'not_done' || s === 'missing') {
-      return <span style={{ color: '#dc2626', fontWeight: 600 }}>Chưa làm</span>;
+    return (
+      <span title={title || 'Chưa đạt'} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+        <X size={16} strokeWidth={2.8} style={{ color: '#dc2626' }} />
+      </span>
+    );
+  };
+
+  const renderAttendance = (row: SessionDetail) => {
+    const st = (row.attendanceStatus || '').toLowerCase();
+    if (st === 'yes' || st === 'on_time' || st === 'makeup') {
+      return renderIconCheckOrX(true, 'Có mặt / Đúng giờ');
     }
-    if (s === 'none') {
-      return <span style={{ color: '#64748b' }}>Không có</span>;
+    if (st === 'no' || st === 'absent_unexcused' || st === 'absent_excused') {
+      return renderIconCheckOrX(false, 'Vắng mặt');
+    }
+    if (st === 'late' || st === 'early_leave' || st === 'late_much') {
+      return renderIconCheckOrX(true, 'Có mặt');
+    }
+    // Fallback dữ liệu cũ
+    if (row.isPresent !== undefined) {
+      return renderIconCheckOrX(row.isPresent, row.isPresent ? 'Có mặt' : 'Vắng mặt');
     }
     return <span style={{ color: '#94a3b8' }}>—</span>;
   };
 
-  const renderUnderstanding = (und?: string) => {
-    if (!und) return <span style={{ color: '#94a3b8' }}>—</span>;
-    const u = und.toLowerCase();
-    if (u === 'understood' || u === 'quick') {
-      return <span style={{ color: '#2563eb', fontWeight: 600 }}>Hiểu nhanh</span>;
+  const renderHomework = (status?: string) => {
+    if (!status) return <span style={{ color: '#94a3b8' }}>—</span>;
+    const s = status.toLowerCase();
+    if (s === 'no_homework' || s === 'none') {
+      return <span style={{ color: '#94a3b8' }} title="Không giao BTVN">—</span>;
     }
-    if (u === 'partially' || u === 'normal') {
-      return <span style={{ color: '#16a34a', fontWeight: 600 }}>Hiểu bài</span>;
+    if (s === 'yes' || s === 'excellent' || s === 'completed' || s === 'done') {
+      return renderIconCheckOrX(true, 'Đã làm BTVN');
     }
-    if (u === 'not_understood' || u === 'slow') {
-      return <span style={{ color: '#dc2626', fontWeight: 600 }}>Cần kèm</span>;
+    if (s === 'no' || s === 'not_done' || s === 'missing' || s === 'incomplete' || s === 'missing_many' || s === 'coping') {
+      return renderIconCheckOrX(false, 'Chưa hoàn thành BTVN');
+    }
+    if (s === 'missing_few' || s === 'forgot_notebook') {
+      return renderIconCheckOrX(false, 'Thiếu bài / Quên vở');
     }
     return <span style={{ color: '#94a3b8' }}>—</span>;
+  };
+
+  const renderBehavior = (tags?: string[], status?: string) => {
+    const rawTags = (tags || []).map((x) => x.toLowerCase());
+    const st = (status || rawTags[0] || '').toLowerCase();
+    if (!st && rawTags.length === 0) return <span style={{ color: '#94a3b8' }}>—</span>;
+
+    if (st === 'yes' || st === 'good' || rawTags.includes('attentive') || rawTags.includes('good')) {
+      return renderIconCheckOrX(true, 'Tốt / Nghiêm túc');
+    }
+    if (st === 'no') {
+      return renderIconCheckOrX(false, 'Chưa nghiêm túc');
+    }
+    const isViolation = ['disruptive', 'phone', 'phone_private', 'talkative', 'sleepy', 'unfocused', 'distracted', 'missing_tools'].includes(st) ||
+      rawTags.some((x) => ['disruptive', 'phone', 'talkative', 'sleepy', 'distracted'].includes(x));
+
+    return renderIconCheckOrX(!isViolation, isViolation ? 'Nhắc nhở' : 'Tốt');
   };
 
   const renderParticipation = (part?: string) => {
     if (!part) return <span style={{ color: '#94a3b8' }}>—</span>;
     const p = part.toLowerCase();
-    if (p === 'active') {
-      return <span style={{ color: '#16a34a', fontWeight: 600 }}>Hăng hái</span>;
+    if (p === 'yes' || p === 'active_raise_hand' || p === 'active' || p === 'proactive_ask' || p === 'answer_well') {
+      return renderIconCheckOrX(true, 'Tích cực phát biểu');
     }
-    if (p === 'normal') {
-      return <span style={{ color: '#64748b', fontWeight: 500 }}>Bình thường</span>;
+    if (p === 'no' || p === 'cannot_answer' || p === 'passive' || p === 'answer_hesitant') {
+      return renderIconCheckOrX(false, 'Chưa tích cực');
     }
-    if (p === 'passive') {
-      return <span style={{ color: '#d97706', fontWeight: 600 }}>Ít nói</span>;
+    if (p === 'attentive_quiet' || p === 'normal') {
+      return renderIconCheckOrX(true, 'Chăm chú');
     }
     return <span style={{ color: '#94a3b8' }}>—</span>;
-  };
-
-  const renderBehavior = (tags?: string[]) => {
-    if (!tags || tags.length === 0) return <span style={{ color: '#94a3b8' }}>—</span>;
-    const t = tags.map((x) => x.toLowerCase());
-    if (t.includes('unfocused') || t.includes('distracted') || t.includes('phone') || t.includes('sleepy')) {
-      return <span style={{ color: '#ef4444', fontWeight: 600 }}>Mất tập trung</span>;
-    }
-    if (t.includes('talkative') || t.includes('disruptive')) {
-      return <span style={{ color: '#f59e0b', fontWeight: 600 }}>Nói chuyện</span>;
-    }
-    if (t.includes('good') || t.includes('attentive') || t.includes('cooperative') || t.includes('creative')) {
-      return <span style={{ color: '#10b981', fontWeight: 600 }}>Tốt</span>;
-    }
-    return <span style={{ color: '#10b981', fontWeight: 600 }}>Tốt</span>;
   };
 
   // Màu theo 4 nấc tỷ lệ: 0->0.25: Đỏ, 0.25->0.5: Xám, 0.5->0.75: Xanh dương (Giỏi), 0.75->1: Xanh lá
@@ -176,49 +201,51 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
             <tr>
               <th style={{ ...thStyle, width: '4%', textAlign: 'center' }}>STT</th>
               <th style={{ ...thStyle, width: '11%' }}>Ngày</th>
-              <th style={{ ...thStyle, width: '5%', textAlign: 'center' }}>Điểm danh</th>
-              <th style={{ ...thStyle, width: '8%', textAlign: 'center' }}>Bài tập</th>
-              <th style={{ ...thStyle, width: '8%', textAlign: 'center' }}>Tiếp thu</th>
-              <th style={{ ...thStyle, width: '8%', textAlign: 'center' }}>Tương tác</th>
-              <th style={{ ...thStyle, width: '8%', textAlign: 'center' }}>Nề nếp</th>
+              <th style={{ ...thStyle, width: '8%', textAlign: 'center' }}>Chuyên cần</th>
+              <th style={{ ...thStyle, width: '8%', textAlign: 'center' }}>Làm BTVN</th>
+              <th style={{ ...thStyle, width: '8%', textAlign: 'center' }}>Tuân thủ NQ</th>
+              <th style={{ ...thStyle, width: '9%', textAlign: 'center' }}>Phát biểu</th>
               <th style={{ ...thStyle, width: '7%', textAlign: 'center' }}>Điểm số</th>
-              <th style={{ ...thStyle, width: '41%' }}>Nhận xét của giáo viên</th>
+              <th style={{ ...thStyle, width: '45%' }}>Nhận xét của giáo viên</th>
             </tr>
           </thead>
           <tbody>
             {Object.entries(groupedSessions).map(([subject, subSessions], gIdx) => {
               // Thống kê hàng tổng của môn
               const totalSub = subSessions.length;
-              const presentCount = subSessions.filter((s) => s.isPresent).length;
+              const presentCount = subSessions.filter((s) => (s.attendanceStatus || '').toLowerCase() === 'yes' || s.isPresent).length;
               const presentRatio = totalSub > 0 ? presentCount / totalSub : 0;
 
-              const hwSessions = subSessions.filter((s) => Boolean(s.homeworkStatus));
-              const hwDone = hwSessions.filter(
-                (s) => s.homeworkStatus === 'completed' || s.homeworkStatus === 'done',
-              ).length;
+              const hwSessions = subSessions.filter((s) => {
+                const st = (s.homeworkStatus || '').toLowerCase();
+                return st && st !== 'no_homework' && st !== 'none';
+              });
+              const hwDone = hwSessions.filter((s) => {
+                const st = (s.homeworkStatus || '').toLowerCase();
+                return st === 'yes' || st === 'excellent' || st === 'completed' || st === 'done';
+              }).length;
               const hwRatio = hwSessions.length > 0 ? hwDone / hwSessions.length : 0;
 
-              const underSessions = subSessions.filter((s) => Boolean(s.understanding));
-              const underGood = underSessions.filter(
-                (s) => s.understanding === 'understood' || s.understanding === 'quick' || s.understanding === 'normal',
-              ).length;
-              const underRatio = underSessions.length > 0 ? underGood / underSessions.length : 0;
-
-              const partSessions = subSessions.filter((s) => Boolean(s.participation));
-              const partActive = partSessions.filter((s) => s.participation === 'active').length;
-              const partRatio = partSessions.length > 0 ? partActive / partSessions.length : 0;
-
               const behSessions = subSessions.filter(
-                (s) => Array.isArray(s.behaviorTags) && s.behaviorTags.length > 0,
+                (s) => (Array.isArray(s.behaviorTags) && s.behaviorTags.length > 0) || Boolean(s.behaviorStatus),
               );
               const behGood = behSessions.filter((s) => {
                 const t = (s.behaviorTags || []).map((x) => x.toLowerCase());
-                const isWarning = t.some((x) =>
-                  ['unfocused', 'distracted', 'phone', 'sleepy', 'talkative', 'disruptive'].includes(x),
-                );
-                return !isWarning;
+                const st = (s.behaviorStatus || t[0] || '').toLowerCase();
+                if (st === 'yes') return true;
+                if (st === 'no') return false;
+                const isViolation = ['disruptive', 'phone', 'phone_private', 'talkative'].includes(st) ||
+                  t.some((x) => ['disruptive', 'phone', 'talkative'].includes(x));
+                return !isViolation;
               }).length;
               const behRatio = behSessions.length > 0 ? behGood / behSessions.length : 0;
+
+              const partSessions = subSessions.filter((s) => Boolean(s.participation));
+              const partActive = partSessions.filter((s) => {
+                const p = String(s.participation).toLowerCase();
+                return p === 'yes' || p === 'active_raise_hand' || p === 'proactive_ask' || p === 'active' || p === 'answer_well';
+              }).length;
+              const partRatio = partSessions.length > 0 ? partActive / partSessions.length : 0;
 
               const validScores = subSessions
                 .map((s) => (s.score ? Number(String(s.score).replace(',', '.')) : null))
@@ -234,7 +261,7 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
                   {/* TIÊU ĐỀ PHÂN TÁCH MÔN HỌC */}
                   <tr>
                     <td
-                      colSpan={9}
+                      colSpan={8}
                       style={{
                         padding: '6px 10px',
                         background: '#e2e8f0',
@@ -267,37 +294,24 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
                           </div>
                         </td>
 
-                        {/* ĐIỂM DANH: TÍCH XANH HOẶC X ĐỎ */}
+                        {/* CHUYÊN CẦN */}
                         <td style={{ ...tdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
-                          {row.isPresent ? (
-                            <span title="Có mặt" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <Check size={16} strokeWidth={2.8} style={{ color: '#16a34a' }} />
-                            </span>
-                          ) : (
-                            <span title="Vắng mặt" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <X size={16} strokeWidth={2.8} style={{ color: '#dc2626' }} />
-                            </span>
-                          )}
+                          {renderAttendance(row)}
                         </td>
 
-                        {/* BÀI TẬP */}
+                        {/* LÀM BTVN */}
                         <td style={{ ...tdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
                           {renderHomework(row.homeworkStatus)}
                         </td>
 
-                        {/* TIẾP THU */}
+                        {/* TUÂN THỦ NQ */}
                         <td style={{ ...tdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
-                          {renderUnderstanding(row.understanding)}
+                          {renderBehavior(row.behaviorTags, row.behaviorStatus)}
                         </td>
 
-                        {/* TƯƠNG TÁC */}
+                        {/* TÍCH CỰC PHÁT BIỂU */}
                         <td style={{ ...tdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
                           {renderParticipation(row.participation)}
-                        </td>
-
-                        {/* NỀ NẾP */}
-                        <td style={{ ...tdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
-                          {renderBehavior(row.behaviorTags)}
                         </td>
 
                         {/* ĐIỂM SỐ */}
@@ -340,8 +354,10 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
                       )}
                     </td>
                     <td style={{ ...totalRowTdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
-                      {underSessions.length > 0 ? (
-                        <span style={{ color: getRateColor(underRatio) }}>{underGood}/{underSessions.length}</span>
+                      {behSessions.length > 0 ? (
+                        <span style={{ color: getRateColor(behRatio) }}>
+                          {behGood}/{behSessions.length}
+                        </span>
                       ) : (
                         <span style={{ color: '#94a3b8', fontWeight: 400 }}>—</span>
                       )}
@@ -349,15 +365,6 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
                     <td style={{ ...totalRowTdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
                       {partSessions.length > 0 ? (
                         <span style={{ color: getRateColor(partRatio) }}>{partActive}/{partSessions.length}</span>
-                      ) : (
-                        <span style={{ color: '#94a3b8', fontWeight: 400 }}>—</span>
-                      )}
-                    </td>
-                    <td style={{ ...totalRowTdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
-                      {behSessions.length > 0 ? (
-                        <span style={{ color: getRateColor(behRatio) }}>
-                          {behGood}/{behSessions.length}
-                        </span>
                       ) : (
                         <span style={{ color: '#94a3b8', fontWeight: 400 }}>—</span>
                       )}
@@ -380,4 +387,3 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
     </div>
   );
 };
-

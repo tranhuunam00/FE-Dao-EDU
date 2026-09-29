@@ -123,18 +123,15 @@ export const AdminWeeklyReports: React.FC = () => {
     }
   };
 
-  const weekOptions = Array.from({ length: 52 }, (_, i) => {
-    const w = 52 - i;
-    return { value: w, label: `Tuần ${w} / ${selectedYear}` };
-  });
+  const weekOptions = Array.from({ length: 52 }, (_, i) => ({ value: 52 - i, label: `Tuần ${52 - i} / ${selectedYear}` }));
 
   const getLevelTag = (level?: string | null) => {
     if (!level) return <Tag style={{ color: '#94a3b8', background: '#f8fafc', border: '1px solid #e2e8f0' }}>Chưa có dữ liệu</Tag>;
-    if (level.includes('Level 5') || level.includes('Mức 5')) return <Tag color="emerald" style={{ background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' }}>Mức 5 - Xuất sắc</Tag>;
-    if (level.includes('Level 4') || level.includes('Mức 4')) return <Tag color="blue" style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>Mức 4 - Giỏi</Tag>;
-    if (level.includes('Level 3') || level.includes('Mức 3')) return <Tag color="gold" style={{ background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a' }}>Mức 3 - Khá</Tag>;
-    if (level.includes('Level 2') || level.includes('Mức 2')) return <Tag color="orange" style={{ background: '#fff7ed', color: '#c2410c', border: '1px solid #fed7aa' }}>Mức 2 - Trung bình</Tag>;
-    return <Tag color="red" style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}>Mức 1 - Cần cố gắng</Tag>;
+    if (level.includes('Level 5') || level.includes('Mức 5') || level.includes('Xuất sắc')) return <Tag color="emerald" style={{ background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' }}>Xuất sắc</Tag>;
+    if (level.includes('Level 4') || level.includes('Mức 4') || level.includes('Giỏi')) return <Tag color="blue" style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>Giỏi</Tag>;
+    if (level.includes('Level 3') || level.includes('Mức 3') || level.includes('Khá')) return <Tag color="gold" style={{ background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a' }}>Khá</Tag>;
+    if (level.includes('Level 2') || level.includes('Mức 2') || level.includes('Trung bình')) return <Tag color="orange" style={{ background: '#fff7ed', color: '#c2410c', border: '1px solid #fed7aa' }}>Trung bình</Tag>;
+    return <Tag color="red" style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}>Cần cố gắng</Tag>;
   };
 
   const handleExportSqiReport = () => {

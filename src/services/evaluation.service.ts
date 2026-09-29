@@ -1,10 +1,11 @@
 import api from './api';
 
 export interface EvaluationCriteria {
-  homework?: 'done' | 'missing' | 'none';
-  understanding?: 'quick' | 'normal' | 'slow';
-  participation?: 'active' | 'normal' | 'passive';
-  behavior?: 'good' | 'talkative' | 'unfocused';
+  attendance?: string;
+  homework?: string;
+  behavior?: string;
+  participation?: string;
+  understanding?: string;
 }
 
 export interface StudentSessionEvaluationItem {
@@ -64,46 +65,27 @@ export const evaluationService = {
       isAiGenerated: item.isAiGenerated ?? false,
       isApprovedByTeacher: item.isApproved ?? item.isApprovedByTeacher ?? false,
       criteria: {
+        attendance:
+          item.criteria?.attendance ||
+          item.attendanceStatus ||
+          item.reason ||
+          (item.isPresent ? (item.isLate ? 'late' : 'on_time') : undefined),
         homework:
           item.criteria?.homework ||
-          (item.homeworkStatus === 'not_done' || item.homeworkStatus === 'NotDone' || item.homeworkStatus === 'missing'
-            ? 'missing'
-            : item.homeworkStatus === 'completed' || item.homeworkStatus === 'Completed' || item.homeworkStatus === 'done'
-            ? 'done'
-            : item.homeworkStatus === 'none'
-            ? 'none'
-            : undefined),
+          item.homeworkStatus ||
+          undefined,
         participation:
           item.criteria?.participation ||
-          (item.participation === 'active' || item.participation === 'Active'
-            ? 'active'
-            : item.participation === 'passive' || item.participation === 'Passive'
-            ? 'passive'
-            : item.participation === 'normal'
-            ? 'normal'
-            : item.participation
-            ? 'normal'
-            : undefined),
+          item.participation ||
+          undefined,
         understanding:
           item.criteria?.understanding ||
-          (item.understanding === 'understood' || item.understanding === 'Understood' || item.understanding === 'quick'
-            ? 'quick'
-            : item.understanding === 'not_understood' || item.understanding === 'NotUnderstood' || item.understanding === 'slow'
-            ? 'slow'
-            : item.understanding === 'normal' || item.understanding === 'partially'
-            ? 'normal'
-            : item.understanding
-            ? 'normal'
-            : undefined),
+          item.understanding ||
+          undefined,
         behavior:
           item.criteria?.behavior ||
-          (item.behaviorTags?.includes('distracted') || item.behaviorTags?.includes('Distracted') || item.behaviorTags?.includes('unfocused')
-            ? 'unfocused'
-            : item.behaviorTags?.includes('talkative') || item.behaviorTags?.includes('Talkative')
-            ? 'talkative'
-            : (item.behaviorTags && item.behaviorTags.length > 0) || item.behavior === 'good' || item.behaviorTags?.includes('attentive')
-            ? 'good'
-            : undefined),
+          (Array.isArray(item.behaviorTags) && item.behaviorTags.length > 0 ? item.behaviorTags[0] : item.behavior) ||
+          undefined,
       },
       updatedAt: item.updatedAt,
     }));

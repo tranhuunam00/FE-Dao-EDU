@@ -1,5 +1,12 @@
 import api from './api';
 
+export interface SqiBreakdownNarrative {
+  attendance?: string;
+  homework?: string;
+  behavior?: string;
+  participation?: string;
+}
+
 export interface SqiBreakdown {
   attendance: number | null;
   homework: number | null;
@@ -9,6 +16,7 @@ export interface SqiBreakdown {
   progress?: number | null;
   competency?: number | null;
   attitude?: number | null;
+  narratives?: SqiBreakdownNarrative;
 }
 
 export interface SubjectPerformance {
@@ -44,10 +52,12 @@ export interface WeeklyReportData {
     date?: string;
     isPresent: boolean;
     isLate?: boolean;
+    attendanceStatus?: string;
     homeworkStatus?: string;
     participation?: string;
     understanding?: string;
     behaviorTags?: string[];
+    behaviorStatus?: string;
     score?: string | null;
     teacherComment?: string | null;
   }>;
