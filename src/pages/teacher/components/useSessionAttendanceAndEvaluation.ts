@@ -4,6 +4,7 @@ import { message } from 'antd';
 import type { StudentAttendanceItem } from './AttendanceTabContent';
 import evaluationService, {
   type StudentSessionEvaluationItem,
+  type EvaluationCriteria,
 } from '../../../services/evaluation.service';
 
 interface UseSessionAttendanceAndEvaluationParams {
@@ -171,19 +172,35 @@ export const useSessionAttendanceAndEvaluation = ({
     }
   };
 
+  const defaultCriteria: EvaluationCriteria = {
+    homework: 'done',
+    understanding: 'normal',
+    participation: 'active',
+    behavior: 'good',
+  };
+
   const handleSingleGenerateAi = async (studentId: string, studentName: string) => {
     try {
       setGeneratingMap((prev) => ({ ...prev, [studentId]: true }));
       const currentEval = evaluations[studentId];
+      const hasCriteria = Boolean(
+        currentEval?.criteria?.homework ||
+        currentEval?.criteria?.understanding ||
+        currentEval?.criteria?.participation ||
+        currentEval?.criteria?.behavior
+      );
+      const effectiveCriteria = hasCriteria ? currentEval?.criteria : defaultCriteria;
+
       const res = await evaluationService.generateComment(session.id, {
         studentId,
         studentName,
         className: session.className,
         date: session.date,
-        criteria: currentEval?.criteria,
+        criteria: effectiveCriteria,
       });
 
       handleEvaluationChange(studentId, {
+        criteria: effectiveCriteria,
         evaluationComment: res.comment,
         isAiGenerated: res.isAiGenerated,
         isApprovedByTeacher: false,
@@ -205,13 +222,23 @@ export const useSessionAttendanceAndEvaluation = ({
       setBatchGenerating(true);
       const candidates = attendances
         .filter((a) => a.isPresent)
-        .map((a) => ({
-          studentId: a.studentId,
-          studentName: `${a.student.lastName} ${a.student.firstName}`,
-          className: session.className,
-          date: session.date,
-          criteria: evaluations[a.studentId]?.criteria,
-        }));
+        .map((a) => {
+          const currentEval = evaluations[a.studentId];
+          const hasCriteria = Boolean(
+            currentEval?.criteria?.homework ||
+            currentEval?.criteria?.understanding ||
+            currentEval?.criteria?.participation ||
+            currentEval?.criteria?.behavior
+          );
+          const effectiveCriteria = hasCriteria ? currentEval?.criteria : defaultCriteria;
+          return {
+            studentId: a.studentId,
+            studentName: `${a.student.lastName} ${a.student.firstName}`,
+            className: session.className,
+            date: session.date,
+            criteria: effectiveCriteria,
+          };
+        });
 
       if (candidates.length === 0) {
         message.warning('Không có học sinh có mặt để tạo nhận xét.');
@@ -224,12 +251,20 @@ export const useSessionAttendanceAndEvaluation = ({
           const next = { ...prev };
           for (const item of res.results) {
             if (item.comment) {
+              const currentItem = next[item.studentId] || {
+                studentId: item.studentId,
+                classSessionId: session.id,
+                criteria: {},
+              };
+              const hasCriteria = Boolean(
+                currentItem.criteria?.homework ||
+                currentItem.criteria?.understanding ||
+                currentItem.criteria?.participation ||
+                currentItem.criteria?.behavior
+              );
               next[item.studentId] = {
-                ...(next[item.studentId] || {
-                  studentId: item.studentId,
-                  classSessionId: session.id,
-                  criteria: {},
-                }),
+                ...currentItem,
+                criteria: hasCriteria ? currentItem.criteria : defaultCriteria,
                 evaluationComment: item.comment,
                 isAiGenerated: item.isAiGenerated,
                 isApprovedByTeacher: false,
@@ -238,7 +273,7 @@ export const useSessionAttendanceAndEvaluation = ({
           }
           return next;
         });
-        message.success(`Đã tạo nhận xét AI cho ${res.results.length} học sinh.`);
+        message.success(`Đã tạo nhận xét AI & điền tiêu chí đánh giá cho ${res.results.length} học sinh.`);
       }
     } catch (err: any) {
       message.error(err.response?.data?.message || 'Lỗi khi sinh nhận xét hàng loạt.');
