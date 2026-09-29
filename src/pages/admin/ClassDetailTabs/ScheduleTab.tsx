@@ -2,6 +2,8 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { Card, Typography, Button, Table, Tag, Popconfirm, Tooltip, Select, Space, message } from 'antd';
 import { PlusOutlined, DeleteOutlined, SyncOutlined, CalendarOutlined, DownloadOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import api from '../../../services/api';
+import evaluationService from '../../../services/evaluation.service';
 import { exportToExcel } from '../../../utils/export';
 
 const { Title, Text } = Typography;
@@ -115,6 +117,84 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
     );
   };
 
+  const [exportingSessionId, setExportingSessionId] = useState<string | null>(null);
+
+  const handleExportSessionEvaluations = async (session: ClassSession) => {
+    try {
+      setExportingSessionId(session.id);
+      const [{ data: attData }, evalList] = await Promise.all([
+        api.get(`/classes/sessions/${session.id}/attendance`),
+        evaluationService.getSessionEvaluations(session.id).catch(() => []),
+      ]);
+
+      if (!attData || attData.length === 0) {
+        message.warning('Buổi học này chưa có dữ liệu học sinh / điểm danh.');
+        return;
+      }
+
+      const evalMap = new Map<string, any>();
+      (evalList || []).forEach((e: any) => evalMap.set(e.studentId, e));
+
+      const exportData = attData.map((a: any, idx: number) => {
+        const ev = evalMap.get(a.studentId) || {};
+        const statusLabel = a.isPresent
+          ? 'Có mặt'
+          : a.reason === 'Excused'
+          ? 'Nghỉ có phép'
+          : a.reason === 'Late'
+          ? 'Đi muộn'
+          : 'Nghỉ không phép';
+
+        const hw = ev.criteria?.homework || ev.homeworkStatus;
+        const hwText = hw === 'done' || hw === 'completed' ? 'Làm đủ' : hw === 'missing' || hw === 'not_done' ? 'Thiếu BTVN' : hw === 'none' ? 'Không có' : '—';
+
+        const und = ev.criteria?.understanding || ev.understanding;
+        const undText = und === 'quick' || und === 'understood' ? 'Hiểu nhanh' : und === 'slow' || und === 'not_understood' ? 'Cần kèm' : und === 'normal' ? 'Hiểu bài' : '—';
+
+        const part = ev.criteria?.participation || ev.participation;
+        const partText = part === 'active' ? 'Hăng hái' : part === 'quiet' || part === 'passive' ? 'Ít nói' : part === 'normal' ? 'Bình thường' : '—';
+
+        const beh = ev.criteria?.behavior || (Array.isArray(ev.behaviorTags) ? ev.behaviorTags[0] : null);
+        const behText = beh === 'good' ? 'Tốt' : beh === 'talkative' ? 'Nói chuyện' : beh === 'distracted' || beh === 'unfocused' ? 'Mất tập trung' : '—';
+
+        const score = ev.evaluationScore || ev.score || a.evaluationScore || '—';
+        const comment = ev.evaluationComment || ev.comment || a.evaluationComment || '';
+
+        const sObj = a.student || {};
+        const fullName = sObj.lastName || sObj.firstName ? `${sObj.lastName || ''} ${sObj.firstName || ''}`.trim() : (sObj.name || '-');
+
+        return {
+          stt: idx + 1,
+          studentId: sObj.studentId || a.studentId || '-',
+          studentName: fullName,
+          status: statusLabel,
+          absenceNote: a.note || '',
+          homework: hwText,
+          understanding: undText,
+          participation: partText,
+          behavior: behText,
+          score,
+          feedback: comment,
+        };
+      });
+
+      const dateStr = session.date ? dayjs(session.date).format('YYYY-MM-DD') : '';
+      exportToExcel(
+        exportData,
+        `Diem_danh_Danh_gia_${dateStr}`,
+        ['STT', 'Mã học sinh', 'Họ và tên', 'Điểm danh', 'Ghi chú vắng', 'BTVN', 'Tiếp thu', 'Tương tác', 'Nề nếp', 'Điểm đánh giá', 'Nhận xét buổi học'],
+        ['stt', 'studentId', 'studentName', 'status', 'absenceNote', 'homework', 'understanding', 'participation', 'behavior', 'score', 'feedback'],
+        `Đánh giá buổi học ${dayjs(session.date).format('DD/MM/YYYY')}`
+      );
+      message.success('Đã xuất file Excel đánh giá buổi học!');
+    } catch (err: any) {
+      console.error(err);
+      message.error(err.response?.data?.message || 'Không thể xuất kết quả đánh giá buổi học.');
+    } finally {
+      setExportingSessionId(null);
+    }
+  };
+
   const sessionColumns = [
     {
       title: 'Ngày học',
@@ -191,7 +271,7 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
     {
       title: 'Hành động',
       key: 'action',
-      width: '220px',
+      width: '300px',
       render: (_: any, record: ClassSession) => {
         const isWageBilled = Boolean(
           record.isWageBilled ||
@@ -218,7 +298,7 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
         const canDelete = isAdmin && !deleteDisabledReason;
 
         return (
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
             <Button
               type="primary"
               size="small"
@@ -226,6 +306,17 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
               onClick={() => openSessionDetail(record)}
             >
               {record.status === 'Completed' ? 'Xem điểm danh' : 'Điểm danh / Đổi lịch'}
+            </Button>
+
+            <Button
+              size="small"
+              icon={<DownloadOutlined />}
+              loading={exportingSessionId === record.id}
+              onClick={() => handleExportSessionEvaluations(record)}
+              style={{ color: '#0284c7', borderColor: '#38bdf8' }}
+              title="Xuất Excel điểm danh & đánh giá học sinh buổi này"
+            >
+              Xuất đánh giá
             </Button>
 
             {isAdmin && (
