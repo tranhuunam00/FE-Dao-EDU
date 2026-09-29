@@ -1,7 +1,8 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Card, Typography, Button, Table, Tag, Popconfirm, Tooltip, Select, Space } from 'antd';
-import { PlusOutlined, DeleteOutlined, SyncOutlined, CalendarOutlined } from '@ant-design/icons';
+import { Card, Typography, Button, Table, Tag, Popconfirm, Tooltip, Select, Space, message } from 'antd';
+import { PlusOutlined, DeleteOutlined, SyncOutlined, CalendarOutlined, DownloadOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import { exportToExcel } from '../../../utils/export';
 
 const { Title, Text } = Typography;
 
@@ -85,6 +86,34 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
     if (selectedMonth === 'ALL') return sessions;
     return sessions.filter((s) => dayjs(s.date).format('YYYY-MM') === selectedMonth);
   }, [sessions, selectedMonth]);
+
+  const handleExportSchedule = () => {
+    if (!filteredSessions || filteredSessions.length === 0) {
+      message.warning('Chưa có danh sách buổi học để xuất.');
+      return;
+    }
+    const exportData = filteredSessions.map((s, idx) => ({
+      stt: idx + 1,
+      date: dayjs(s.date).format('DD/MM/YYYY'),
+      time: `${(s.startTime || '').substring(0, 5)} - ${(s.endTime || '').substring(0, 5)}`,
+      room: s.room?.name || 'Chưa xếp phòng',
+      teacher: s.teacher ? `${s.teacher.lastName} ${s.teacher.firstName}` : 'Chưa xếp GV',
+      assistant: s.assistant ? `${s.assistant.lastName} ${s.assistant.firstName}` : '-',
+      status: s.status === 'Completed' ? 'Hoàn thành' : s.status === 'Cancelled' ? 'Nghỉ học' : s.status === 'In-Progress' ? 'Đang học' : 'Chưa diễn ra',
+      isBilled: s.isBilled ? 'Đã tính tiền' : 'Chưa tính',
+      attendance: s.hasAttendance ? 'Đã điểm danh' : 'Chưa điểm danh',
+    }));
+
+    const monthLabel = selectedMonth === 'ALL' ? 'Tat_ca_cac_thang' : selectedMonth.replace('-', '_');
+
+    exportToExcel(
+      exportData,
+      `Lich_day_Diem_danh_${monthLabel}`,
+      ['STT', 'Ngày học', 'Giờ học', 'Phòng học', 'Giáo viên', 'Trợ giảng', 'Trạng thái', 'Học phí', 'Điểm danh'],
+      ['stt', 'date', 'time', 'room', 'teacher', 'assistant', 'status', 'isBilled', 'attendance'],
+      'Lịch dạy & Điểm danh'
+    );
+  };
 
   const sessionColumns = [
     {
@@ -267,6 +296,13 @@ export const ScheduleTab: React.FC<ScheduleTabProps> = ({
             </Space>
           )}
 
+          <Button
+            icon={<DownloadOutlined />}
+            onClick={handleExportSchedule}
+            style={{ color: '#38bdf8', borderColor: '#0284c7' }}
+          >
+            Xuất Excel lịch dạy
+          </Button>
           <Button
             type="dashed"
             icon={<SyncOutlined />}

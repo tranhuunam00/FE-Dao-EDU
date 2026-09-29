@@ -3,11 +3,12 @@ import {
   Modal, Descriptions, Tag, Button, App,
 } from 'antd';
 import {
-  CalendarOutlined, SaveOutlined, CheckCircleOutlined, StopOutlined, EditOutlined,
+  CalendarOutlined, SaveOutlined, CheckCircleOutlined, StopOutlined, EditOutlined, DownloadOutlined,
 } from '@ant-design/icons';
 import { UserCheck, Sparkles } from 'lucide-react';
 import dayjs from 'dayjs';
 import api from '../../../services/api';
+import { exportToExcel } from '../../../utils/export';
 import { AttendanceTabContent } from '../../teacher/components/AttendanceTabContent';
 import { EvaluationsTabContent } from '../../teacher/components/EvaluationsTabContent';
 import { useAdminSessionAttendance } from './useAdminSessionAttendance';
@@ -78,12 +79,64 @@ export const AdminSessionAttendanceModal: React.FC<AdminSessionAttendanceModalPr
     isPresent: a.isPresent,
   }));
 
+  const handleExportSession = () => {
+    if (!sessionAttendance || sessionAttendance.length === 0) {
+      message.warning('Chưa có danh sách học sinh để xuất.');
+      return;
+    }
+    const exportData = sessionAttendance.map((a, idx) => {
+      const evalItem = sessionEvaluations[a.studentId] || ({} as any);
+      const statusLabel = a.isPresent
+        ? 'Có mặt'
+        : a.reason === 'Excused'
+        ? 'Nghỉ có phép'
+        : a.reason === 'Late'
+        ? 'Đi muộn'
+        : 'Nghỉ không phép';
+
+      const hwText = evalItem.criteria?.homework === 'done' ? 'Làm đủ' : evalItem.criteria?.homework === 'missing' ? 'Thiếu BTVN' : 'Không có';
+      const undText = evalItem.criteria?.understanding === 'quick' ? 'Tiếp thu nhanh' : evalItem.criteria?.understanding === 'slow' ? 'Chậm' : 'Bình thường';
+      const behText = evalItem.criteria?.behavior === 'good' ? 'Tốt' : evalItem.criteria?.behavior === 'talkative' ? 'Nói chuyện' : 'Mất tập trung';
+
+      return {
+        stt: idx + 1,
+        studentId: a.student?.studentId || a.studentId,
+        studentName: `${a.student?.lastName || ''} ${a.student?.firstName || ''}`.trim(),
+        status: statusLabel,
+        absenceNote: a.note || '',
+        homework: hwText,
+        understanding: undText,
+        behavior: behText,
+        score: evalItem.evaluationScore || '—',
+        feedback: evalItem.evaluationComment || '',
+      };
+    });
+
+    exportToExcel(
+      exportData,
+      `Diem_danh_Danh_gia_${(classData?.name || currentSession.className || 'Lop').replace(/\s+/g, '_')}_${dayjs(currentSession.date).format('YYYY-MM-DD')}`,
+      ['STT', 'Mã học sinh', 'Họ và tên', 'Điểm danh', 'Ghi chú vắng', 'BTVN', 'Tiếp thu', 'Nề nếp', 'Điểm đánh giá', 'Nhận xét buổi học'],
+      ['stt', 'studentId', 'studentName', 'status', 'absenceNote', 'homework', 'understanding', 'behavior', 'score', 'feedback'],
+      'Đánh giá buổi học'
+    );
+  };
+
   return (
     <Modal
       title={
-        <div>
-          <CalendarOutlined style={{ color: '#6366f1', marginRight: 8 }} />
-          Buổi học ngày: {dayjs(currentSession.date).format('DD/MM/YYYY')}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginRight: 32 }}>
+          <div>
+            <CalendarOutlined style={{ color: '#6366f1', marginRight: 8 }} />
+            Buổi học ngày: {dayjs(currentSession.date).format('DD/MM/YYYY')}
+          </div>
+          <Button
+            size="small"
+            icon={<DownloadOutlined />}
+            onClick={handleExportSession}
+            style={{ color: '#0284c7', borderColor: '#38bdf8' }}
+          >
+            Xuất Excel đánh giá buổi học
+          </Button>
         </div>
       }
       open={visible}
@@ -111,6 +164,9 @@ export const AdminSessionAttendanceModal: React.FC<AdminSessionAttendanceModalPr
         </Descriptions>
 
         <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
+          <Button icon={<DownloadOutlined />} onClick={handleExportSession} style={{ color: '#0284c7', borderColor: '#38bdf8' }}>
+            Xuất Excel đánh giá buổi học
+          </Button>
           {currentSession.attendanceLocked && currentSession.status !== 'Cancelled' && (
             <Button type="primary" icon={<SaveOutlined />} onClick={handleSaveEvaluationsOnly} loading={savingEvaluations}>
               Cập nhật đánh giá

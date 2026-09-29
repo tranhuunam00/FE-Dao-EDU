@@ -1,7 +1,8 @@
 import React from 'react';
 import { Card, Typography, Button, Table, Tag, Tooltip } from 'antd';
-import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, EditOutlined, DownloadOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import { exportToExcel } from '../../../utils/export';
 
 const { Title, Text } = Typography;
 
@@ -142,11 +143,47 @@ export const StudentsTab: React.FC<StudentsTabProps> = ({
     },
   ];
 
+  const handleExportStudents = () => {
+    if (!classData?.students || classData.students.length === 0) {
+      return;
+    }
+    const exportData = classData.students.map((record: any, idx: number) => {
+      const fullName = record.student ? `${record.student.lastName} ${record.student.firstName}` : '-';
+      const isDropped = record.status === 'Dropped';
+      return {
+        stt: idx + 1,
+        studentId: record.student?.studentId || record.studentId || '-',
+        fullName,
+        phone: record.student?.mobile || '-',
+        email: record.student?.email || record.student?.user?.email || '-',
+        joinedDate: record.joinedDate ? dayjs(record.joinedDate).format('DD/MM/YYYY') : '-',
+        status: isDropped ? 'Đã rời lớp' : 'Đang học',
+        droppedDate: record.droppedDate ? dayjs(record.droppedDate).format('DD/MM/YYYY') : '-',
+      };
+    });
+
+    exportToExcel(
+      exportData,
+      `Danh_sach_hoc_sinh_${(classData.name || 'Lop').replace(/\s+/g, '_')}`,
+      ['STT', 'Mã học sinh', 'Họ và tên', 'Số điện thoại', 'Email', 'Ngày tham gia', 'Trạng thái', 'Ngày rời lớp'],
+      ['stt', 'studentId', 'fullName', 'phone', 'email', 'joinedDate', 'status', 'droppedDate'],
+      'Danh sách học sinh'
+    );
+  };
+
   return (
     <Card className="glass-panel" style={{ border: 'none', background: 'var(--card-bg)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Title level={5} style={{ color: 'var(--text-primary)', margin: 0 }}>Danh sách Học sinh trong lớp</Title>
         <div style={{ display: 'flex', gap: '8px' }}>
+          <Button
+            type="default"
+            icon={<DownloadOutlined />}
+            onClick={handleExportStudents}
+            style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--card-border)', color: 'var(--text-primary)' }}
+          >
+            Xuất Excel danh sách
+          </Button>
           <Button
             type="default"
             icon={<EditOutlined />}
