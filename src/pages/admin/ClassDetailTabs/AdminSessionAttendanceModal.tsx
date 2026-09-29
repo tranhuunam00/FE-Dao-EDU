@@ -167,11 +167,6 @@ export const AdminSessionAttendanceModal: React.FC<AdminSessionAttendanceModalPr
           <Button icon={<DownloadOutlined />} onClick={handleExportSession} style={{ color: '#0284c7', borderColor: '#38bdf8' }}>
             Xuất Excel đánh giá buổi học
           </Button>
-          {currentSession.attendanceLocked && currentSession.status !== 'Cancelled' && (
-            <Button type="primary" icon={<SaveOutlined />} onClick={handleSaveEvaluationsOnly} loading={savingEvaluations}>
-              Cập nhật đánh giá
-            </Button>
-          )}
           {!currentSession.attendanceLocked && (
             <>
               {currentSession.status === 'Scheduled' && (

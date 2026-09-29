@@ -714,20 +714,6 @@ const TeacherDetailInner: React.FC = () => {
           ]}
           className="custom-tabs"
         />
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--card-border)' }}>
-          <Button
-            type="primary"
-            size="large"
-            icon={<SaveOutlined />}
-            htmlType="submit"
-            loading={saving}
-            disabled={!submittable}
-            style={{ background: submittable ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : undefined, border: 'none' }}
-          >
-            Lưu thay đổi
-          </Button>
-        </div>
       </Form>
     </div>
   );
