@@ -65,8 +65,49 @@ export const CriteriaTagGroup: React.FC<CriteriaTagGroupProps> = ({ criteria, on
     }
   };
 
+  const handleSetAllGood = () => {
+    if (disabled) return;
+    onChange({
+      ...criteria,
+      attendance: 'yes',
+      homework: 'yes',
+      behavior: 'yes',
+      participation: 'yes',
+    });
+  };
+
+  const isAllGood =
+    criteria?.attendance === 'yes' &&
+    criteria?.homework === 'yes' &&
+    criteria?.behavior === 'yes' &&
+    criteria?.participation === 'yes';
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.78rem', width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 2 }}>
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={handleSetAllGood}
+          style={{
+            border: isAllGood ? '1px solid #10b981' : '1px solid rgba(16, 185, 129, 0.4)',
+            backgroundColor: isAllGood ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.08)',
+            color: '#10b981',
+            borderRadius: '4px',
+            padding: '1px 8px',
+            fontSize: '0.72rem',
+            fontWeight: 700,
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '3px',
+            transition: 'all 0.15s ease',
+          }}
+          title="Đánh giá học sinh này đạt Tốt cả 4 tiêu chí (Yes)"
+        >
+          ✓ Tốt hết
+        </button>
+      </div>
       {(Object.keys(CRITERIA_CONFIG) as Array<keyof typeof CRITERIA_CONFIG>).map((cat) => {
         const conf = CRITERIA_CONFIG[cat];
         const selectedVal = (criteria as any)[cat];

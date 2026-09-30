@@ -34,6 +34,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
     handleSingleGenerateAi,
     handleBatchGenerateAi,
     handleApproveAll,
+    handleMarkAllGoodAndSave,
     saveAllData,
   } = useSessionAttendanceAndEvaluation({ session, onSuccess, onClose });
 
@@ -254,6 +255,7 @@ export const AttendanceModal: React.FC<AttendanceModalProps> = ({
               onSingleGenerateAi={handleSingleGenerateAi}
               onBatchGenerateAi={handleBatchGenerateAi}
               onApproveAll={handleApproveAll}
+              onMarkAllGoodAndSave={handleMarkAllGoodAndSave}
               onSaveEvaluations={() => saveAllData(false)}
               savingEvaluations={submitting}
               batchGenerating={batchGenerating}

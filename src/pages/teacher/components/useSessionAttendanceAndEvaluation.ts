@@ -150,7 +150,7 @@ export const useSessionAttendanceAndEvaluation = ({
     });
 
     // Nếu người dùng bấm duyệt / hủy duyệt từng học sinh -> lưu thực tế ngay xuống server
-    if (patch.isApprovedByTeacher !== undefined && session?.id) {
+    if (patch.isApprovedByTeacher !== undefined && patch.evaluationComment === undefined && session?.id) {
       const existing = evaluations[studentId] || {
         studentId,
         classSessionId: session.id,
@@ -390,6 +390,61 @@ export const useSessionAttendanceAndEvaluation = ({
     }
   };
 
+  const handleMarkAllGoodAndSave = async () => {
+    if (attendances.length === 0) {
+      message.warning('Chưa có học sinh nào trong buổi học này.');
+      return;
+    }
+
+    const allGoodCriteria: EvaluationCriteria = {
+      attendance: 'yes',
+      homework: 'yes',
+      behavior: 'yes',
+      participation: 'yes',
+    };
+
+    const nextEvaluations: Record<string, StudentSessionEvaluationItem> = { ...evaluations };
+    for (const a of attendances) {
+      const existing = nextEvaluations[a.studentId] || {
+        studentId: a.studentId,
+        classSessionId: session.id,
+        criteria: {},
+        evaluationScore: null,
+        evaluationComment: null,
+        isAiGenerated: false,
+        isApprovedByTeacher: false,
+      };
+      nextEvaluations[a.studentId] = {
+        ...existing,
+        criteria: { ...allGoodCriteria },
+      };
+    }
+    setEvaluations(nextEvaluations);
+
+    // Tự động lưu luôn xuống backend!
+    try {
+      setSubmitting(true);
+      const evalPayloadList = Object.values(nextEvaluations).map((e) => ({
+        studentId: e.studentId,
+        criteria: e.criteria || {},
+        evaluationScore: e.evaluationScore || null,
+        evaluationComment: e.evaluationComment || null,
+        isAiGenerated: !!e.isAiGenerated,
+        isApprovedByTeacher: !!e.isApprovedByTeacher,
+      }));
+      if (evalPayloadList.length > 0) {
+        await evaluationService.saveSessionEvaluations(session.id, {
+          evaluations: evalPayloadList,
+        });
+      }
+      message.success('Đã đánh giá 1-chạm TỐT HẾT (YES) cho cả lớp và tự động lưu thành công!');
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi lưu đánh giá.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return {
     attendances,
     setAttendances,
@@ -406,6 +461,7 @@ export const useSessionAttendanceAndEvaluation = ({
     handleSingleGenerateAi,
     handleBatchGenerateAi,
     handleApproveAll,
+    handleMarkAllGoodAndSave,
     saveAllData,
   };
 };

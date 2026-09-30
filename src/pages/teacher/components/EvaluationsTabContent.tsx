@@ -24,6 +24,7 @@ interface EvaluationsTabContentProps {
   onBatchGenerateAi: () => void;
   onApproveAll: () => void;
   onSaveEvaluations?: () => void;
+  onMarkAllGoodAndSave?: () => void;
   savingEvaluations?: boolean;
   batchGenerating: boolean;
   generatingMap: Record<string, boolean>;
@@ -39,6 +40,7 @@ export const EvaluationsTabContent: React.FC<EvaluationsTabContentProps> = ({
   onBatchGenerateAi,
   onApproveAll,
   onSaveEvaluations,
+  onMarkAllGoodAndSave,
   savingEvaluations,
   batchGenerating,
   generatingMap,
@@ -51,6 +53,25 @@ export const EvaluationsTabContent: React.FC<EvaluationsTabContentProps> = ({
       const item = evaluations[s.id] || evaluations[s.studentId];
       return !!item?.isApprovedByTeacher;
     });
+
+  const handleMarkAllGood = () => {
+    if (onMarkAllGoodAndSave) {
+      onMarkAllGoodAndSave();
+      return;
+    }
+    const allGoodCriteria = {
+      attendance: 'yes',
+      homework: 'yes',
+      behavior: 'yes',
+      participation: 'yes',
+    };
+    students.forEach((s) => {
+      onEvaluationChange(s.id, { criteria: allGoodCriteria as any });
+    });
+    if (onSaveEvaluations) {
+      setTimeout(() => onSaveEvaluations(), 100);
+    }
+  };
 
   return (
     <div>
@@ -68,6 +89,28 @@ export const EvaluationsTabContent: React.FC<EvaluationsTabContentProps> = ({
           Đánh giá 1-chạm & sinh nhận xét cá nhân hóa bằng AI cho từng học sinh.
         </div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn btn-outline"
+            disabled={disabled || batchGenerating || savingEvaluations || students.length === 0}
+            onClick={handleMarkAllGood}
+            title="Đánh giá 1-chạm TỐT HẾT (Chuyên cần, BTVN, Nội quy, Phát biểu đều YES) cho tất cả học sinh và tự lưu ngay"
+            style={{
+              padding: '5px 13px',
+              fontSize: '0.82rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontWeight: 700,
+              color: '#059669',
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.12)',
+              cursor: disabled || batchGenerating || savingEvaluations ? 'not-allowed' : 'pointer',
+            }}
+          >
+            <CheckCheck size={15} />
+            <span>👍 Tất cả lớp TỐT (Tự lưu)</span>
+          </button>
           <button
             type="button"
             className="btn btn-outline"
@@ -248,7 +291,7 @@ export const EvaluationsTabContent: React.FC<EvaluationsTabContentProps> = ({
                       onCommentChange={(val) =>
                         onEvaluationChange(student.id, {
                           evaluationComment: val,
-                          isApprovedByTeacher: false,
+                          ...(evalItem.isApprovedByTeacher ? { isApprovedByTeacher: false } : {}),
                         })
                       }
                       onApproveChange={(val) =>

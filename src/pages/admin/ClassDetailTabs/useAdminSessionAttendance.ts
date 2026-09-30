@@ -101,13 +101,8 @@ export const useAdminSessionAttendance = ({
             };
           })
           .sort((a: any, b: any) => {
-            const aFirst = a.student?.firstName || '';
-            const bFirst = b.student?.firstName || '';
-            const comp = aFirst.localeCompare(bFirst, 'vi', { sensitivity: 'base' });
-            if (comp !== 0) return comp;
-            const aLast = a.student?.lastName || '';
-            const bLast = b.student?.lastName || '';
-            return aLast.localeCompare(bLast, 'vi', { sensitivity: 'base' });
+            const comp = (a.student?.firstName || '').localeCompare(b.student?.firstName || '', 'vi', { sensitivity: 'base' });
+            return comp !== 0 ? comp : (a.student?.lastName || '').localeCompare(b.student?.lastName || '', 'vi', { sensitivity: 'base' });
           });
         setSessionAttendance(mapped);
 
@@ -116,13 +111,8 @@ export const useAdminSessionAttendance = ({
         for (const m of mapped) {
           if (!evalRecord[m.studentId]) {
             evalRecord[m.studentId] = {
-              studentId: m.studentId,
-              classSessionId: currentSession.id,
-              criteria: {},
-              evaluationScore: null,
-              evaluationComment: null,
-              isAiGenerated: false,
-              isApprovedByTeacher: false,
+              studentId: m.studentId, classSessionId: currentSession.id, criteria: {},
+              evaluationScore: null, evaluationComment: null, isAiGenerated: false, isApprovedByTeacher: false,
             };
           }
         }
@@ -131,7 +121,6 @@ export const useAdminSessionAttendance = ({
         message.error('Lỗi khi tải thông tin buổi học.');
       }
     };
-
     loadData();
   }, [visible, currentSession?.id]);
 
@@ -143,7 +132,7 @@ export const useAdminSessionAttendance = ({
       return { ...prev, [studentId]: nextItem };
     });
 
-    if (patch.isApprovedByTeacher !== undefined && currentSession?.id) {
+    if (patch.isApprovedByTeacher !== undefined && patch.evaluationComment === undefined && currentSession?.id) {
       const existing = sessionEvaluations[studentId] || { studentId, classSessionId: currentSession.id, criteria: {} };
       const toSave = { ...existing, ...patch };
       evaluationService.saveSessionEvaluations(currentSession.id, {
@@ -216,23 +205,12 @@ export const useAdminSessionAttendance = ({
       const targetStudents = presentStudents.length > 0 ? presentStudents : sessionAttendance;
       const candidates = targetStudents.map((a) => {
           const currentEval = sessionEvaluations[a.studentId];
-          const hasCriteria = Boolean(
-            currentEval?.criteria?.homework ||
-            currentEval?.criteria?.understanding ||
-            currentEval?.criteria?.participation ||
-            currentEval?.criteria?.behavior
-          );
+          const hasCriteria = Boolean(currentEval?.criteria?.homework || currentEval?.criteria?.understanding || currentEval?.criteria?.participation || currentEval?.criteria?.behavior);
           const effectiveCriteria = hasCriteria ? currentEval?.criteria : defaultCriteria;
           const firstName = a.student?.firstName || '';
           const lastName = a.student?.lastName || '';
           const studentName = `${lastName} ${firstName}`.trim() || a.student?.name || 'Học sinh';
-          return {
-            studentId: a.studentId,
-            studentName,
-            className: classData?.className,
-            date: currentSession.date,
-            criteria: effectiveCriteria,
-          };
+          return { studentId: a.studentId, studentName, className: classData?.className, date: currentSession.date, criteria: effectiveCriteria };
         });
 
       if (candidates.length === 0) {
@@ -246,17 +224,8 @@ export const useAdminSessionAttendance = ({
           const next = { ...prev };
           for (const item of res.results) {
             if (item.comment) {
-              const currentItem = next[item.studentId] || {
-                studentId: item.studentId,
-                classSessionId: currentSession.id,
-                criteria: {},
-              };
-              const hasCriteria = Boolean(
-                currentItem.criteria?.homework ||
-                currentItem.criteria?.understanding ||
-                currentItem.criteria?.participation ||
-                currentItem.criteria?.behavior
-              );
+              const currentItem = next[item.studentId] || { studentId: item.studentId, classSessionId: currentSession.id, criteria: {} };
+              const hasCriteria = Boolean(currentItem.criteria?.homework || currentItem.criteria?.understanding || currentItem.criteria?.participation || currentItem.criteria?.behavior);
               next[item.studentId] = {
                 ...currentItem,
                 criteria: hasCriteria ? currentItem.criteria : defaultCriteria,
@@ -328,6 +297,53 @@ export const useAdminSessionAttendance = ({
     }
   };
 
+  const handleMarkAllGoodAndSave = async () => {
+    if (sessionAttendance.length === 0) {
+      message.warning('Chưa có học sinh nào trong buổi học này.');
+      return;
+    }
+    const allGoodCriteria: EvaluationCriteria = {
+      attendance: 'yes',
+      homework: 'yes',
+      behavior: 'yes',
+      participation: 'yes',
+    };
+    const nextEvaluations: Record<string, StudentSessionEvaluationItem> = { ...sessionEvaluations };
+    for (const a of sessionAttendance) {
+      const existing = nextEvaluations[a.studentId] || {
+        studentId: a.studentId,
+        classSessionId: currentSession.id,
+        criteria: {},
+        evaluationScore: null,
+        evaluationComment: null,
+        isAiGenerated: false,
+        isApprovedByTeacher: false,
+      };
+      nextEvaluations[a.studentId] = { ...existing, criteria: { ...allGoodCriteria } };
+    }
+    setSessionEvaluations(nextEvaluations);
+
+    try {
+      setSavingEvaluations(true);
+      const evalPayloadList = Object.values(nextEvaluations).map((e) => ({
+        studentId: e.studentId,
+        criteria: e.criteria || {},
+        evaluationScore: e.evaluationScore || null,
+        evaluationComment: e.evaluationComment || null,
+        isAiGenerated: !!e.isAiGenerated,
+        isApprovedByTeacher: !!e.isApprovedByTeacher,
+      }));
+      if (evalPayloadList.length > 0) {
+        await evaluationService.saveSessionEvaluations(currentSession.id, { evaluations: evalPayloadList });
+      }
+      message.success('Đã đánh giá 1-chạm TỐT HẾT (YES) cho cả lớp và tự động lưu thành công!');
+    } catch (err: any) {
+      message.error(err.response?.data?.message || 'Lỗi khi lưu đánh giá.');
+    } finally {
+      setSavingEvaluations(false);
+    }
+  };
+
   const saveEvaluationsInternal = async () => {
     const evalPayloadList = Object.values(sessionEvaluations).map((e) => ({
       studentId: e.studentId,
@@ -377,21 +393,17 @@ export const useAdminSessionAttendance = ({
     modal.confirm({
       title: 'Xác nhận Kết thúc buổi học',
       content: 'Khi kết thúc, trạng thái sẽ chuyển sang Hoàn thành và KHÓA bảng điểm danh buổi này.',
-      okText: 'Đồng ý',
-      cancelText: 'Hủy',
+      okText: 'Đồng ý', cancelText: 'Hủy',
       onOk: async () => {
         try {
           await api.post(`/classes/sessions/${currentSession.id}/attendance`, {
-            attendance: sessionAttendance.map((a) => ({
-              studentId: a.studentId, isPresent: a.isPresent, reason: a.reason, note: a.note,
-            })),
+            attendance: sessionAttendance.map((a) => ({ studentId: a.studentId, isPresent: a.isPresent, reason: a.reason, note: a.note })),
           });
           await saveEvaluationsInternal();
           const { data } = await api.post(`/classes/sessions/${currentSession.id}/complete`);
           message.success('Đã kết thúc buổi học!');
           setCurrentSession(data);
-          onClose();
-          onReload();
+          onClose(); onReload();
         } catch (err: any) {
           message.error(err.response?.data?.message || 'Lỗi khi hoàn thành buổi học');
         }
@@ -403,22 +415,17 @@ export const useAdminSessionAttendance = ({
     modal.confirm({
       title: '⚠️ Xác nhận sửa điểm danh đã chốt',
       content: 'Bạn sắp sửa bảng điểm danh của buổi học đã kết thúc. Chỉ được phép nếu chưa tính tiền.',
-      okText: 'Xác nhận sửa',
-      okButtonProps: { danger: true },
-      cancelText: 'Hủy',
+      okText: 'Xác nhận sửa', okButtonProps: { danger: true }, cancelText: 'Hủy',
       onOk: async () => {
         setSavingAttendance(true);
         try {
           await api.post(`/classes/sessions/${currentSession.id}/attendance-override`, {
-            attendance: sessionAttendance.map((a) => ({
-              studentId: a.studentId, isPresent: a.isPresent, reason: a.reason, note: a.note,
-            })),
+            attendance: sessionAttendance.map((a) => ({ studentId: a.studentId, isPresent: a.isPresent, reason: a.reason, note: a.note })),
           });
           await saveEvaluationsInternal();
           message.success('Đã cập nhật điểm danh thành công!');
           setIsOverrideMode(false);
-          onClose();
-          onReload();
+          onClose(); onReload();
         } catch (err: any) {
           message.error(err.response?.data?.message || 'Lỗi khi sửa điểm danh');
         } finally {
@@ -432,9 +439,7 @@ export const useAdminSessionAttendance = ({
     modal.confirm({
       title: 'Xác nhận cho nghỉ học',
       content: 'Bạn có chắc chắn muốn hủy buổi học này? Hệ thống sẽ KHÔNG tính buổi học này.',
-      okText: 'Cho nghỉ',
-      okButtonProps: { danger: true },
-      cancelText: 'Quay lại',
+      okText: 'Cho nghỉ', okButtonProps: { danger: true }, cancelText: 'Quay lại',
       onOk: async () => {
         try {
           const { data } = await api.post(`/classes/sessions/${currentSession.id}/cancel`);
@@ -463,9 +468,7 @@ export const useAdminSessionAttendance = ({
     modal.confirm({
       title: 'Xác nhận Trở lại chưa diễn ra',
       content: 'Chuyển buổi học về trạng thái Chưa diễn ra?',
-      okText: 'Đồng ý',
-      okButtonProps: { danger: true },
-      cancelText: 'Hủy',
+      okText: 'Đồng ý', okButtonProps: { danger: true }, cancelText: 'Hủy',
       onOk: async () => {
         try {
           const { data } = await api.post(`/classes/sessions/${currentSession.id}/revert-to-scheduled`);
@@ -480,28 +483,12 @@ export const useAdminSessionAttendance = ({
   };
 
   return {
-    activeTab,
-    setActiveTab,
-    sessionAttendance,
-    setSessionAttendance,
-    sessionEvaluations,
-    isOverrideMode,
-    setIsOverrideMode,
-    savingAttendance,
-    savingEvaluations,
-    generatingMap,
-    cooldownMap,
-    batchGenerating,
-    handleEvaluationChange,
-    handleSingleGenerateAi,
-    handleBatchGenerateAi,
-    handleApproveAll,
-    handleSaveAttendance,
-    handleSaveEvaluationsOnly,
-    handleCompleteSession,
-    handleOverrideAttendance,
-    handleCancelSession,
-    handleReopenSession,
-    handleRevertToScheduled,
+    activeTab, setActiveTab, sessionAttendance, setSessionAttendance,
+    sessionEvaluations, isOverrideMode, setIsOverrideMode, savingAttendance,
+    savingEvaluations, generatingMap, cooldownMap, batchGenerating,
+    handleEvaluationChange, handleSingleGenerateAi, handleBatchGenerateAi,
+    handleApproveAll, handleMarkAllGoodAndSave, handleSaveAttendance,
+    handleSaveEvaluationsOnly, handleCompleteSession, handleOverrideAttendance,
+    handleCancelSession, handleReopenSession, handleRevertToScheduled,
   };
 };

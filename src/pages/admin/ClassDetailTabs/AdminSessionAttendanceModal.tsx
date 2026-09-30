@@ -53,6 +53,7 @@ export const AdminSessionAttendanceModal: React.FC<AdminSessionAttendanceModalPr
     handleSingleGenerateAi,
     handleBatchGenerateAi,
     handleApproveAll,
+    handleMarkAllGoodAndSave,
     handleSaveAttendance,
     handleSaveEvaluationsOnly,
     handleCompleteSession,
@@ -267,6 +268,7 @@ export const AdminSessionAttendanceModal: React.FC<AdminSessionAttendanceModalPr
             onSingleGenerateAi={handleSingleGenerateAi}
             onBatchGenerateAi={handleBatchGenerateAi}
             onApproveAll={handleApproveAll}
+            onMarkAllGoodAndSave={handleMarkAllGoodAndSave}
             onSaveEvaluations={handleSaveEvaluationsOnly}
             savingEvaluations={savingEvaluations}
             batchGenerating={batchGenerating}
