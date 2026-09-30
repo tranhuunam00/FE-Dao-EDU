@@ -22,7 +22,7 @@ export const ReportCardHeader: React.FC<ReportCardHeaderProps> = ({
   activeClasses,
   periodLabel,
   dateRange,
-  isMonthly,
+  isMonthly: _isMonthly,
 }) => {
   const displayClass = activeClasses || className || 'Đang cập nhật';
 
@@ -71,7 +71,7 @@ export const ReportCardHeader: React.FC<ReportCardHeaderProps> = ({
             lineHeight: 1.3,
           }}
         >
-          {isMonthly ? 'PHIẾU BÁO KẾT QUẢ HỌC TẬP THÁNG' : 'PHIẾU BÁO KẾT QUẢ HỌC TẬP TUẦN'}
+          PHIẾU BÁO KẾT QUẢ HỌC TẬP
         </div>
         <div style={{ fontSize: 12.5, fontWeight: 600, color: '#4338ca', marginTop: 3 }}>
           {periodLabel} ({dateRange})

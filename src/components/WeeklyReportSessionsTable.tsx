@@ -45,8 +45,8 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
   }, {});
 
   const thStyle: React.CSSProperties = {
-    padding: '5px 4px',
-    fontSize: 10,
+    padding: '7px 6px',
+    fontSize: 12,
     fontWeight: 700,
     color: '#1e293b',
     background: '#f8fafc',
@@ -56,8 +56,8 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
   };
 
   const tdStyle: React.CSSProperties = {
-    padding: '4px 4px',
-    fontSize: 10,
+    padding: '6px 6px',
+    fontSize: 12,
     color: '#0f172a',
     background: '#ffffff',
     border: '1px solid #cbd5e1',
@@ -65,8 +65,8 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
   };
 
   const totalRowTdStyle: React.CSSProperties = {
-    padding: '5px 4px',
-    fontSize: 10,
+    padding: '7px 6px',
+    fontSize: 12,
     fontWeight: 700,
     color: '#0f172a',
     background: '#f1f5f9',
@@ -84,13 +84,13 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
     if (isPass) {
       return (
         <span title={title || 'Đạt'} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Check size={16} strokeWidth={2.8} style={{ color: '#16a34a' }} />
+          <Check size={18} strokeWidth={2.8} style={{ color: '#16a34a' }} />
         </span>
       );
     }
     return (
       <span title={title || 'Chưa đạt'} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-        <X size={16} strokeWidth={2.8} style={{ color: '#dc2626' }} />
+        <X size={18} strokeWidth={2.8} style={{ color: '#dc2626' }} />
       </span>
     );
   };
@@ -199,14 +199,13 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
         >
           <thead>
             <tr>
-              <th style={{ ...thStyle, width: '4%', textAlign: 'center' }}>STT</th>
-              <th style={{ ...thStyle, width: '11%' }}>Ngày</th>
-              <th style={{ ...thStyle, width: '8%', textAlign: 'center' }}>Chuyên cần</th>
-              <th style={{ ...thStyle, width: '8%', textAlign: 'center' }}>Làm BTVN</th>
-              <th style={{ ...thStyle, width: '8%', textAlign: 'center' }}>Tuân thủ NQ</th>
-              <th style={{ ...thStyle, width: '9%', textAlign: 'center' }}>Phát biểu</th>
-              <th style={{ ...thStyle, width: '7%', textAlign: 'center' }}>Điểm số</th>
-              <th style={{ ...thStyle, width: '45%' }}>Nhận xét của giáo viên</th>
+              <th style={{ ...thStyle, width: '5%', textAlign: 'center' }}>STT</th>
+              <th style={{ ...thStyle, width: '17%' }}>Ngày</th>
+              <th style={{ ...thStyle, width: '16%', textAlign: 'center' }}>Chuyên cần</th>
+              <th style={{ ...thStyle, width: '16%', textAlign: 'center' }}>Làm BTVN</th>
+              <th style={{ ...thStyle, width: '16%', textAlign: 'center' }}>Tuân thủ NQ</th>
+              <th style={{ ...thStyle, width: '15%', textAlign: 'center' }}>Phát biểu</th>
+              <th style={{ ...thStyle, width: '15%', textAlign: 'center' }}>Điểm kiểm tra</th>
             </tr>
           </thead>
           <tbody>
@@ -261,12 +260,12 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
                   {/* TIÊU ĐỀ PHÂN TÁCH MÔN HỌC */}
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={7}
                       style={{
-                        padding: '6px 10px',
+                        padding: '7px 10px',
                         background: '#e2e8f0',
                         fontWeight: 700,
-                        fontSize: 11.5,
+                        fontSize: 12.5,
                         color: '#0f172a',
                         border: '1px solid #cbd5e1',
                         borderTop: gIdx > 0 ? '2px solid #64748b' : '1px solid #cbd5e1',
@@ -314,25 +313,14 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
                           {renderParticipation(row.participation)}
                         </td>
 
-                        {/* ĐIỂM SỐ */}
+                        {/* ĐIỂM KIỂM TRA */}
                         <td style={{ ...tdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
                           {(() => {
                             if (!row.score) return <span style={{ color: '#94a3b8' }}>—</span>;
                             const numScore = Number(String(row.score).replace(',', '.'));
                             const color = !isNaN(numScore) ? getRateColor(numScore / 10) : '#0f172a';
-                            return <span style={{ fontWeight: 700, color }}>{row.score}</span>;
+                            return <span style={{ fontWeight: 700, color, fontSize: 13 }}>{row.score}</span>;
                           })()}
-                        </td>
-
-                        {/* NHẬN XÉT CỦA GIÁO VIÊN */}
-                        <td style={{ ...tdStyle, minWidth: 180 }}>
-                          {row.teacherComment ? (
-                            <div style={{ fontStyle: 'italic', color: '#334155', lineHeight: 1.4, wordBreak: 'break-word' }}>
-                              "{row.teacherComment}"
-                            </div>
-                          ) : (
-                            <span style={{ color: '#94a3b8' }}>—</span>
-                          )}
                         </td>
                       </tr>
                     );
@@ -376,7 +364,6 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
                         <span style={{ color: '#94a3b8', fontWeight: 400 }}>—</span>
                       )}
                     </td>
-                    <td style={totalRowTdStyle}></td>
                   </tr>
                 </React.Fragment>
               );

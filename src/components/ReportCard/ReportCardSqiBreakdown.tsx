@@ -127,68 +127,158 @@ export const ReportCardSqiBreakdown: React.FC<ReportCardSqiBreakdownProps> = ({
     return 'Đang cập nhật';
   };
 
+  const getCriteriaScore = (type: 'attendance' | 'homework' | 'behavior' | 'participation', max: number) => {
+    let sc: number | null | undefined = sqiBreakdown?.[type];
+    if (sc === null || sc === undefined) {
+      if (sessions && sessions.length > 0) {
+        if (type === 'attendance') {
+          let p = 0;
+          for (const s of sessions) {
+            const st = (s.attendanceStatus || '').toLowerCase();
+            if (st === 'yes' || st === 'on_time' || st === 'makeup') p += 1.0;
+            else if (st === 'late' || st === 'early_leave') p += 0.75;
+            else if (st === 'late_much') p += 0.4;
+            else if (st === 'absent_excused') p += 0.2;
+            else if (s.isPresent) p += s.isLate ? 0.75 : 1.0;
+          }
+          sc = Math.round((p / sessions.length) * 30 * 10) / 10;
+        } else if (type === 'homework') {
+          const hwSessions = sessions.filter(s => {
+            const st = String(s.homeworkStatus || '').toLowerCase();
+            return st && st !== 'no_homework' && st !== 'none';
+          });
+          if (hwSessions.length > 0) {
+            let p = 0;
+            for (const s of hwSessions) {
+              const st = String(s.homeworkStatus || '').toLowerCase();
+              if (st === 'yes' || st === 'excellent' || st === 'completed' || st === 'done') p += 1.0;
+              else if (st === 'missing_few' || st === 'forgot_notebook') p += 0.7;
+              else if (st === 'incomplete') p += 0.5;
+              else if (st === 'coping') p += 0.4;
+              else if (st === 'missing_many') p += 0.3;
+            }
+            sc = Math.round((p / hwSessions.length) * 30 * 10) / 10;
+          }
+        } else if (type === 'behavior') {
+          const behSessions = sessions.filter(s => (s.behaviorTags && s.behaviorTags.length > 0) || s.behaviorStatus);
+          if (behSessions.length > 0) {
+            let p = 0;
+            for (const s of behSessions) {
+              const tags = (s.behaviorTags || []).map((t: any) => String(t).toLowerCase());
+              const st = String(s.behaviorStatus || tags[0] || '').toLowerCase();
+              if (st === 'yes' || st === 'good') p += 1.0;
+              else if (st === 'no') p += 0.0;
+              else if (st === 'disruptive') p += 0.1;
+              else if (st === 'phone_private') p += 0.3;
+              else if (st === 'talkative') p += 0.5;
+              else if (['unfocused', 'sleepy', 'missing_tools'].includes(st)) p += 0.7;
+              else {
+                const hasVio = tags.some((t: string) => ['disruptive', 'phone', 'talkative', 'sleepy', 'distracted'].includes(t));
+                p += hasVio ? 0.3 : 1.0;
+              }
+            }
+            sc = Math.round((p / behSessions.length) * 20 * 10) / 10;
+          }
+        } else if (type === 'participation') {
+          const partSessions = sessions.filter(s => s.participation);
+          if (partSessions.length > 0) {
+            let p = 0;
+            for (const s of partSessions) {
+              const pst = String(s.participation).toLowerCase();
+              if (pst === 'yes' || pst === 'active_raise_hand' || pst === 'active' || pst === 'proactive_ask') p += 1.0;
+              else if (pst === 'answer_well') p += 0.8;
+              else if (pst === 'attentive_quiet' || pst === 'normal') p += 0.7;
+              else if (pst === 'answer_hesitant') p += 0.4;
+              else p += 0.0;
+            }
+            sc = Math.round((p / partSessions.length) * 20 * 10) / 10;
+          }
+        }
+      }
+    }
+
+    if (sc === null || sc === undefined) return <span style={{ color: '#94a3b8' }}>—</span>;
+    return (
+      <span style={{ whiteSpace: 'nowrap' }}>
+        <strong style={{ color: '#0f172a', fontSize: '12px' }}>{sc}</strong>
+        <span style={{ color: '#64748b', fontSize: '10.5px', fontWeight: 500 }}> / {max}</span>
+      </span>
+    );
+  };
+
   return (
     <div style={{ marginBottom: 10 }}>
-      {/* SQI HERO BAR */}
+      {/* SQI HERO BAR - CĂN ĐỀU 3 CỘT */}
       <div
         className="report-sqi-hero"
         style={{
           border: '1px solid #cbd5e1',
           borderRadius: 6,
-          padding: '8px 12px',
+          padding: '10px 12px',
           background: '#ffffff',
-          marginBottom: 6,
+          marginBottom: 8,
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div>
-              <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>
-                Chỉ số chất lượng (SQI)
-              </div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>
-                {sqiScore !== null && sqiScore !== undefined ? sqiScore : '—'}{' '}
-                <span style={{ fontSize: 12, fontWeight: 500, color: '#64748b' }}>/ 100</span>
-              </div>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            alignItems: 'center',
+            gap: 12,
+            width: '100%',
+          }}
+        >
+          {/* CỘT 1: CHỈ SỐ CHẤT LƯỢNG (SQI) */}
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>
+              Chỉ số chất lượng (SQI)
             </div>
-
-            <div style={{ borderLeft: '1px solid #e2e8f0', paddingLeft: 12 }}>
-              <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>
-                Xếp loại học lực
-              </div>
-              <div style={{ fontSize: 13.5, fontWeight: 700, color: level.color }}>
-                {level.label}
-              </div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', lineHeight: 1.2, marginTop: 2 }}>
+              {sqiScore !== null && sqiScore !== undefined ? sqiScore : '—'}{' '}
+              <span style={{ fontSize: 12, fontWeight: 500, color: '#64748b' }}>/ 100</span>
             </div>
+          </div>
 
-            {sqiDelta !== undefined && sqiDelta !== null && (
-              <div style={{ borderLeft: '1px solid #e2e8f0', paddingLeft: 12 }}>
-                <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>
-                  {isMonthly ? 'So với tháng trước' : 'So với tuần trước'}
-                </div>
-                <div style={{ marginTop: 2 }}>
-                  {sqiDelta > 0 ? (
-                    <span style={{ color: '#16a34a', fontWeight: 700, fontSize: 12.5, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                      <TrendingUp size={13} /> +{sqiDelta} điểm
-                    </span>
-                  ) : sqiDelta < 0 ? (
-                    <span style={{ color: '#dc2626', fontWeight: 700, fontSize: 12.5, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                      <TrendingDown size={13} /> {sqiDelta} điểm
-                    </span>
-                  ) : (
-                    <span style={{ color: '#64748b', fontWeight: 600, fontSize: 12.5, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                      <Minus size={13} /> Duy trì ổn định
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
+          {/* CỘT 2: XẾP LOẠI HỌC SINH (KHÔNG PHẢI HỌC LỰC) */}
+          <div style={{ borderLeft: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', padding: '0 8px', textAlign: 'center' }}>
+            <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>
+              Xếp loại học sinh
+            </div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: level.color, marginTop: 4 }}>
+              {level.label}
+            </div>
+          </div>
+
+          {/* CỘT 3: SO VỚI TUẦN/THÁNG TRƯỚC */}
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>
+              {isMonthly ? 'So với tháng trước' : 'So với tuần trước'}
+            </div>
+            <div style={{ marginTop: 4 }}>
+              {sqiDelta !== undefined && sqiDelta !== null ? (
+                sqiDelta > 0 ? (
+                  <span style={{ color: '#16a34a', fontWeight: 700, fontSize: 13.5, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                    <TrendingUp size={14} /> +{sqiDelta} điểm
+                  </span>
+                ) : sqiDelta < 0 ? (
+                  <span style={{ color: '#dc2626', fontWeight: 700, fontSize: 13.5, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                    <TrendingDown size={14} /> {sqiDelta} điểm
+                  </span>
+                ) : (
+                  <span style={{ color: '#64748b', fontWeight: 600, fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                    <Minus size={14} /> Duy trì ổn định
+                  </span>
+                )
+              ) : (
+                <span style={{ color: '#64748b', fontWeight: 500, fontSize: 12.5 }}>Chưa có dữ liệu</span>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 4 FACTOR TABLE (CHI TIẾT CẢ ĐỢT) */}
-      {sqiBreakdown && (
+      {/* 4 FACTOR TABLE (CHI TIẾT CẢ ĐỢT CÓ CỘT ĐIỂM SỐ & DIỄN GIẢI NỘI DUNG) */}
+      {(sqiBreakdown || (sessions && sessions.length > 0)) && (
         <div className="report-sqi-table-container" style={{ marginBottom: 6 }}>
           <table
             style={{
@@ -196,43 +286,75 @@ export const ReportCardSqiBreakdown: React.FC<ReportCardSqiBreakdownProps> = ({
               borderCollapse: 'collapse',
               border: '1px solid #cbd5e1',
               borderRadius: 4,
-              fontSize: '11px',
+              fontSize: '11.5px',
               background: '#ffffff',
             }}
           >
             <thead>
               <tr style={{ background: '#f8fafc', borderBottom: '1px solid #cbd5e1' }}>
-                <th style={{ width: '45px', textAlign: 'center', padding: '5px 6px', color: '#475569', fontWeight: 600 }}>STT</th>
-                <th style={{ width: '180px', textAlign: 'left', padding: '5px 10px', color: '#475569', fontWeight: 600 }}>Chỉ số đánh giá</th>
-                <th style={{ textAlign: 'left', padding: '5px 10px', color: '#475569', fontWeight: 600 }}>Diễn giải</th>
+                <th style={{ width: '45px', textAlign: 'center', padding: '6px 4px', color: '#475569', fontWeight: 700, fontSize: 11 }}>STT</th>
+                <th style={{ width: '230px', textAlign: 'left', padding: '6px 10px', color: '#475569', fontWeight: 700, fontSize: 11 }}>Chỉ số đánh giá</th>
+                <th style={{ width: '90px', textAlign: 'center', padding: '6px 8px', color: '#475569', fontWeight: 700, fontSize: 11 }}>Điểm số</th>
+                <th style={{ textAlign: 'left', padding: '6px 10px', color: '#475569', fontWeight: 700, fontSize: 11 }}>Diễn giải</th>
               </tr>
             </thead>
             <tbody>
+              {/* 1. Điểm chuyên cần */}
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ textAlign: 'center', padding: '5px 6px', color: '#64748b', fontWeight: 600 }}>1</td>
-                <td style={{ padding: '5px 10px', color: '#1e293b', fontWeight: 600 }}>Chuyên cần (30%)</td>
-                <td style={{ padding: '5px 10px', color: '#0f172a', fontWeight: 500, lineHeight: 1.4 }}>
+                <td style={{ textAlign: 'center', padding: '6px 4px', color: '#64748b', fontWeight: 600 }}>1</td>
+                <td style={{ padding: '6px 10px' }}>
+                  <div style={{ color: '#1e293b', fontWeight: 700, fontSize: 11.5 }}>Điểm chuyên cần (30%)</div>
+                  <div style={{ color: '#64748b', fontSize: 10.5, fontWeight: 400, marginTop: 1 }}>(đủ buổi, đúng giờ)</div>
+                </td>
+                <td style={{ textAlign: 'center', padding: '6px 8px' }}>
+                  {getCriteriaScore('attendance', 30)}
+                </td>
+                <td style={{ padding: '6px 10px', color: '#0f172a', fontWeight: 500, lineHeight: 1.4 }}>
                   {getNarrative('attendance')}
                 </td>
               </tr>
+
+              {/* 2. Điểm bài tập */}
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ textAlign: 'center', padding: '5px 6px', color: '#64748b', fontWeight: 600 }}>2</td>
-                <td style={{ padding: '5px 10px', color: '#1e293b', fontWeight: 600 }}>Làm BTVN (30%)</td>
-                <td style={{ padding: '5px 10px', color: '#0f172a', fontWeight: 500, lineHeight: 1.4 }}>
+                <td style={{ textAlign: 'center', padding: '6px 4px', color: '#64748b', fontWeight: 600 }}>2</td>
+                <td style={{ padding: '6px 10px' }}>
+                  <div style={{ color: '#1e293b', fontWeight: 700, fontSize: 11.5 }}>Điểm bài tập (30%)</div>
+                  <div style={{ color: '#64748b', fontSize: 10.5, fontWeight: 400, marginTop: 1 }}>(hoàn thành bài tập về nhà)</div>
+                </td>
+                <td style={{ textAlign: 'center', padding: '6px 8px' }}>
+                  {getCriteriaScore('homework', 30)}
+                </td>
+                <td style={{ padding: '6px 10px', color: '#0f172a', fontWeight: 500, lineHeight: 1.4 }}>
                   {getNarrative('homework')}
                 </td>
               </tr>
+
+              {/* 3. Điểm nội quy */}
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ textAlign: 'center', padding: '5px 6px', color: '#64748b', fontWeight: 600 }}>3</td>
-                <td style={{ padding: '5px 10px', color: '#1e293b', fontWeight: 600 }}>Tuân thủ NQ (20%)</td>
-                <td style={{ padding: '5px 10px', color: '#0f172a', fontWeight: 500, lineHeight: 1.4 }}>
+                <td style={{ textAlign: 'center', padding: '6px 4px', color: '#64748b', fontWeight: 600 }}>3</td>
+                <td style={{ padding: '6px 10px' }}>
+                  <div style={{ color: '#1e293b', fontWeight: 700, fontSize: 11.5 }}>Điểm nội quy (20%)</div>
+                  <div style={{ color: '#64748b', fontSize: 10.5, fontWeight: 400, marginTop: 1 }}>(tuân thủ nội quy trong lớp học)</div>
+                </td>
+                <td style={{ textAlign: 'center', padding: '6px 8px' }}>
+                  {getCriteriaScore('behavior', 20)}
+                </td>
+                <td style={{ padding: '6px 10px', color: '#0f172a', fontWeight: 500, lineHeight: 1.4 }}>
                   {getNarrative('behavior')}
                 </td>
               </tr>
+
+              {/* 4. Điểm năng động */}
               <tr>
-                <td style={{ textAlign: 'center', padding: '5px 6px', color: '#64748b', fontWeight: 600 }}>4</td>
-                <td style={{ padding: '5px 10px', color: '#1e293b', fontWeight: 600 }}>Tích cực phát biểu (20%)</td>
-                <td style={{ padding: '5px 10px', color: '#0f172a', fontWeight: 500, lineHeight: 1.4 }}>
+                <td style={{ textAlign: 'center', padding: '6px 4px', color: '#64748b', fontWeight: 600 }}>4</td>
+                <td style={{ padding: '6px 10px' }}>
+                  <div style={{ color: '#1e293b', fontWeight: 700, fontSize: 11.5 }}>Điểm năng động (20%)</div>
+                  <div style={{ color: '#64748b', fontSize: 10.5, fontWeight: 400, marginTop: 1 }}>(tham gia phát biểu, hỏi bài thầy cô giáo)</div>
+                </td>
+                <td style={{ textAlign: 'center', padding: '6px 8px' }}>
+                  {getCriteriaScore('participation', 20)}
+                </td>
+                <td style={{ padding: '6px 10px', color: '#0f172a', fontWeight: 500, lineHeight: 1.4 }}>
                   {getNarrative('participation')}
                 </td>
               </tr>
