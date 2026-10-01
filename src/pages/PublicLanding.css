@@ -384,3 +384,161 @@
     background: linear-gradient(135deg, #16a34a, #15803d) !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   REPORT GUIDE SECTION — Hướng dẫn đánh giá → Báo cáo phụ huynh
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.public-report-guide {
+  background: #ffffff;
+  border-top: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+  max-width: none !important;
+  padding-left: max(24px, calc((100vw - 1180px) / 2)) !important;
+  padding-right: max(24px, calc((100vw - 1180px) / 2)) !important;
+}
+
+.public-report-guide .public-section-heading span {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Grid 3 cột trên desktop, 2 cột trên tablet, 1 cột mobile */
+.rg-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+/* Card */
+.rg-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rg-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.1);
+}
+
+/* Illustration area */
+.rg-card-illus {
+  padding: 18px 18px 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.guide-illus {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Card body */
+.rg-card-body {
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+/* Step number badge */
+.rg-step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 800;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+/* Title */
+.rg-step-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.35;
+}
+
+/* Description */
+.rg-step-desc {
+  font-size: 12.5px;
+  color: #526075;
+  line-height: 1.65;
+  margin: 0;
+  flex: 1;
+}
+
+/* Tip box */
+.rg-tip {
+  border-left: 3px solid;
+  border-radius: 0 8px 8px 0;
+  padding: 8px 12px;
+  font-size: 11.5px;
+  color: #334155;
+  line-height: 1.55;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .rg-steps {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .rg-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .rg-card {
+    flex-direction: row;
+    border-radius: 14px;
+    overflow: visible;
+  }
+
+  .rg-card-illus {
+    width: 110px;
+    min-width: 110px;
+    border-bottom: none;
+    border-right: 1px solid #f1f5f9;
+    padding: 14px 10px;
+    border-radius: 14px 0 0 14px;
+    display: flex;
+    align-items: center;
+  }
+
+  .rg-card-body {
+    padding: 14px 14px 14px;
+    gap: 8px;
+  }
+
+  .rg-step-badge {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+    border-radius: 8px;
+  }
+
+  .rg-step-title {
+    font-size: 13.5px;
+  }
+
+  .rg-step-desc {
+    font-size: 12px;
+  }
+}
