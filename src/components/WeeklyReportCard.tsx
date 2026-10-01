@@ -6,6 +6,7 @@ import { ReportCardHeader } from './ReportCard/ReportCardHeader';
 import { ReportCardSqiBreakdown } from './ReportCard/ReportCardSqiBreakdown';
 import { WeeklyReportSessionsTable } from './WeeklyReportSessionsTable';
 import { ReportCardPedagogy } from './ReportCard/ReportCardPedagogy';
+import { ReportCardCharts } from './ReportCard/ReportCardCharts';
 
 interface WeeklyReportCardProps {
   report: WeeklyReportData;
@@ -398,6 +399,13 @@ export const WeeklyReportCard: React.FC<WeeklyReportCardProps> = ({
           overview={report.overview}
           isMonthly={isMonthly}
           sessions={report.sessions}
+        />
+
+        <ReportCardCharts
+          sqiScore={report.sqiScore}
+          sqiBreakdown={report.sqiBreakdown}
+          sessions={report.sessions}
+          isMonthly={isMonthly}
         />
 
         {report.sessions && report.sessions.length > 0 && (
