@@ -92,7 +92,7 @@ const LoginInner: React.FC = () => {
         zIndex: 0
       }} />
       <Link
-        to="/"
+        to="/guide"
         style={{
           position: 'absolute',
           top: 24,

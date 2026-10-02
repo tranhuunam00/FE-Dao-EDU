@@ -1,10 +1,25 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
+import { message } from 'antd';
+import { ReportCardFullPreview } from './guide/ReportCardFullPreview';
+import { ReportShareModalGuide } from './guide/ReportShareModalGuide';
+import { Sparkles, QrCode as QrIcon, Printer } from 'lucide-react';
 
 export const SessionEvaluationAndReportGuide: React.FC = () => {
   const [subTab, setSubTab] = useState<'evaluate' | 'print' | 'sqi'>('evaluate');
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [aiFilled, setAiFilled] = useState(true);
+
+  const handleTriggerAi = () => {
+    setAiFilled(false);
+    message.loading({ content: 'AI Gemini đang phân tích 4 buổi học để viết 4 ô...', key: 'ai-fill' });
+    setTimeout(() => {
+      setAiFilled(true);
+      message.success({ content: 'Đã tự động điền đầy đủ 4 ô nhận xét sư phạm!', key: 'ai-fill' });
+    }, 800);
+  };
 
   return (
-    <div style={{ padding: '8px 4px', maxWidth: '1000px', margin: '0 auto', color: '#1e293b' }}>
+    <div style={{ padding: '8px 4px', maxWidth: '1080px', margin: '0 auto', color: '#1e293b' }}>
       {/* Sub Navigation */}
       <div
         style={{
@@ -66,7 +81,7 @@ export const SessionEvaluationAndReportGuide: React.FC = () => {
         </button>
       </div>
 
-      {/* TAB 1: NHẬN XÉT BUỔI HỌC */}
+      {/* ── TAB 1: NHẬN XÉT BUỔI HỌC ── */}
       {subTab === 'evaluate' && (
         <div>
           <div style={{ marginBottom: '16px', background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
@@ -90,7 +105,6 @@ export const SessionEvaluationAndReportGuide: React.FC = () => {
               <div style={{ padding: '6px 12px', color: '#64748b', fontSize: '12.5px', fontWeight: 600 }}>
                 1. Điểm danh chuyên cần (24)
               </div>
-              {/* KHOANH TRÒN Ô ẤN */}
               <div
                 style={{
                   position: 'relative',
@@ -125,7 +139,6 @@ export const SessionEvaluationAndReportGuide: React.FC = () => {
             <div style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', flexWrap: 'wrap', gap: '8px' }}>
               <span style={{ fontSize: '12px', color: '#64748b' }}>Đánh giá 1-chạm & sinh nhận xét cá nhân hóa bằng AI...</span>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                {/* KHOANH TRÒN TẤT CẢ LỚP TỐT */}
                 <div style={{ border: '2px dashed #059669', borderRadius: '6px', padding: '2px', background: '#ecfdf5' }}>
                   <button type="button" style={{ border: 'none', background: '#10b981', color: '#ffffff', padding: '5px 12px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
                     Tất cả lớp TỐT (Tự lưu)
@@ -183,7 +196,6 @@ export const SessionEvaluationAndReportGuide: React.FC = () => {
                     </td>
                     <td style={{ padding: '8px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        {/* KHOANH TRÒN NÚT AI VIẾT */}
                         <div style={{ border: '2px solid #ef4444', borderRadius: '6px', padding: '1px', background: '#fef2f2' }}>
                           <button type="button" style={{ border: 'none', background: '#7c3aed', color: '#ffffff', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>
                             AI Viết Nhận Xét
@@ -217,7 +229,6 @@ export const SessionEvaluationAndReportGuide: React.FC = () => {
                 <button type="button" style={{ border: '1px solid #7c3aed', background: '#ffffff', color: '#7c3aed', padding: '6px 12px', borderRadius: '4px', fontSize: '12px', fontWeight: 600 }}>
                   Lưu tạm
                 </button>
-                {/* KHOANH TRÒN NÚT CHỐT */}
                 <div style={{ border: '2px solid #dc2626', borderRadius: '6px', padding: '2px', background: '#fef2f2' }}>
                   <button type="button" style={{ border: 'none', background: '#10b981', color: '#ffffff', padding: '6px 14px', borderRadius: '4px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
                     Chốt điểm danh & Kết thúc
@@ -239,19 +250,19 @@ export const SessionEvaluationAndReportGuide: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2: IN BÁO CÁO */}
+      {/* ── TAB 2: IN BÁO CÁO (ĐẦY ĐỦ 100% PHIẾU, BIỂU ĐỒ, CÁCH LẤY LINK & AI 4 Ô) ── */}
       {subTab === 'print' && (
         <div>
           <div style={{ marginBottom: '16px', background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
             <h3 style={{ margin: '0 0 6px', fontSize: '15px', color: '#0f172a' }}>
-              Quy trình mở và in báo cáo chất lượng học tập (A4 / PDF)
+              Quy trình mở, dùng AI điền 4 ô, lấy link phụ huynh và in báo cáo (PDF / A4)
             </h3>
             <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: 1.5 }}>
-              Vào menu <strong>Báo cáo tuần SQI</strong>. Chọn lớp và kỳ cần xem. Tại bảng danh sách học sinh, bấm nút <strong>Xem thiệp</strong> để mở phiếu cá nhân rồi bấm <strong>Xuất PDF / In A4</strong>.
+              Vào menu <strong>Báo cáo tuần SQI</strong>. Chọn lớp và kỳ cần xem. Tại bảng danh sách học sinh, bấm nút <strong>Xem thiệp</strong>. Tại đây giáo viên có thể: bấm <strong>Gợi ý AI (Gemini)</strong> để tự động điền 4 ô nhận xét, bấm <strong>Lấy link & QR</strong> để gửi phụ huynh, và bấm <strong>Xuất PDF / In A4</strong> để in ra giấy.
             </p>
           </div>
 
-          {/* MÔ PHỎNG BẢNG DANH SÁCH LỚP */}
+          {/* 1. MÔ PHỎNG BẢNG DANH SÁCH LỚP */}
           <div style={{ border: '1px solid #cbd5e1', borderRadius: '8px', overflow: 'hidden', marginBottom: '20px', background: '#ffffff' }}>
             <div style={{ background: '#f8fafc', padding: '10px 14px', borderBottom: '1px solid #cbd5e1', fontWeight: 700, fontSize: '12.5px', color: '#0f172a' }}>
               Bảng báo cáo tuần & tháng - Lớp TOAN10_A1
@@ -282,9 +293,8 @@ export const SessionEvaluationAndReportGuide: React.FC = () => {
                     <span style={{ background: '#ecfdf5', color: '#059669', padding: '2px 6px', borderRadius: '4px', fontSize: '11px' }}>Đã duyệt</span>
                   </td>
                   <td style={{ textAlign: 'center', padding: '8px' }}>
-                    {/* KHOANH TRÒN NÚT XEM THIỆP */}
                     <div style={{ display: 'inline-block', border: '2px solid #ef4444', borderRadius: '6px', padding: '2px', background: '#fef2f2' }}>
-                      <button type="button" style={{ border: 'none', background: '#0284c7', color: '#ffffff', padding: '4px 10px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
+                      <button type="button" style={{ border: 'none', background: '#0284c7', color: '#ffffff', padding: '5px 12px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}>
                         Xem thiệp
                       </button>
                     </div>
@@ -294,91 +304,65 @@ export const SessionEvaluationAndReportGuide: React.FC = () => {
             </table>
           </div>
 
-          {/* MÔ PHỎNG THIỆP BÁO CÁO CÁ NHÂN VÀ NÚT IN A4 */}
-          <div style={{ border: '2px solid #cbd5e1', borderRadius: '8px', overflow: 'hidden', marginBottom: '20px', background: '#ffffff', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}>
-            {/* THANH ĐẦU THIỆP */}
-            <div style={{ background: '#f8fafc', padding: '10px 16px', borderBottom: '1px solid #cbd5e1', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-              <span style={{ fontSize: '12px', background: '#ecfdf5', color: '#047857', padding: '3px 8px', borderRadius: '4px', fontWeight: 600 }}>
-                Đã phê duyệt phát hành
-              </span>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <button type="button" style={{ border: '1px solid #cbd5e1', background: '#ffffff', padding: '5px 10px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 600 }}>
-                  Lưu nhận xét
-                </button>
-                <button type="button" style={{ border: '1px solid #bae6fd', background: '#f0f9ff', color: '#0369a1', padding: '5px 10px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 600 }}>
-                  Lấy link & QR
-                </button>
-                {/* KHOANH TRÒN NÚT XUẤT PDF / IN A4 */}
-                <div style={{ border: '2px solid #dc2626', borderRadius: '6px', padding: '2px', background: '#fef2f2' }}>
-                  <button type="button" style={{ border: 'none', background: '#0f172a', color: '#ffffff', padding: '6px 14px', borderRadius: '4px', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}>
-                    Xuất PDF / In A4
-                  </button>
-                </div>
+          {/* 2. BẢN XEM TRƯỚC ĐẦY ĐỦ 100% PHIẾU BÁO CÁO A4 (KÈM BIỂU ĐỒ, AI 4 Ô, LẤY LINK) */}
+          <ReportCardFullPreview
+            onOpenShareModal={() => setShareModalOpen(true)}
+            onTriggerAiFill={handleTriggerAi}
+            aiFilled={aiFilled}
+          />
+
+          {/* MODAL MÔ PHỎNG LẤY LINK & QR */}
+          <ReportShareModalGuide
+            visible={shareModalOpen}
+            onClose={() => setShareModalOpen(false)}
+            studentName="Nguyễn Văn An"
+            studentCode="HS00124"
+          />
+
+          {/* 3. KHỐI HƯỚNG DẪN 3 CHỨC NĂNG TRỌNG TÂM */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(310px, 1fr))', gap: '14px', marginTop: '16px' }}>
+            {/* Box 1: Cách dùng AI điền 4 ô */}
+            <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '8px', padding: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6d28d9', fontWeight: 800, fontSize: '13.5px', marginBottom: '8px' }}>
+                <Sparkles size={16} /> Cách dùng AI tự động điền 4 ô:
               </div>
+              <ol style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#334155', lineHeight: 1.6 }}>
+                <li>Mở thiệp báo cáo của học sinh.</li>
+                <li>Bấm nút màu tím <strong>Gợi ý AI (Gemini)</strong> ở thanh công cụ hoặc khung nhận xét.</li>
+                <li>AI phân tích dữ liệu toàn bộ các buổi học (điểm danh, bài tập, thái độ, điểm kiểm tra) và tự động điền đủ 4 ô: <em>1. Điểm mạnh</em>, <em>2. Cần cải thiện</em>, <em>3. Lời khen</em>, <em>4. Kế hoạch rèn luyện</em>.</li>
+                <li>Giáo viên có thể gõ chỉnh sửa theo ý mình, rồi bấm <strong>Lưu nhận xét</strong>.</li>
+              </ol>
             </div>
 
-            {/* BẢNG MẪU BÁO CÁO A4 */}
-            <div style={{ padding: '20px', background: '#ffffff' }}>
-              <div style={{ textAlign: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginBottom: '12px' }}>
-                <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>TRUNG TÂM GIÁO DỤC DAO EDU</div>
-                <div style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>PHIẾU ĐÁNH GIÁ CHẤT LƯỢNG HỌC TẬP</div>
-                <div style={{ fontSize: '12px', color: '#475569', marginTop: '2px' }}>Học sinh: <strong>Nguyễn Văn An</strong> (HS00124) | Lớp: <strong>TOAN10_A1</strong></div>
+            {/* Box 2: Cách lấy link & QR gửi Zalo */}
+            <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '8px', padding: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0369a1', fontWeight: 800, fontSize: '13.5px', marginBottom: '8px' }}>
+                <QrIcon size={16} /> Cách lấy link & QR gửi phụ huynh:
               </div>
+              <ol style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#334155', lineHeight: 1.6 }}>
+                <li>Bấm nút <strong>Lấy link & QR</strong> ở góc trên bên phải thiệp.</li>
+                <li>Cửa sổ mã QR hiện ra, bấm <strong>Sao chép link</strong> để copy đường dẫn xem online.</li>
+                <li>Dán link gửi vào nhóm Zalo hoặc tin nhắn riêng cho phụ huynh.</li>
+                <li><strong>Ưu điểm:</strong> Phụ huynh mở link xem ngay kết quả trên điện thoại mà <em>không cần đăng nhập hay mật khẩu</em>. Link cố định dùng cả năm.</li>
+              </ol>
+            </div>
 
-              {/* KHUNG SQI */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '10px', textAlign: 'center', marginBottom: '12px', background: '#f8fafc' }}>
-                <div>
-                  <div style={{ fontSize: '10.5px', color: '#64748b', fontWeight: 600 }}>CHỈ SỐ CHẤT LƯỢNG (SQI)</div>
-                  <div style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a' }}>92 <span style={{ fontSize: '11px', color: '#64748b' }}>/ 100</span></div>
-                </div>
-                <div style={{ borderLeft: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>
-                  <div style={{ fontSize: '10.5px', color: '#64748b', fontWeight: 600 }}>XẾP LOẠI HỌC SINH</div>
-                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#16a34a', marginTop: '3px' }}>Xuất sắc</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '10.5px', color: '#64748b', fontWeight: 600 }}>SO VỚI KỲ TRƯỚC</div>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#16a34a', marginTop: '4px' }}>+4 điểm</div>
-                </div>
+            {/* Box 3: Cách in A4 / Xuất PDF */}
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#166534', fontWeight: 800, fontSize: '13.5px', marginBottom: '8px' }}>
+                <Printer size={16} /> Cách in ấn A4 & xuất file PDF:
               </div>
-
-              {/* BẢNG 4 TIÊU CHÍ */}
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11.5px', border: '1px solid #cbd5e1', marginBottom: '10px' }}>
-                <thead>
-                  <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1' }}>
-                    <th style={{ padding: '5px 8px', textAlign: 'left', width: '35%' }}>Chỉ số đánh giá</th>
-                    <th style={{ padding: '5px 8px', textAlign: 'center', width: '20%' }}>Điểm số</th>
-                    <th style={{ padding: '5px 8px', textAlign: 'left' }}>Diễn giải</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                    <td style={{ padding: '5px 8px', fontWeight: 600 }}>Điểm chuyên cần (30%)</td>
-                    <td style={{ padding: '5px 8px', textAlign: 'center', fontWeight: 700 }}>30 / 30</td>
-                    <td style={{ padding: '5px 8px', color: '#334155' }}>4 buổi đúng giờ</td>
-                  </tr>
-                  <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                    <td style={{ padding: '5px 8px', fontWeight: 600 }}>Điểm bài tập (30%)</td>
-                    <td style={{ padding: '5px 8px', textAlign: 'center', fontWeight: 700 }}>28 / 30</td>
-                    <td style={{ padding: '5px 8px', color: '#334155' }}>3 buổi làm tốt, 1 buổi làm thiếu ít</td>
-                  </tr>
-                  <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                    <td style={{ padding: '5px 8px', fontWeight: 600 }}>Điểm nội quy (20%)</td>
-                    <td style={{ padding: '5px 8px', textAlign: 'center', fontWeight: 700 }}>20 / 20</td>
-                    <td style={{ padding: '5px 8px', color: '#334155' }}>4 buổi nề nếp tốt, nghiêm túc</td>
-                  </tr>
-                  <tr>
-                    <td style={{ padding: '5px 8px', fontWeight: 600 }}>Điểm năng động (20%)</td>
-                    <td style={{ padding: '5px 8px', textAlign: 'center', fontWeight: 700 }}>14 / 20</td>
-                    <td style={{ padding: '5px 8px', color: '#334155' }}>2 buổi hăng hái phát biểu, 2 buổi nghe giảng</td>
-                  </tr>
-                </tbody>
-              </table>
+              <ol style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#334155', lineHeight: 1.6 }}>
+                <li>Sau khi giáo viên kiểm tra xong, bấm <strong>Xuất PDF / In A4</strong>.</li>
+                <li>Hộp thoại in của máy tính mở ra, chọn khổ giấy <strong>A4</strong>, tỷ lệ <strong>Vừa vặn trang (Fit to page)</strong>.</li>
+                <li>Bấm <strong>In</strong> để in ra máy in giấy hoặc chọn <strong>Lưu dưới dạng PDF (Save as PDF)</strong> để tải file gửi email/in màu phát cho phụ huynh.</li>
+              </ol>
             </div>
           </div>
         </div>
       )}
 
-      {/* TAB 3: CÁCH TÍNH ĐIỂM CHỈ SỐ SQI */}
+      {/* ── TAB 3: CÁCH TÍNH ĐIỂM CHỈ SỐ SQI ── */}
       {subTab === 'sqi' && (
         <div>
           <div style={{ marginBottom: '16px', background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>

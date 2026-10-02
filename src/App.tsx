@@ -55,6 +55,7 @@ import { AdminWeeklyReports } from './pages/admin/AdminWeeklyReports';
 import { TeacherWeeklyReports } from './pages/teacher/TeacherWeeklyReports';
 import { StudentWeeklyReports } from './pages/student/StudentWeeklyReports';
 import { PublicWeeklyReportPage } from './pages/public/PublicWeeklyReportPage';
+import GuidePage from './pages/GuidePage';
 
 function App() {
   return (
@@ -63,6 +64,8 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<PublicLanding />} />
+          <Route path="/guide" element={<GuidePage />} />
+          <Route path="/huong-dan" element={<GuidePage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/public/reports/:studentId" element={<PublicWeeklyReportPage />} />
