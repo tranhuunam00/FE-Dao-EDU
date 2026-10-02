@@ -1,4 +1,4 @@
-import { App, Button, Collapse, ConfigProvider, Form, Input, Select, Tabs, theme } from 'antd';
+﻿import { App, Button, Collapse, ConfigProvider, Form, Input, Select, Tabs, theme } from 'antd';
 import axios from 'axios';
 import {
   ArrowRight,
@@ -26,6 +26,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 import { BrandLogo } from '../components/common/BrandLogo';
+import { SessionEvaluationAndReportGuide } from '../components/SessionEvaluationAndReportGuide';
 import './PublicLanding.css';
 
 const contactTypeOptions = [
@@ -406,6 +407,7 @@ export default function PublicLanding() {
             <Tabs
               centered
               items={[
+                { key: 'evaluation-guide', label: <span><ClipboardCheck size={16} /> Nhận xét & In báo cáo SQI</span>, children: <SessionEvaluationAndReportGuide /> },
                 { key: 'admin', label: <span><ShieldCheck size={16} /> Quản trị viên</span>, children: <ModuleList items={adminModules} /> },
                 { key: 'teacher', label: <span><UserRound size={16} /> Giáo viên</span>, children: <ModuleList items={teacherModules} /> },
                 { key: 'student', label: <span><BookOpen size={16} /> Học sinh</span>, children: <ModuleList items={studentModules} /> },
