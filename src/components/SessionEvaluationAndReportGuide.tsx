@@ -1,25 +1,13 @@
 import React, { useState } from 'react';
-import { message } from 'antd';
-import { ReportCardFullPreview } from './guide/ReportCardFullPreview';
-import { ReportShareModalGuide } from './guide/ReportShareModalGuide';
+import { WeeklyReportCard } from './WeeklyReportCard';
+import { sampleMonthlyReport } from './guide/sampleReportData';
 import { Sparkles, QrCode as QrIcon, Printer } from 'lucide-react';
 
 export const SessionEvaluationAndReportGuide: React.FC = () => {
   const [subTab, setSubTab] = useState<'evaluate' | 'print' | 'sqi'>('evaluate');
-  const [shareModalOpen, setShareModalOpen] = useState(false);
-  const [aiFilled, setAiFilled] = useState(true);
-
-  const handleTriggerAi = () => {
-    setAiFilled(false);
-    message.loading({ content: 'AI Gemini đang phân tích 4 buổi học để viết 4 ô...', key: 'ai-fill' });
-    setTimeout(() => {
-      setAiFilled(true);
-      message.success({ content: 'Đã tự động điền đầy đủ 4 ô nhận xét sư phạm!', key: 'ai-fill' });
-    }, 800);
-  };
 
   return (
-    <div style={{ padding: '8px 4px', maxWidth: '1080px', margin: '0 auto', color: '#1e293b' }}>
+    <div style={{ padding: '8px 4px', maxWidth: '1000px', margin: '0 auto', color: '#1e293b' }}>
       {/* Sub Navigation */}
       <div
         style={{
@@ -250,22 +238,22 @@ export const SessionEvaluationAndReportGuide: React.FC = () => {
         </div>
       )}
 
-      {/* ── TAB 2: IN BÁO CÁO (ĐẦY ĐỦ 100% PHIẾU, BIỂU ĐỒ, CÁCH LẤY LINK & AI 4 Ô) ── */}
+      {/* ── TAB 2: IN BÁO CÁO (SỬ DỤNG TRỰC TIẾP WEEKLYREPORTCARD CHUẨN CỦA DỰ ÁN) ── */}
       {subTab === 'print' && (
         <div>
           <div style={{ marginBottom: '16px', background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
             <h3 style={{ margin: '0 0 6px', fontSize: '15px', color: '#0f172a' }}>
-              Quy trình mở, dùng AI điền 4 ô, lấy link phụ huynh và in báo cáo (PDF / A4)
+              Quy trình mở, dùng AI điền 4 ô, lấy link gửi phụ huynh và in báo cáo (PDF / A4)
             </h3>
             <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: 1.5 }}>
-              Vào menu <strong>Báo cáo tuần SQI</strong>. Chọn lớp và kỳ cần xem. Tại bảng danh sách học sinh, bấm nút <strong>Xem thiệp</strong>. Tại đây giáo viên có thể: bấm <strong>Gợi ý AI (Gemini)</strong> để tự động điền 4 ô nhận xét, bấm <strong>Lấy link & QR</strong> để gửi phụ huynh, và bấm <strong>Xuất PDF / In A4</strong> để in ra giấy.
+              Vào menu <strong>Báo cáo tuần SQI</strong>. Chọn lớp và kỳ cần xem. Tại bảng danh sách học sinh, bấm nút <strong>Xem thiệp</strong>. Tại đây giáo viên có thể: bấm nút <strong>🪄 Gợi ý bằng AI Gemini</strong> để tự động điền 4 ô nhận xét, bấm <strong>Lấy link & QR</strong> để gửi phụ huynh, và bấm <strong>Xuất PDF / In A4</strong> để in ra giấy.
             </p>
           </div>
 
           {/* 1. MÔ PHỎNG BẢNG DANH SÁCH LỚP */}
           <div style={{ border: '1px solid #cbd5e1', borderRadius: '8px', overflow: 'hidden', marginBottom: '20px', background: '#ffffff' }}>
             <div style={{ background: '#f8fafc', padding: '10px 14px', borderBottom: '1px solid #cbd5e1', fontWeight: 700, fontSize: '12.5px', color: '#0f172a' }}>
-              Bảng báo cáo tuần & tháng - Lớp TOAN10_A1
+              Bảng báo cáo tuần & tháng - Lớp TOÁN 8.1
             </div>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
               <thead>
@@ -281,12 +269,12 @@ export const SessionEvaluationAndReportGuide: React.FC = () => {
               <tbody>
                 <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
                   <td style={{ padding: '8px' }}>
-                    <div style={{ fontWeight: 700 }}>Nguyễn Văn An</div>
-                    <div style={{ fontSize: '11px', color: '#64748b' }}>Mã: HS00124</div>
+                    <div style={{ fontWeight: 700 }}>Nguyễn Khánh Phương</div>
+                    <div style={{ fontSize: '11px', color: '#64748b' }}>Mã: STU-1040</div>
                   </td>
-                  <td style={{ textAlign: 'center', fontWeight: 800, color: '#4f46e5' }}>92</td>
+                  <td style={{ textAlign: 'center', fontWeight: 800, color: '#2563eb' }}>75</td>
                   <td style={{ textAlign: 'center' }}>
-                    <span style={{ background: '#ecfdf5', color: '#047857', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>Xuất sắc</span>
+                    <span style={{ background: '#eff6ff', color: '#1d4ed8', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>Giỏi</span>
                   </td>
                   <td style={{ textAlign: 'center', color: '#10b981', fontWeight: 600 }}>100%</td>
                   <td style={{ textAlign: 'center' }}>
@@ -304,59 +292,65 @@ export const SessionEvaluationAndReportGuide: React.FC = () => {
             </table>
           </div>
 
-          {/* 2. BẢN XEM TRƯỚC ĐẦY ĐỦ 100% PHIẾU BÁO CÁO A4 (KÈM BIỂU ĐỒ, AI 4 Ô, LẤY LINK) */}
-          <ReportCardFullPreview
-            onOpenShareModal={() => setShareModalOpen(true)}
-            onTriggerAiFill={handleTriggerAi}
-            aiFilled={aiFilled}
-          />
-
-          {/* MODAL MÔ PHỎNG LẤY LINK & QR */}
-          <ReportShareModalGuide
-            visible={shareModalOpen}
-            onClose={() => setShareModalOpen(false)}
-            studentName="Nguyễn Văn An"
-            studentCode="HS00124"
-          />
-
-          {/* 3. KHỐI HƯỚNG DẪN 3 CHỨC NĂNG TRỌNG TÂM */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(310px, 1fr))', gap: '14px', marginTop: '16px' }}>
-            {/* Box 1: Cách dùng AI điền 4 ô */}
-            <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '8px', padding: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6d28d9', fontWeight: 800, fontSize: '13.5px', marginBottom: '8px' }}>
-                <Sparkles size={16} /> Cách dùng AI tự động điền 4 ô:
+          {/* 2. CHÚ THÍCH 3 NÚT BẤM QUAN TRỌNG TRƯỚC KHI XEM THIỆP */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '10px', marginBottom: '14px' }}>
+            <div style={{ background: '#f5f3ff', border: '1px solid #c4b5fd', borderRadius: '8px', padding: '10px 12px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <Sparkles size={22} color="#7c3aed" style={{ flexShrink: 0 }} />
+              <div>
+                <strong style={{ color: '#6d28d9', fontSize: '12px', display: 'block' }}>1. Gợi ý bằng AI Gemini:</strong>
+                <span style={{ fontSize: '11.5px', color: '#475569' }}>Bấm nút tím ở khung nhận xét để AI tự đọc các buổi và điền 4 ô.</span>
               </div>
-              <ol style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#334155', lineHeight: 1.6 }}>
-                <li>Mở thiệp báo cáo của học sinh.</li>
-                <li>Bấm nút màu tím <strong>Gợi ý AI (Gemini)</strong> ở thanh công cụ hoặc khung nhận xét.</li>
-                <li>AI phân tích dữ liệu toàn bộ các buổi học (điểm danh, bài tập, thái độ, điểm kiểm tra) và tự động điền đủ 4 ô: <em>1. Điểm mạnh</em>, <em>2. Cần cải thiện</em>, <em>3. Lời khen</em>, <em>4. Kế hoạch rèn luyện</em>.</li>
-                <li>Giáo viên có thể gõ chỉnh sửa theo ý mình, rồi bấm <strong>Lưu nhận xét</strong>.</li>
-              </ol>
             </div>
-
-            {/* Box 2: Cách lấy link & QR gửi Zalo */}
-            <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '8px', padding: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0369a1', fontWeight: 800, fontSize: '13.5px', marginBottom: '8px' }}>
-                <QrIcon size={16} /> Cách lấy link & QR gửi phụ huynh:
+            <div style={{ background: '#f0f9ff', border: '1px solid #7dd3fc', borderRadius: '8px', padding: '10px 12px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <QrIcon size={22} color="#0284c7" style={{ flexShrink: 0 }} />
+              <div>
+                <strong style={{ color: '#0369a1', fontSize: '12px', display: 'block' }}>2. Lấy link & QR:</strong>
+                <span style={{ fontSize: '11.5px', color: '#475569' }}>Bấm nút góc trên để lấy link gửi Zalo cho phụ huynh xem ngay.</span>
               </div>
-              <ol style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#334155', lineHeight: 1.6 }}>
-                <li>Bấm nút <strong>Lấy link & QR</strong> ở góc trên bên phải thiệp.</li>
-                <li>Cửa sổ mã QR hiện ra, bấm <strong>Sao chép link</strong> để copy đường dẫn xem online.</li>
-                <li>Dán link gửi vào nhóm Zalo hoặc tin nhắn riêng cho phụ huynh.</li>
-                <li><strong>Ưu điểm:</strong> Phụ huynh mở link xem ngay kết quả trên điện thoại mà <em>không cần đăng nhập hay mật khẩu</em>. Link cố định dùng cả năm.</li>
-              </ol>
             </div>
-
-            {/* Box 3: Cách in A4 / Xuất PDF */}
-            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#166534', fontWeight: 800, fontSize: '13.5px', marginBottom: '8px' }}>
-                <Printer size={16} /> Cách in ấn A4 & xuất file PDF:
+            <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '8px', padding: '10px 12px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <Printer size={22} color="#16a34a" style={{ flexShrink: 0 }} />
+              <div>
+                <strong style={{ color: '#15803d', fontSize: '12px', display: 'block' }}>3. Xuất PDF / In A4:</strong>
+                <span style={{ fontSize: '11.5px', color: '#475569' }}>Bấm để in trực tiếp hoặc lưu file PDF gửi phụ huynh.</span>
               </div>
-              <ol style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#334155', lineHeight: 1.6 }}>
-                <li>Sau khi giáo viên kiểm tra xong, bấm <strong>Xuất PDF / In A4</strong>.</li>
-                <li>Hộp thoại in của máy tính mở ra, chọn khổ giấy <strong>A4</strong>, tỷ lệ <strong>Vừa vặn trang (Fit to page)</strong>.</li>
-                <li>Bấm <strong>In</strong> để in ra máy in giấy hoặc chọn <strong>Lưu dưới dạng PDF (Save as PDF)</strong> để tải file gửi email/in màu phát cho phụ huynh.</li>
-              </ol>
+            </div>
+          </div>
+
+          {/* 3. COMPONENT THẬT CỦA HỆ THỐNG: WEEKLYREPORTCARD (ĐẦY ĐỦ 100% PHIẾU, BIỂU ĐỒ, 4 Ô AI, CHỮ KÝ, MODAL QR) */}
+          <div
+            style={{
+              border: '2px solid #cbd5e1',
+              borderRadius: '12px',
+              padding: '16px',
+              background: '#ffffff',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
+              marginBottom: '20px',
+            }}
+          >
+            <WeeklyReportCard
+              report={sampleMonthlyReport}
+              isMonthly={true}
+              isEditable={true}
+              classNameTitle="TOÁN 8.1"
+            />
+          </div>
+
+          {/* 4. HƯỚNG DẪN CHI TIẾT CÁCH SỬ DỤNG 4 Ô AI VÀ GỬI LINK */}
+          <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '14px' }}>
+            <h4 style={{ margin: '0 0 8px', fontSize: '13.5px', color: '#0f172a' }}>
+              Chi tiết thao tác thực hành:
+            </h4>
+            <div style={{ fontSize: '12px', color: '#334155', lineHeight: 1.6 }}>
+              <p style={{ margin: '0 0 6px' }}>
+                • <strong>Cách lấy link gửi phụ huynh:</strong> Sau khi kiểm tra báo cáo, bấm nút <strong>Lấy link & QR</strong> ở góc trên bên phải thiệp. Cửa sổ mở ra hiển thị mã QR và đường link cố định của học sinh (ví dụ: <code>daoedu.vn/public/reports/STU-1040</code>). Bấm <em>Sao chép link</em> và gửi vào nhóm Zalo phụ huynh. Phụ huynh mở điện thoại xem ngay không cần đăng nhập hay mật khẩu.
+              </p>
+              <p style={{ margin: '0 0 6px' }}>
+                • <strong>Cách dùng AI tự động điền 4 ô:</strong> Tại mục <em>Nhận xét của giáo viên trong tháng</em>, bấm nút <strong>🪄 Gợi ý bằng AI Gemini</strong>. Trí tuệ nhân tạo sẽ tự động phân tích điểm chuyên cần, BTVN, nề nếp và bài kiểm tra của tất cả các buổi học trong tháng để điền chuẩn sư phạm vào 4 ô (Tuyên dương, Ưu điểm, Cần cải thiện, Gợi ý rèn luyện). Thầy/cô có thể chỉnh sửa lại theo ý mình trước khi bấm <em>Lưu nhận xét</em>.
+              </p>
+              <p style={{ margin: 0 }}>
+                • <strong>In và xuất file PDF:</strong> Bấm nút <strong>Xuất PDF / In A4</strong> ở thanh công cụ để mở hộp thoại in của máy tính. Chọn khổ A4, tỉ lệ vừa trang để in trực tiếp ra giấy hoặc lưu file PDF gửi cho phụ huynh.
+              </p>
             </div>
           </div>
         </div>
