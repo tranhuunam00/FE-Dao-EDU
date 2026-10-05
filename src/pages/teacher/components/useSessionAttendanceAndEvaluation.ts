@@ -193,13 +193,20 @@ export const useSessionAttendanceAndEvaluation = ({
     try {
       setGeneratingMap((prev) => ({ ...prev, [studentId]: true }));
       const currentEval = evaluations[studentId];
+      const studentAtt = attendances.find((a) => a.studentId === studentId);
+      const isStudentAbsent = studentAtt ? !studentAtt.isPresent : false;
+
       const hasCriteria = Boolean(
         currentEval?.criteria?.homework ||
         currentEval?.criteria?.understanding ||
         currentEval?.criteria?.participation ||
         currentEval?.criteria?.behavior
       );
-      const effectiveCriteria = hasCriteria ? currentEval?.criteria : defaultCriteria;
+      const effectiveCriteria = isStudentAbsent
+        ? { attendance: 'no' as const }
+        : hasCriteria
+        ? currentEval?.criteria
+        : defaultCriteria;
 
       const res = await evaluationService.generateComment(session.id, {
         studentId,
@@ -207,7 +214,9 @@ export const useSessionAttendanceAndEvaluation = ({
         className: session.className,
         date: session.date,
         criteria: effectiveCriteria,
-      });
+        isPresent: !isStudentAbsent,
+        attendanceStatus: isStudentAbsent ? (studentAtt?.reason || 'absent_unexcused') : 'on_time',
+      } as any);
 
       handleEvaluationChange(studentId, {
         criteria: effectiveCriteria,
@@ -230,35 +239,35 @@ export const useSessionAttendanceAndEvaluation = ({
   const handleBatchGenerateAi = async () => {
     try {
       setBatchGenerating(true);
-      const presentStudents = attendances.filter((a) => a.isPresent);
-      const targetStudents = presentStudents.length > 0 ? presentStudents : attendances;
-      const candidates = targetStudents.map((a) => {
-          const currentEval = evaluations[a.studentId];
-          const hasCriteria = Boolean(
-            currentEval?.criteria?.homework ||
-            currentEval?.criteria?.understanding ||
-            currentEval?.criteria?.participation ||
-            currentEval?.criteria?.behavior
-          );
-          const effectiveCriteria = hasCriteria ? currentEval?.criteria : defaultCriteria;
-          const firstName = a.student?.firstName || '';
-          const lastName = a.student?.lastName || '';
-          const studentName = `${lastName} ${firstName}`.trim() || 'Học sinh';
-          return {
-            studentId: a.studentId,
-            studentName,
-            className: session.className,
-            date: session.date,
-            criteria: effectiveCriteria,
-          };
-        });
-
-      if (candidates.length === 0) {
-        message.warning('Không có học sinh nào trong danh sách.');
+      const targetStudents = attendances.filter((a) => a.isPresent);
+      if (targetStudents.length === 0) {
+        message.warning('Không có học sinh nào có mặt để tạo nhận xét AI.');
         return;
       }
+      const candidates = targetStudents.map((a) => {
+        const currentEval = evaluations[a.studentId];
+        const hasCriteria = Boolean(
+          currentEval?.criteria?.homework ||
+          currentEval?.criteria?.understanding ||
+          currentEval?.criteria?.participation ||
+          currentEval?.criteria?.behavior
+        );
+        const effectiveCriteria = hasCriteria ? currentEval?.criteria : defaultCriteria;
+        const firstName = a.student?.firstName || '';
+        const lastName = a.student?.lastName || '';
+        const studentName = `${lastName} ${firstName}`.trim() || 'Học sinh';
+        return {
+          studentId: a.studentId,
+          studentName,
+          className: session.className,
+          date: session.date,
+          criteria: effectiveCriteria,
+          isPresent: true,
+          attendanceStatus: 'on_time',
+        };
+      });
 
-      const res = await evaluationService.generateBatchComments(session.id, candidates);
+      const res = await evaluationService.generateBatchComments(session.id, candidates as any);
       if (res && res.results) {
         setEvaluations((prev) => {
           const next = { ...prev };
@@ -414,9 +423,10 @@ export const useSessionAttendanceAndEvaluation = ({
         isAiGenerated: false,
         isApprovedByTeacher: false,
       };
+      // Học sinh vắng mặt: Không đánh giá phát biểu/nội quy/BTVN, chỉ ghi nhận chuyên cần vắng
       nextEvaluations[a.studentId] = {
         ...existing,
-        criteria: { ...allGoodCriteria },
+        criteria: a.isPresent ? { ...allGoodCriteria } : { attendance: 'no' },
       };
     }
     setEvaluations(nextEvaluations);

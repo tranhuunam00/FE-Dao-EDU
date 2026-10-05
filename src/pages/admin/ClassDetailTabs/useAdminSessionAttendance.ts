@@ -164,32 +164,29 @@ export const useAdminSessionAttendance = ({
     try {
       setGeneratingMap((prev) => ({ ...prev, [studentId]: true }));
       const currentEval = sessionEvaluations[studentId];
+      const studentAtt = sessionAttendance.find((a) => a.studentId === studentId);
+      const isStudentAbsent = studentAtt ? !studentAtt.isPresent : false;
+
       const hasCriteria = Boolean(
-        currentEval?.criteria?.homework ||
-        currentEval?.criteria?.understanding ||
-        currentEval?.criteria?.participation ||
-        currentEval?.criteria?.behavior
+        currentEval?.criteria?.homework || currentEval?.criteria?.understanding ||
+        currentEval?.criteria?.participation || currentEval?.criteria?.behavior
       );
-      const effectiveCriteria = hasCriteria ? currentEval?.criteria : defaultCriteria;
+      const effectiveCriteria = isStudentAbsent
+        ? { attendance: 'no' as const }
+        : hasCriteria ? currentEval?.criteria : defaultCriteria;
 
       const res = await evaluationService.generateComment(currentSession.id, {
-        studentId,
-        studentName,
-        className: classData?.className,
-        date: currentSession.date,
-        criteria: effectiveCriteria,
-      });
+        studentId, studentName, className: classData?.className, date: currentSession.date,
+        criteria: effectiveCriteria, isPresent: !isStudentAbsent,
+        attendanceStatus: isStudentAbsent ? (studentAtt?.reason || 'absent_unexcused') : 'on_time',
+      } as any);
 
       handleEvaluationChange(studentId, {
-        criteria: effectiveCriteria,
-        evaluationComment: res.comment,
-        isAiGenerated: res.isAiGenerated,
-        isApprovedByTeacher: false,
+        criteria: effectiveCriteria, evaluationComment: res.comment,
+        isAiGenerated: res.isAiGenerated, isApprovedByTeacher: false,
       });
 
-      if (res.cooldownSeconds > 0) {
-        setCooldownMap((prev) => ({ ...prev, [studentId]: res.cooldownSeconds }));
-      }
+      if (res.cooldownSeconds > 0) setCooldownMap((prev) => ({ ...prev, [studentId]: res.cooldownSeconds }));
       message.success(`Đã sinh nhận xét cho ${studentName}`);
     } catch (err: any) {
       message.error(err.response?.data?.message || 'Lỗi khi sinh nhận xét AI.');
@@ -201,24 +198,22 @@ export const useAdminSessionAttendance = ({
   const handleBatchGenerateAi = async () => {
     try {
       setBatchGenerating(true);
-      const presentStudents = sessionAttendance.filter((a) => a.isPresent);
-      const targetStudents = presentStudents.length > 0 ? presentStudents : sessionAttendance;
-      const candidates = targetStudents.map((a) => {
-          const currentEval = sessionEvaluations[a.studentId];
-          const hasCriteria = Boolean(currentEval?.criteria?.homework || currentEval?.criteria?.understanding || currentEval?.criteria?.participation || currentEval?.criteria?.behavior);
-          const effectiveCriteria = hasCriteria ? currentEval?.criteria : defaultCriteria;
-          const firstName = a.student?.firstName || '';
-          const lastName = a.student?.lastName || '';
-          const studentName = `${lastName} ${firstName}`.trim() || a.student?.name || 'Học sinh';
-          return { studentId: a.studentId, studentName, className: classData?.className, date: currentSession.date, criteria: effectiveCriteria };
-        });
-
-      if (candidates.length === 0) {
-        message.warning('Không có học sinh nào trong danh sách.');
+      const targetStudents = sessionAttendance.filter((a) => a.isPresent);
+      if (targetStudents.length === 0) {
+        message.warning('Không có học sinh nào có mặt để tạo nhận xét AI.');
         return;
       }
+      const candidates = targetStudents.map((a) => {
+        const currentEval = sessionEvaluations[a.studentId];
+        const hasCriteria = Boolean(currentEval?.criteria?.homework || currentEval?.criteria?.understanding || currentEval?.criteria?.participation || currentEval?.criteria?.behavior);
+        const effectiveCriteria = hasCriteria ? currentEval?.criteria : defaultCriteria;
+        const firstName = a.student?.firstName || '';
+        const lastName = a.student?.lastName || '';
+        const studentName = `${lastName} ${firstName}`.trim() || a.student?.name || 'Học sinh';
+        return { studentId: a.studentId, studentName, className: classData?.className, date: currentSession.date, criteria: effectiveCriteria, isPresent: true, attendanceStatus: 'on_time' };
+      });
 
-      const res = await evaluationService.generateBatchComments(currentSession.id, candidates);
+      const res = await evaluationService.generateBatchComments(currentSession.id, candidates as any);
       if (res && res.results) {
         setSessionEvaluations((prev) => {
           const next = { ...prev };
@@ -319,7 +314,10 @@ export const useAdminSessionAttendance = ({
         isAiGenerated: false,
         isApprovedByTeacher: false,
       };
-      nextEvaluations[a.studentId] = { ...existing, criteria: { ...allGoodCriteria } };
+      nextEvaluations[a.studentId] = {
+        ...existing,
+        criteria: a.isPresent ? { ...allGoodCriteria } : { attendance: 'no' },
+      };
     }
     setSessionEvaluations(nextEvaluations);
 

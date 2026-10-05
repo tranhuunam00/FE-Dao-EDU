@@ -66,7 +66,11 @@ export const EvaluationsTabContent: React.FC<EvaluationsTabContentProps> = ({
       participation: 'yes',
     };
     students.forEach((s) => {
-      onEvaluationChange(s.id, { criteria: allGoodCriteria as any });
+      if (!s.isPresent) {
+        onEvaluationChange(s.id, { criteria: { attendance: 'no' } as any });
+      } else {
+        onEvaluationChange(s.id, { criteria: allGoodCriteria as any });
+      }
     });
     if (onSaveEvaluations) {
       setTimeout(() => onSaveEvaluations(), 100);
@@ -250,9 +254,9 @@ export const EvaluationsTabContent: React.FC<EvaluationsTabContentProps> = ({
                   <td style={{ textAlign: 'center' }}>
                     <input
                       type="text"
-                      placeholder="—"
-                      value={evalItem.evaluationScore || ''}
-                      disabled={disabled}
+                      placeholder={!isPresent ? 'Vắng' : '—'}
+                      value={!isPresent ? '' : (evalItem.evaluationScore || '')}
+                      disabled={disabled || !isPresent}
                       maxLength={10}
                       onChange={(e) =>
                         onEvaluationChange(student.id, {
@@ -266,8 +270,9 @@ export const EvaluationsTabContent: React.FC<EvaluationsTabContentProps> = ({
                         fontSize: '0.85rem',
                         width: '55px',
                         textAlign: 'center',
-                        backgroundColor: 'transparent',
+                        backgroundColor: !isPresent ? 'rgba(148, 163, 184, 0.1)' : 'transparent',
                         color: 'var(--text-primary)',
+                        cursor: !isPresent ? 'not-allowed' : 'text',
                       }}
                     />
                   </td>
@@ -275,6 +280,7 @@ export const EvaluationsTabContent: React.FC<EvaluationsTabContentProps> = ({
                     <CriteriaTagGroup
                       criteria={evalItem.criteria || {}}
                       disabled={disabled}
+                      isAbsent={!isPresent}
                       onChange={(newCriteria: EvaluationCriteria) =>
                         onEvaluationChange(student.id, { criteria: newCriteria })
                       }

@@ -212,10 +212,16 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
             {Object.entries(groupedSessions).map(([subject, subSessions], gIdx) => {
               // Thống kê hàng tổng của môn
               const totalSub = subSessions.length;
-              const presentCount = subSessions.filter((s) => (s.attendanceStatus || '').toLowerCase() === 'yes' || s.isPresent).length;
+              const presentSessions = subSessions.filter((s) => {
+                const st = (s.attendanceStatus || '').toLowerCase();
+                const isAbsent = !s.isPresent || ['no', 'absent_unexcused', 'absent_excused'].includes(st);
+                return !isAbsent;
+              });
+              const presentCount = presentSessions.length;
               const presentRatio = totalSub > 0 ? presentCount / totalSub : 0;
 
-              const hwSessions = subSessions.filter((s) => {
+              // Chỉ thống kê BTVN, Nề nếp, Phát biểu cho các buổi học sinh CÓ MẶT
+              const hwSessions = presentSessions.filter((s) => {
                 const st = (s.homeworkStatus || '').toLowerCase();
                 return st && st !== 'no_homework' && st !== 'none';
               });
@@ -225,7 +231,7 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
               }).length;
               const hwRatio = hwSessions.length > 0 ? hwDone / hwSessions.length : 0;
 
-              const behSessions = subSessions.filter(
+              const behSessions = presentSessions.filter(
                 (s) => (Array.isArray(s.behaviorTags) && s.behaviorTags.length > 0) || Boolean(s.behaviorStatus),
               );
               const behGood = behSessions.filter((s) => {
@@ -239,7 +245,7 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
               }).length;
               const behRatio = behSessions.length > 0 ? behGood / behSessions.length : 0;
 
-              const partSessions = subSessions.filter((s) => Boolean(s.participation));
+              const partSessions = presentSessions.filter((s) => Boolean(s.participation));
               const partActive = partSessions.filter((s) => {
                 const p = String(s.participation).toLowerCase();
                 return p === 'yes' || p === 'active_raise_hand' || p === 'proactive_ask' || p === 'active' || p === 'answer_well';
@@ -279,6 +285,9 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
 
                   {/* CÁC BUỔI HỌC CỦA MÔN */}
                   {subSessions.map((row, idx) => {
+                    const rowStatus = (row.attendanceStatus || '').toLowerCase();
+                    const isAbsent = !row.isPresent || ['no', 'absent_unexcused', 'absent_excused'].includes(rowStatus);
+
                     return (
                       <tr key={row.classSessionId || `${gIdx}-${idx}`}>
                         {/* STT */}
@@ -298,25 +307,25 @@ export const WeeklyReportSessionsTable: React.FC<WeeklyReportSessionsTableProps>
                           {renderAttendance(row)}
                         </td>
 
-                        {/* LÀM BTVN */}
+                        {/* LÀM BTVN - Nếu vắng mặt thì không hiển thị đánh giá tại lớp */}
                         <td style={{ ...tdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
-                          {renderHomework(row.homeworkStatus)}
+                          {isAbsent ? <span style={{ color: '#94a3b8' }}>—</span> : renderHomework(row.homeworkStatus)}
                         </td>
 
-                        {/* TUÂN THỦ NQ */}
+                        {/* TUÂN THỦ NQ - Nếu vắng mặt thì không có nề nếp tại lớp */}
                         <td style={{ ...tdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
-                          {renderBehavior(row.behaviorTags, row.behaviorStatus)}
+                          {isAbsent ? <span style={{ color: '#94a3b8' }}>—</span> : renderBehavior(row.behaviorTags, row.behaviorStatus)}
                         </td>
 
-                        {/* TÍCH CỰC PHÁT BIỂU */}
+                        {/* TÍCH CỰC PHÁT BIỂU - Nếu vắng mặt thì tuyệt đối không thể phát biểu */}
                         <td style={{ ...tdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
-                          {renderParticipation(row.participation)}
+                          {isAbsent ? <span style={{ color: '#94a3b8' }}>—</span> : renderParticipation(row.participation)}
                         </td>
 
                         {/* ĐIỂM KIỂM TRA */}
                         <td style={{ ...tdStyle, textAlign: 'center', whiteSpace: 'nowrap' }}>
                           {(() => {
-                            if (!row.score) return <span style={{ color: '#94a3b8' }}>—</span>;
+                            if (!row.score || isAbsent) return <span style={{ color: '#94a3b8' }}>—</span>;
                             const numScore = Number(String(row.score).replace(',', '.'));
                             const color = !isNaN(numScore) ? getRateColor(numScore / 10) : '#0f172a';
                             return <span style={{ fontWeight: 700, color, fontSize: 13 }}>{row.score}</span>;
