@@ -1,97 +1,53 @@
-import React, { useState } from 'react';
-import { Button, Tabs } from 'antd';
+﻿import React, { useState } from 'react';
+import { Button } from 'antd';
 import { Link } from 'react-router-dom';
 import {
   ArrowLeft,
-  ClipboardCheck,
-  ShieldCheck,
-  UserRound,
-  BookOpen,
-  Sparkles,
+  ChevronDown,
+  ChevronRight,
+  Copy,
+  Check,
+  KeyRound,
+  FileSpreadsheet,
   HelpCircle,
 } from 'lucide-react';
 import { BrandLogo } from '../components/common/BrandLogo';
+import { OverviewSystemDiagram } from '../components/guide/OverviewSystemDiagram';
+import { LoginGuideSection } from '../components/guide/LoginGuideSection';
 import { SessionEvaluationAndReportGuide } from '../components/SessionEvaluationAndReportGuide';
-import './PublicLanding.css';
 
-const adminModules = [
-  ['Tổng quan & cảnh báo vận hành', 'Theo dõi số liệu toàn hệ thống, học sinh có nguy cơ nghỉ học, học sinh chưa xếp lớp, buổi học chưa chốt điểm danh và giao dịch cần kiểm tra.'],
-  ['Học sinh', 'Tạo hồ sơ, quản lý phụ huynh, tài khoản đăng nhập, trạng thái học tập, lớp đang học và lịch sử học phí.'],
-  ['Giáo viên / Trợ giảng', 'Quản lý hồ sơ, tài khoản, lịch dạy, lớp phụ trách và lịch sử thanh toán lương.'],
-  ['Trung tâm & phòng học', 'Quản lý cơ sở, thông tin liên hệ và danh sách phòng học tại từng trung tâm.'],
-  ['Chương trình học', 'Tạo khóa học, cấp độ, học phí theo buổi và mức lương giáo viên theo buổi.'],
-  ['Lớp học & lịch học', 'Tạo lớp, xếp giáo viên, học sinh, lịch cố định, sinh buổi học, điểm danh và xử lý đổi/hủy buổi.'],
-  ['Ngày nghỉ lễ', 'Cài đặt ngày nghỉ để lớp bật “Bỏ qua ngày lễ” không sinh buổi học vào ngày đó.'],
-  ['Theo dõi bài tập', 'Theo dõi bài đã giao, số lượng nộp bài và tiến độ chấm điểm toàn hệ thống.'],
-  ['Đơn xin nghỉ', 'Tiếp nhận và xử lý đơn nghỉ của học sinh, giáo viên theo từng buổi học.'],
-  ['Kế toán', 'Chốt học phí và lương theo số buổi thực tế, điều chỉnh trước khi chốt, thu một lần, biên lai và nhật ký thao tác.'],
-  ['Nhật ký hệ thống', 'Theo dõi lịch sử thông báo và các thao tác quan trọng phục vụ kiểm tra vận hành.'],
-];
-
-const teacherModules = [
-  ['Tổng quan', 'Xem lịch dạy, các buổi học sắp tới và việc cần xử lý.'],
-  ['Lớp & học sinh', 'Xem lớp phụ trách, danh sách học sinh, lịch học và thông tin cần thiết để giảng dạy.'],
-  ['Điểm danh', 'Bắt đầu điểm danh, ghi nhận có mặt/vắng mặt, lý do và hoàn tất buổi học.'],
-  ['Bài tập & chấm điểm', 'Tạo bài tập, đính kèm tài liệu, theo dõi bài nộp, chấm điểm và phản hồi.'],
-  ['Đơn xin nghỉ', 'Xem và xử lý các yêu cầu nghỉ liên quan đến lịch dạy.'],
-  ['Lịch sử nhận lương', 'Theo dõi số buổi được tính lương, số tiền và trạng thái thanh toán.'],
-  ['Thông báo & cài đặt', 'Nhận thông báo nghiệp vụ và cập nhật tài khoản cá nhân.'],
-];
-
-const studentModules = [
-  ['Tổng quan', 'Xem thông tin học tập, lớp đang học và các nội dung cần chú ý.'],
-  ['Lịch học', 'Theo dõi lịch học, phòng học, giáo viên và trạng thái điểm danh.'],
-  ['Bài tập', 'Xem bài được giao, hạn nộp, gửi bài và nhận điểm/phản hồi.'],
-  ['Đơn xin nghỉ', 'Gửi yêu cầu nghỉ theo buổi học và theo dõi trạng thái xử lý.'],
-  ['Học phí', 'Xem kỳ học phí, số tiền, trạng thái thanh toán và lịch sử thu.'],
-  ['Hồ sơ, thông báo & cài đặt', 'Xem hồ sơ cá nhân, nhận thông báo và quản lý tài khoản.'],
-];
-
-const ModuleList: React.FC<{ items: string[][] }> = ({ items }) => (
-  <div className="public-module-grid" style={{ marginTop: '16px' }}>
-    {items.map(([title, description]) => (
-      <article className="public-module-card" key={title}>
-        <CheckCircle size={20} color="#10b981" />
-        <div>
-          <h3>{title}</h3>
-          <p>{description}</p>
-        </div>
-      </article>
-    ))}
-  </div>
-);
-
-const CheckCircle: React.FC<{ size?: number; color?: string }> = ({ size = 18, color = '#10b981' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-    <polyline points="22 4 12 14.01 9 11.01" />
-  </svg>
-);
+type SectionKey = 'overview' | 'login' | 'sqi' | 'admin' | 'teacher' | 'student';
 
 export const GuidePage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('sqi-guide');
+  const [activeSection, setActiveSection] = useState<SectionKey>('overview');
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc', color: '#172033', fontFamily: 'Inter, sans-serif' }}>
-      {/* Header */}
+      {/* Top Header */}
       <header
         style={{
-          height: '64px',
+          height: '60px',
           position: 'sticky',
           top: 0,
-          zIndex: 30,
+          zIndex: 40,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0 max(24px, calc((100vw - 1180px)/2))',
-          background: 'rgba(255,255,255,0.95)',
+          padding: '0 24px',
+          background: '#ffffff',
           borderBottom: '1px solid #e2e8f0',
-          backdropFilter: 'blur(20px)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <Link to="/" style={{ textDecoration: 'none' }}>
-            <BrandLogo size={38} showText subtitle="by DAOGROUP" />
+            <BrandLogo size={36} showText subtitle="by DAOGROUP" />
           </Link>
           <span style={{ height: '20px', width: '1px', background: '#cbd5e1' }} />
           <span style={{ fontSize: '13px', fontWeight: 700, color: '#059669', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -100,8 +56,29 @@ export const GuidePage: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button
+            type="button"
+            onClick={handleCopy}
+            style={{
+              padding: '6px 12px',
+              border: '1px solid #cbd5e1',
+              borderRadius: '6px',
+              background: '#ffffff',
+              fontSize: '13px',
+              fontWeight: 600,
+              color: '#475569',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            {copied ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
+            {copied ? 'Đã sao chép' : 'Copy'}
+            <ChevronDown size={12} color="#94a3b8" />
+          </button>
           <Link to="/">
-            <Button icon={<ArrowLeft size={15} />}>Trang chủ</Button>
+            <Button icon={<ArrowLeft size={14} />}>Trang chủ</Button>
           </Link>
           <Link to="/login">
             <Button type="primary" style={{ background: '#059669', borderColor: '#059669' }}>
@@ -111,93 +88,257 @@ export const GuidePage: React.FC = () => {
         </div>
       </header>
 
-      {/* Hero Banner */}
-      <div
-        style={{
-          background: 'linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%)',
-          color: '#ffffff',
-          padding: '44px max(24px, calc((100vw - 1180px)/2)) 36px',
-        }}
-      >
-        <div style={{ maxWidth: '850px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.15)', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 700, marginBottom: '12px' }}>
-            <Sparkles size={14} color="#6ee7b7" /> HƯỚNG DẪN SỬ DỤNG HỆ THỐNG DAO EDU
+      {/* Main Two-Column Layout (EduCare Docs Style) */}
+      <div style={{ display: 'flex', minHeight: 'calc(100vh - 60px)' }}>
+        {/* Left Sidebar */}
+        <aside
+          style={{
+            width: '290px',
+            flexShrink: 0,
+            background: '#ffffff',
+            borderRight: '1px solid #e2e8f0',
+            padding: '20px 16px',
+            height: 'calc(100vh - 60px)',
+            position: 'sticky',
+            top: '60px',
+            overflowY: 'auto',
+          }}
+        >
+          {/* Selector matching Image 2 */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '9px 12px',
+              background: '#ffffff',
+              border: '1.5px solid #cbd5e1',
+              borderRadius: '8px',
+              fontSize: '13px',
+              fontWeight: 700,
+              color: '#1e293b',
+              marginBottom: '20px',
+              cursor: 'pointer',
+            }}
+          >
+            <span>EDUCARE</span>
+            <ChevronDown size={14} color="#64748b" />
           </div>
-          <h1 style={{ fontSize: '32px', fontWeight: 800, margin: '0 0 10px', color: '#ffffff', lineHeight: 1.2 }}>
-            Tài liệu hướng dẫn trực quan & toàn diện
-          </h1>
-          <p style={{ fontSize: '15px', color: '#d1fae5', margin: 0, lineHeight: 1.6 }}>
-            Hướng dẫn đầy đủ quy trình thao tác từ điểm danh, nhận xét 1-chạm, sinh nhận xét bằng AI (Gemini), đến mở và xuất phiếu báo cáo chất lượng SQI gửi phụ huynh qua link & mã QR.
-          </p>
-        </div>
+
+          {/* Group 1: Overview */}
+          <div style={{ marginBottom: '22px' }}>
+            <div
+              onClick={() => setActiveSection('overview')}
+              style={{
+                fontSize: '12px',
+                fontWeight: 800,
+                color: activeSection === 'overview' ? '#047857' : '#1e293b',
+                textTransform: 'uppercase',
+                padding: '6px 10px',
+                cursor: 'pointer',
+                lineHeight: 1.4,
+                marginBottom: '6px',
+              }}
+            >
+              TỔNG QUAN HỆ THỐNG QUẢN LÝ ĐÀO TẠO EDUCARE (DAO EDU)
+            </div>
+            <div
+              onClick={() => setActiveSection('student')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 10px',
+                borderRadius: '6px',
+                fontSize: '12.5px',
+                fontWeight: 600,
+                color: activeSection === 'student' ? '#047857' : '#475569',
+                background: activeSection === 'student' ? '#ecfdf5' : 'transparent',
+                cursor: 'pointer',
+              }}
+            >
+              <span>📱 CỔNG HỌC VIÊN & PHỤ HUYNH</span>
+              <ChevronRight size={13} color="#94a3b8" />
+            </div>
+            <div
+              onClick={() => setActiveSection('teacher')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 10px',
+                borderRadius: '6px',
+                fontSize: '12.5px',
+                fontWeight: 600,
+                color: activeSection === 'teacher' ? '#047857' : '#475569',
+                background: activeSection === 'teacher' ? '#ecfdf5' : 'transparent',
+                cursor: 'pointer',
+              }}
+            >
+              <span>👨‍🏫 CỔNG GIÁO VIÊN & ĐIỂM DANH</span>
+              <ChevronRight size={13} color="#94a3b8" />
+            </div>
+            <div
+              onClick={() => setActiveSection('login')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 10px',
+                borderRadius: '6px',
+                fontSize: '12.5px',
+                fontWeight: 600,
+                color: '#ef4444',
+                cursor: 'pointer',
+              }}
+            >
+              <span>🆘 HỖ TRỢ & CSKH (TICKET SUPPORT)</span>
+            </div>
+          </div>
+
+          {/* Group 2: Getting Started */}
+          <div style={{ marginBottom: '22px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', padding: '4px 10px', letterSpacing: '0.05em' }}>
+              KHỞI ĐẦU HỆ THỐNG
+            </div>
+            <div
+              onClick={() => setActiveSection('login')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 10px',
+                borderRadius: '6px',
+                fontSize: '12.5px',
+                fontWeight: 700,
+                color: activeSection === 'login' ? '#047857' : '#059669',
+                background: activeSection === 'login' ? '#ecfdf5' : '#f0fdf4',
+                border: '1px solid #bbf7d0',
+                margin: '4px 0',
+                cursor: 'pointer',
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <KeyRound size={14} color="#059669" /> HƯỚNG DẪN ĐĂNG NHẬP
+              </span>
+              <span style={{ fontSize: '10px', background: '#fef08a', color: '#854d0e', padding: '1px 5px', borderRadius: '4px' }}>MỚI</span>
+            </div>
+            <div
+              onClick={() => setActiveSection('admin')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 10px',
+                borderRadius: '6px',
+                fontSize: '12.5px',
+                fontWeight: 600,
+                color: '#475569',
+                cursor: 'pointer',
+              }}
+            >
+              <span>📁 XỬ LÍ MASTER DATA</span>
+              <ChevronRight size={13} color="#94a3b8" />
+            </div>
+          </div>
+
+          {/* Group 3: Điểm danh & SQI */}
+          <div style={{ marginBottom: '22px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', padding: '4px 10px', letterSpacing: '0.05em' }}>
+              NHẬN XÉT & BÁO CÁO SQI
+            </div>
+            <div
+              onClick={() => setActiveSection('sqi')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '8px 10px',
+                borderRadius: '6px',
+                fontSize: '12.5px',
+                fontWeight: 600,
+                color: activeSection === 'sqi' ? '#047857' : '#475569',
+                background: activeSection === 'sqi' ? '#ecfdf5' : 'transparent',
+                cursor: 'pointer',
+                gap: '8px',
+              }}
+            >
+              <FileSpreadsheet size={15} color="#059669" /> Điểm danh & SQI (100đ)
+            </div>
+          </div>
+        </aside>
+
+        {/* Right Main Content */}
+        <main style={{ flex: 1, padding: '32px 44px 80px', maxWidth: '1040px' }}>
+          {/* Breadcrumb matching Image 2 */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#059669', textTransform: 'uppercase' }}>
+              EDUCARE {activeSection === 'login' ? '> KHỞI ĐẦU HỆ THỐNG > ĐĂNG NHẬP' : activeSection === 'sqi' ? '> NHẬN XÉT & SQI' : ''}
+            </span>
+            <button
+              type="button"
+              onClick={handleCopy}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '4px 8px',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                background: '#ffffff',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#475569',
+                cursor: 'pointer',
+              }}
+            >
+              <Copy size={13} /> Copy <ChevronDown size={11} color="#94a3b8" />
+            </button>
+          </div>
+
+          {/* DYNAMIC CONTENT SWITCHING */}
+          {activeSection === 'overview' && <OverviewSystemDiagram />}
+          {activeSection === 'login' && <LoginGuideSection />}
+          {activeSection === 'sqi' && (
+            <div>
+              <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px' }}>
+                HƯỚNG DẪN NHẬN XÉT 1-CHẠM & IN BÁO CÁO SQI
+              </h2>
+              <SessionEvaluationAndReportGuide />
+            </div>
+          )}
+          {activeSection === 'teacher' && (
+            <div>
+              <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px' }}>
+                DÀNH CHO GIÁO VIÊN & TRỢ GIẢNG
+              </h2>
+              <p style={{ color: '#475569', fontSize: '14px', marginBottom: '20px' }}>
+                Hướng dẫn các thao tác thường nhật: Xem lịch dạy, điểm danh học sinh, nhận xét buổi học bằng AI Gemini và theo dõi lịch sử lương.
+              </p>
+              <SessionEvaluationAndReportGuide />
+            </div>
+          )}
+          {activeSection === 'student' && (
+            <div>
+              <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px' }}>
+                CỔNG THÔNG TIN HỌC SINH & PHỤ HUYNH
+              </h2>
+              <p style={{ color: '#475569', fontSize: '14px', marginBottom: '20px' }}>
+                Phụ huynh quét mã QR trên phiếu in tuần hoặc truy cập link công khai để xem báo cáo chất lượng SQI, nhận xét giáo viên và tình hình học tập của con.
+              </p>
+            </div>
+          )}
+          {activeSection === 'admin' && (
+            <div>
+              <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px' }}>
+                XỬ LÝ MASTER DATA & QUẢN TRỊ VIÊN
+              </h2>
+              <p style={{ color: '#475569', fontSize: '14px', marginBottom: '20px' }}>
+                Quản lý hồ sơ học sinh, giáo viên, phòng học, chương trình học và kế toán học phí theo chu kỳ buổi thực tế.
+              </p>
+            </div>
+          )}
+        </main>
       </div>
-
-      {/* Main Content Area */}
-      <main style={{ maxWidth: '1180px', margin: '0 auto', padding: '32px 20px 80px' }}>
-        <Tabs
-          activeKey={activeTab}
-          onChange={setActiveTab}
-          centered
-          size="large"
-          items={[
-            {
-              key: 'sqi-guide',
-              label: (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}>
-                  <ClipboardCheck size={18} color="#059669" /> Nhận xét & In báo cáo SQI
-                </span>
-              ),
-              children: (
-                <div style={{ marginTop: '20px' }}>
-                  <SessionEvaluationAndReportGuide />
-                </div>
-              ),
-            },
-            {
-              key: 'teacher',
-              label: (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}>
-                  <UserRound size={18} color="#059669" /> Dành cho Giáo viên
-                </span>
-              ),
-              children: <ModuleList items={teacherModules} />,
-            },
-            {
-              key: 'admin',
-              label: (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}>
-                  <ShieldCheck size={18} color="#059669" /> Dành cho Quản trị viên
-                </span>
-              ),
-              children: <ModuleList items={adminModules} />,
-            },
-            {
-              key: 'student',
-              label: (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}>
-                  <BookOpen size={18} color="#059669" /> Dành cho Học sinh
-                </span>
-              ),
-              children: <ModuleList items={studentModules} />,
-            },
-          ]}
-        />
-      </main>
-
-      {/* Footer */}
-      <footer
-        style={{
-          borderTop: '1px solid #e2e8f0',
-          padding: '24px',
-          background: '#ffffff',
-          textAlign: 'center',
-          color: '#64748b',
-          fontSize: '12.5px',
-        }}
-      >
-        <p style={{ margin: '0 0 6px' }}>© 2026 DAO EDU - Nền tảng quản lý trung tâm giáo dục toàn diện.</p>
-        <p style={{ margin: 0 }}>Hỗ trợ kỹ thuật trực tiếp: 0888 888 888 · support@daoedu.vn</p>
-      </footer>
     </div>
   );
 };
