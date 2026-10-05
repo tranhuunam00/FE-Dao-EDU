@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from 'antd';
 import { Link } from 'react-router-dom';
 import {
@@ -14,7 +14,8 @@ import {
 import { BrandLogo } from '../components/common/BrandLogo';
 import { OverviewSystemDiagram } from '../components/guide/OverviewSystemDiagram';
 import { LoginGuideSection } from '../components/guide/LoginGuideSection';
-import { SessionEvaluationAndReportGuide } from '../components/SessionEvaluationAndReportGuide';
+import { ReportPrintAndSqiGuide } from '../components/guide/ReportPrintAndSqiGuide';
+import { TeacherWorkflowGuide } from '../components/guide/TeacherWorkflowGuide';
 
 type SectionKey = 'overview' | 'login' | 'sqi' | 'admin' | 'teacher' | 'student';
 
@@ -166,17 +167,22 @@ export const GuidePage: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '8px 10px',
-                borderRadius: '6px',
-                fontSize: '12.5px',
-                fontWeight: 600,
-                color: activeSection === 'teacher' ? '#047857' : '#475569',
-                background: activeSection === 'teacher' ? '#ecfdf5' : 'transparent',
+                padding: '9px 12px',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: 800,
+                color: activeSection === 'teacher' ? '#007a64' : '#334155',
+                background: activeSection === 'teacher' ? '#e6f7f2' : 'transparent',
+                border: activeSection === 'teacher' ? '1px solid #a7f3d0' : '1px solid transparent',
                 cursor: 'pointer',
+                margin: '2px 0',
+                transition: 'all 0.15s ease',
               }}
             >
-              <span>👨‍🏫 CỔNG GIÁO VIÊN & ĐIỂM DANH</span>
-              <ChevronRight size={13} color="#94a3b8" />
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>🧑‍🏫</span> CỔNG GIÁO VIÊN & ĐIỂM DANH
+              </span>
+              <ChevronRight size={14} color={activeSection === 'teacher' ? '#007a64' : '#94a3b8'} />
             </div>
             <div
               onClick={() => setActiveSection('login')}
@@ -221,7 +227,6 @@ export const GuidePage: React.FC = () => {
               <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <KeyRound size={14} color="#059669" /> HƯỚNG DẪN ĐĂNG NHẬP
               </span>
-              <span style={{ fontSize: '10px', background: '#fef08a', color: '#854d0e', padding: '1px 5px', borderRadius: '4px' }}>MỚI</span>
             </div>
             <div
               onClick={() => setActiveSection('admin')}
@@ -252,17 +257,20 @@ export const GuidePage: React.FC = () => {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                padding: '8px 10px',
-                borderRadius: '6px',
-                fontSize: '12.5px',
-                fontWeight: 600,
-                color: activeSection === 'sqi' ? '#047857' : '#475569',
-                background: activeSection === 'sqi' ? '#ecfdf5' : 'transparent',
+                padding: '9px 12px',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: 800,
+                color: activeSection === 'sqi' ? '#007a64' : '#334155',
+                background: activeSection === 'sqi' ? '#e6f7f2' : 'transparent',
+                border: activeSection === 'sqi' ? '1px solid #a7f3d0' : '1px solid transparent',
                 cursor: 'pointer',
                 gap: '8px',
+                transition: 'all 0.15s ease',
               }}
             >
-              <FileSpreadsheet size={15} color="#059669" /> Điểm danh & SQI (100đ)
+              <FileSpreadsheet size={16} color={activeSection === 'sqi' ? '#007a64' : '#059669'} />
+              <span>In Báo Cáo & SQI (100đ)</span>
             </div>
           </div>
         </aside>
@@ -272,7 +280,7 @@ export const GuidePage: React.FC = () => {
           {/* Breadcrumb matching Image 2 */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <span style={{ fontSize: '12px', fontWeight: 700, color: '#059669', textTransform: 'uppercase' }}>
-              EDUCARE {activeSection === 'login' ? '> KHỞI ĐẦU HỆ THỐNG > ĐĂNG NHẬP' : activeSection === 'sqi' ? '> NHẬN XÉT & SQI' : ''}
+              EDUCARE {activeSection === 'login' ? '> KHỞI ĐẦU HỆ THỐNG > ĐĂNG NHẬP' : activeSection === 'teacher' ? '> CỔNG GIÁO VIÊN & ĐIỂM DANH > QUY TRÌNH BUỔI HỌC' : activeSection === 'sqi' ? '> NHẬN XÉT & BÁO CÁO SQI > IN BÁO CÁO & CÁCH TÍNH ĐIỂM SQI' : ''}
             </span>
             <button
               type="button"
@@ -298,25 +306,8 @@ export const GuidePage: React.FC = () => {
           {/* DYNAMIC CONTENT SWITCHING */}
           {activeSection === 'overview' && <OverviewSystemDiagram />}
           {activeSection === 'login' && <LoginGuideSection />}
-          {activeSection === 'sqi' && (
-            <div>
-              <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px' }}>
-                HƯỚNG DẪN NHẬN XÉT 1-CHẠM & IN BÁO CÁO SQI
-              </h2>
-              <SessionEvaluationAndReportGuide />
-            </div>
-          )}
-          {activeSection === 'teacher' && (
-            <div>
-              <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px' }}>
-                DÀNH CHO GIÁO VIÊN & TRỢ GIẢNG
-              </h2>
-              <p style={{ color: '#475569', fontSize: '14px', marginBottom: '20px' }}>
-                Hướng dẫn các thao tác thường nhật: Xem lịch dạy, điểm danh học sinh, nhận xét buổi học bằng AI Gemini và theo dõi lịch sử lương.
-              </p>
-              <SessionEvaluationAndReportGuide />
-            </div>
-          )}
+          {activeSection === 'sqi' && <ReportPrintAndSqiGuide />}
+          {activeSection === 'teacher' && <TeacherWorkflowGuide />}
           {activeSection === 'student' && (
             <div>
               <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px' }}>
