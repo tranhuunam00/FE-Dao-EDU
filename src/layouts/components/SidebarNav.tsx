@@ -54,7 +54,7 @@ export function getNavigation(role: Role | undefined): NavItem[] {
       return [
         { name: 'Tổng quan', path: '/teacher', icon: <LayoutDashboard size={20} /> },
         { name: 'Lịch sử nhận lương', path: '/teacher/salary', icon: <DollarSign size={20} /> },
-        { name: 'Lớp & Học sinh', path: '/teacher/students', icon: <Users size={20} /> },
+        { name: 'Lớp học', path: '/teacher/classes', icon: <AntdTeamOutlined style={{ fontSize: '20px' }} /> },
         { name: 'Bài tập & Chấm điểm', path: '/teacher/grades', icon: <ClipboardList size={20} /> },
         { name: 'Báo cáo tuần SQI', path: '/teacher/weekly-reports', icon: <Award size={20} /> },
         { name: 'Đơn xin nghỉ', path: '/teacher/leave-requests', icon: <CalendarOff size={20} /> },

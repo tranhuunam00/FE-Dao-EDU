@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import {
   Table, Input, Select, Button, Card, Tag, Typography, Row, Col, App, Tabs,
 } from 'antd';
@@ -8,6 +9,7 @@ import { Resizable } from 'react-resizable';
 import type { ResizeCallbackData } from 'react-resizable';
 import dayjs from 'dayjs';
 import api from '../../services/api';
+import { useAuth, Role } from '../../context/AuthContext';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -72,6 +74,8 @@ interface UnlockedSession {
 
 const UnlockedSessionsTable: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const basePath = location.pathname.startsWith('/teacher') ? '/teacher/classes' : '/admin/classes';
   const { message } = App.useApp();
   const [sessions, setSessions] = useState<UnlockedSession[]>([]);
   const [loading, setLoading] = useState(false);
@@ -150,7 +154,7 @@ const UnlockedSessionsTable: React.FC = () => {
                 type="primary"
                 size="small"
                 style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', border: 'none' }}
-                onClick={() => navigate(`/admin/classes/${record.classId}?sessionId=${record.id}`)}
+                onClick={() => navigate(`${basePath}/${record.classId}?sessionId=${record.id}`)}
               >
                 Điểm danh
               </Button>
@@ -167,6 +171,10 @@ const UnlockedSessionsTable: React.FC = () => {
 
 const ClassListInner: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
+  const isAdmin = user?.role === Role.ADMIN;
+  const basePath = location.pathname.startsWith('/teacher') ? '/teacher/classes' : '/admin/classes';
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'list';
   const { message } = App.useApp();
@@ -354,7 +362,7 @@ const ClassListInner: React.FC = () => {
           style={{ background: 'rgba(99, 102, 241, 0.2)', border: '1px solid rgba(99, 102, 241, 0.4)', color: '#a5b4fc' }}
           onClick={(e) => {
             e.stopPropagation();
-            navigate(`/admin/classes/${record.id}`);
+            navigate(`${basePath}/${record.id}`);
           }}
         >
           Chi tiết
@@ -469,7 +477,7 @@ const ClassListInner: React.FC = () => {
                         type="primary"
                         icon={<PlusOutlined />}
                         style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', border: 'none' }}
-                        onClick={() => navigate('/admin/classes/create')}
+                        onClick={() => navigate(`${basePath}/create`)}
                       >
                         Thêm mới
                       </Button>
@@ -493,7 +501,7 @@ const ClassListInner: React.FC = () => {
                       showTotal: (t) => `Tổng số ${t} lớp học`,
                     }}
                     onRow={(record) => ({
-                      onClick: () => navigate(`/admin/classes/${record.id}`),
+                      onClick: () => navigate(`${basePath}/${record.id}`),
                       style: { cursor: 'pointer' },
                     })}
                     scroll={{ x: Object.values(colWidths).reduce((a, b) => a + b, 0) || 1500 }}
@@ -502,7 +510,7 @@ const ClassListInner: React.FC = () => {
               </>
             )
           },
-          {
+          ...(isAdmin ? [{
             key: 'unlocked',
             label: (
               <span style={{ fontSize: '1rem', fontWeight: 500 }}>
@@ -510,7 +518,7 @@ const ClassListInner: React.FC = () => {
               </span>
             ),
             children: <UnlockedSessionsTable />
-          }
+          }] : [])
         ]}
       />
     </div>

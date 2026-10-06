@@ -34,7 +34,6 @@ import ManagedLeaveRequests from './pages/teacher/ManagedLeaveRequests';
 // Pages — Teacher
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import TeacherSalaryHistory from './pages/teacher/TeacherSalaryHistory';
-import TeacherClasses from './pages/teacher/TeacherClasses';
 import TeacherAssignments from './pages/teacher/TeacherAssignments';
 
 // Pages — Student
@@ -125,7 +124,10 @@ function App() {
                   <Routes>
                     <Route path="/" element={<TeacherDashboard />} />
                     <Route path="salary" element={<TeacherSalaryHistory />} />
-                    <Route path="students" element={<TeacherClasses />} />
+                    <Route path="classes" element={<ClassList />} />
+                    <Route path="classes/create" element={<CreateClass />} />
+                    <Route path="classes/:id" element={<ClassDetail />} />
+                    <Route path="students" element={<Navigate to="/teacher/classes" replace />} />
                     <Route path="grades" element={<TeacherAssignments />} />
                     <Route path="weekly-reports" element={<TeacherWeeklyReports />} />
                     <Route path="leave-requests" element={<ManagedLeaveRequests />} />

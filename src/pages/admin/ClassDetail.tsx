@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import {
   App, Tag, Button, Spin,
   Tabs, Modal, Form, Select, DatePicker, TimePicker, Switch, Input, Divider, Alert, Typography, Row, Col, Table, InputNumber
@@ -42,6 +43,7 @@ interface ClassSession {
 const ClassDetailInner: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const querySessionId = searchParams.get('sessionId');
   const { message, modal } = App.useApp();
@@ -701,7 +703,7 @@ const ClassDetailInner: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid var(--card-border)' }}>
         <Button
           icon={<ArrowLeftOutlined />}
-          onClick={() => navigate('/admin/classes')}
+          onClick={() => navigate(location.pathname.startsWith('/teacher') ? '/teacher/classes' : '/admin/classes')}
           style={{ background: 'var(--bg-tertiary)', border: 'none' }}
         />
         <div style={{ flex: 1 }}>

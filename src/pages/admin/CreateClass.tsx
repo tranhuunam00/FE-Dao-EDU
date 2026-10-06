@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Form, Input, Select, Button, Card, Typography, Row, Col, App,
   DatePicker, InputNumber, Switch, Table, TimePicker, Modal, Alert
@@ -22,6 +23,8 @@ interface ScheduleRow {
 
 const CreateClassInner: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const basePath = location.pathname.startsWith('/teacher') ? '/teacher/classes' : '/admin/classes';
   const [form] = Form.useForm();
   const { message } = App.useApp();
   const [saving, setSaving] = useState(false);
@@ -231,7 +234,7 @@ const CreateClassInner: React.FC = () => {
 
       await api.post('/classes', postData);
       message.success('Tạo lớp học thành công!');
-      navigate('/admin/classes');
+      navigate(basePath);
     } catch (err: any) {
       message.error(err.response?.data?.message || 'Lỗi khi tạo lớp học. Hãy kiểm tra các trường bắt buộc.');
     } finally {
@@ -329,7 +332,7 @@ const CreateClassInner: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid var(--card-border)' }}>
         <Button
           icon={<ArrowLeftOutlined />}
-          onClick={() => navigate('/admin/classes')}
+          onClick={() => navigate(basePath)}
           style={{ background: 'var(--bg-tertiary)', border: 'none' }}
         />
         <div>
@@ -563,7 +566,7 @@ const CreateClassInner: React.FC = () => {
         </Card>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-          <Button onClick={() => navigate('/admin/classes')} style={{ background: 'transparent' }}>
+          <Button onClick={() => navigate(basePath)} style={{ background: 'transparent' }}>
             Hủy
           </Button>
           <Button
