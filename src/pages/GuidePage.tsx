@@ -16,12 +16,17 @@ import { OverviewSystemDiagram } from '../components/guide/OverviewSystemDiagram
 import { LoginGuideSection } from '../components/guide/LoginGuideSection';
 import { ReportPrintAndSqiGuide } from '../components/guide/ReportPrintAndSqiGuide';
 import { TeacherWorkflowGuide } from '../components/guide/TeacherWorkflowGuide';
+import { TeacherClassFeaturesGuide } from '../components/guide/TeacherClassFeaturesGuide';
+import { StudentPortalGuide } from '../components/guide/StudentPortalGuide';
 
-type SectionKey = 'overview' | 'login' | 'sqi' | 'admin' | 'teacher' | 'student';
+type SectionKey = 'overview' | 'login' | 'sqi' | 'admin' | 'teacher_classes' | 'teacher_workflow' | 'student';
 
 export const GuidePage: React.FC = () => {
   const [activeSection, setActiveSection] = useState<SectionKey>('overview');
+  const [teacherOpen, setTeacherOpen] = useState(true);
   const [copied, setCopied] = useState(false);
+
+  const isTeacherActive = activeSection === 'teacher_classes' || activeSection === 'teacher_workflow';
 
   const handleCopy = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -149,40 +154,101 @@ export const GuidePage: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '8px 10px',
-                borderRadius: '6px',
-                fontSize: '12.5px',
-                fontWeight: 600,
-                color: activeSection === 'student' ? '#047857' : '#475569',
-                background: activeSection === 'student' ? '#ecfdf5' : 'transparent',
-                cursor: 'pointer',
-              }}
-            >
-              <span>📱 CỔNG HỌC VIÊN & PHỤ HUYNH</span>
-              <ChevronRight size={13} color="#94a3b8" />
-            </div>
-            <div
-              onClick={() => setActiveSection('teacher')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
                 padding: '9px 12px',
                 borderRadius: '8px',
                 fontSize: '13px',
                 fontWeight: 800,
-                color: activeSection === 'teacher' ? '#007a64' : '#334155',
-                background: activeSection === 'teacher' ? '#e6f7f2' : 'transparent',
-                border: activeSection === 'teacher' ? '1px solid #a7f3d0' : '1px solid transparent',
+                color: activeSection === 'student' ? '#007a64' : '#334155',
+                background: activeSection === 'student' ? '#e6f7f2' : 'transparent',
+                border: activeSection === 'student' ? '1px solid #a7f3d0' : '1px solid transparent',
                 cursor: 'pointer',
-                margin: '2px 0',
+                margin: '3px 0',
                 transition: 'all 0.15s ease',
               }}
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span>🧑‍🏫</span> CỔNG GIÁO VIÊN & ĐIỂM DANH
+                <span>📱</span> CỔNG HỌC VIÊN & PHỤ HUYNH
               </span>
-              <ChevronRight size={14} color={activeSection === 'teacher' ? '#007a64' : '#94a3b8'} />
+              <ChevronRight size={14} color={activeSection === 'student' ? '#007a64' : '#94a3b8'} />
+            </div>
+            {/* CỔNG GIÁO VIÊN & ĐIỂM DANH (Có các tab con) */}
+            <div style={{ margin: '3px 0' }}>
+              <div
+                onClick={() => {
+                  setTeacherOpen(!teacherOpen);
+                  if (!isTeacherActive) {
+                    setActiveSection('teacher_classes');
+                  }
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '9px 12px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  color: isTeacherActive ? '#007a64' : '#334155',
+                  background: isTeacherActive ? '#e6f7f2' : 'transparent',
+                  border: isTeacherActive ? '1px solid #a7f3d0' : '1px solid transparent',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>🧑‍🏫</span> CỔNG GIÁO VIÊN & ĐIỂM DANH
+                </span>
+                {teacherOpen ? (
+                  <ChevronDown size={14} color={isTeacherActive ? '#007a64' : '#94a3b8'} />
+                ) : (
+                  <ChevronRight size={14} color={isTeacherActive ? '#007a64' : '#94a3b8'} />
+                )}
+              </div>
+
+              {/* Sub-tabs menu cho Giáo Viên */}
+              {teacherOpen && (
+                <div style={{ paddingLeft: '12px', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  <div
+                    onClick={() => setActiveSection('teacher_classes')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '7px 10px',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: activeSection === 'teacher_classes' ? 700 : 500,
+                      color: activeSection === 'teacher_classes' ? '#047857' : '#475569',
+                      background: activeSection === 'teacher_classes' ? '#ecfdf5' : 'transparent',
+                      borderLeft: activeSection === 'teacher_classes' ? '3px solid #059669' : '3px solid transparent',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <span>📚 Cẩm nang Lớp học & Bài tập</span>
+                  </div>
+
+                  <div
+                    onClick={() => setActiveSection('teacher_workflow')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '7px 10px',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: activeSection === 'teacher_workflow' ? 700 : 500,
+                      color: activeSection === 'teacher_workflow' ? '#047857' : '#475569',
+                      background: activeSection === 'teacher_workflow' ? '#ecfdf5' : 'transparent',
+                      borderLeft: activeSection === 'teacher_workflow' ? '3px solid #059669' : '3px solid transparent',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <span>⚡ Quy trình Buổi học & AI</span>
+                  </div>
+                </div>
+              )}
             </div>
             <div
               onClick={() => setActiveSection('login')}
@@ -277,10 +343,16 @@ export const GuidePage: React.FC = () => {
 
         {/* Right Main Content */}
         <main style={{ flex: 1, padding: '32px 44px 80px', maxWidth: '1040px' }}>
-          {/* Breadcrumb matching Image 2 */}
+          {/* Breadcrumb */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <span style={{ fontSize: '12px', fontWeight: 700, color: '#059669', textTransform: 'uppercase' }}>
-              EDUCARE {activeSection === 'login' ? '> KHỞI ĐẦU HỆ THỐNG > ĐĂNG NHẬP' : activeSection === 'teacher' ? '> CỔNG GIÁO VIÊN & ĐIỂM DANH > QUY TRÌNH BUỔI HỌC' : activeSection === 'sqi' ? '> NHẬN XÉT & BÁO CÁO SQI > IN BÁO CÁO & CÁCH TÍNH ĐIỂM SQI' : ''}
+              EDUCARE {
+                activeSection === 'login' ? '> KHỞI ĐẦU HỆ THỐNG > ĐĂNG NHẬP' :
+                activeSection === 'teacher_classes' ? '> CỔNG GIÁO VIÊN & ĐIỂM DANH > CẨM NANG LỚP HỌC & BÀI TẬP' :
+                activeSection === 'teacher_workflow' ? '> CỔNG GIÁO VIÊN & ĐIỂM DANH > QUY TRÌNH BUỔI HỌC (ĐIỂM DANH & AI)' :
+                activeSection === 'student' ? '> CỔNG HỌC VIÊN & PHỤ HUYNH > CẨM NANG HỌC SINH' :
+                activeSection === 'sqi' ? '> NHẬN XÉT & BÁO CÁO SQI > IN BÁO CÁO & CÁCH TÍNH ĐIỂM SQI' : ''
+              }
             </span>
             <button
               type="button"
@@ -303,21 +375,74 @@ export const GuidePage: React.FC = () => {
             </button>
           </div>
 
+          {/* Quick Sub-Tab Bar for Teacher */}
+          {isTeacherActive && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '5px',
+                background: '#f1f5f9',
+                borderRadius: '10px',
+                marginBottom: '24px',
+                width: 'fit-content',
+                border: '1px solid #e2e8f0',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setActiveSection('teacher_classes')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 14px',
+                  borderRadius: '7px',
+                  border: 'none',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  background: activeSection === 'teacher_classes' ? '#ffffff' : 'transparent',
+                  color: activeSection === 'teacher_classes' ? '#047857' : '#64748b',
+                  boxShadow: activeSection === 'teacher_classes' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span>📚</span> Cẩm Nang Lớp Học & Bài Tập (9 bước)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveSection('teacher_workflow')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 14px',
+                  borderRadius: '7px',
+                  border: 'none',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  background: activeSection === 'teacher_workflow' ? '#ffffff' : 'transparent',
+                  color: activeSection === 'teacher_workflow' ? '#047857' : '#64748b',
+                  boxShadow: activeSection === 'teacher_workflow' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span>⚡</span> Quy Trình Buổi Học: Điểm Danh & AI
+              </button>
+            </div>
+          )}
+
           {/* DYNAMIC CONTENT SWITCHING */}
           {activeSection === 'overview' && <OverviewSystemDiagram />}
           {activeSection === 'login' && <LoginGuideSection />}
           {activeSection === 'sqi' && <ReportPrintAndSqiGuide />}
-          {activeSection === 'teacher' && <TeacherWorkflowGuide />}
-          {activeSection === 'student' && (
-            <div>
-              <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px' }}>
-                CỔNG THÔNG TIN HỌC SINH & PHỤ HUYNH
-              </h2>
-              <p style={{ color: '#475569', fontSize: '14px', marginBottom: '20px' }}>
-                Phụ huynh quét mã QR trên phiếu in tuần hoặc truy cập link công khai để xem báo cáo chất lượng SQI, nhận xét giáo viên và tình hình học tập của con.
-              </p>
-            </div>
-          )}
+          {activeSection === 'teacher_classes' && <TeacherClassFeaturesGuide />}
+          {activeSection === 'teacher_workflow' && <TeacherWorkflowGuide />}
+          {activeSection === 'student' && <StudentPortalGuide />}
           {activeSection === 'admin' && (
             <div>
               <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px' }}>
