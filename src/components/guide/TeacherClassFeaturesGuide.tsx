@@ -1,16 +1,5 @@
 import React from 'react';
-import {
-  BookOpen,
-  Calendar,
-  Users,
-  CheckCircle2,
-  Sparkles,
-  FileText,
-  UploadCloud,
-  Award,
-  Layers,
-  ExternalLink,
-} from 'lucide-react';
+import { CheckCircle2, Sparkles } from 'lucide-react';
 
 interface GuideStep {
   id: string;
