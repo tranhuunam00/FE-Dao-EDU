@@ -17,17 +17,52 @@ import { LoginGuideSection } from '../components/guide/LoginGuideSection';
 import { ReportPrintAndSqiGuide } from '../components/guide/ReportPrintAndSqiGuide';
 import { TeacherWorkflowGuide } from '../components/guide/TeacherWorkflowGuide';
 import { TeacherClassFeaturesGuide } from '../components/guide/TeacherClassFeaturesGuide';
+import { TeacherOperationsGuide } from '../components/guide/TeacherOperationsGuide';
 import { StudentPortalGuide } from '../components/guide/StudentPortalGuide';
 import { ParentPortalGuide } from '../components/guide/ParentPortalGuide';
 
-type SectionKey = 'overview' | 'login' | 'sqi' | 'admin' | 'teacher_classes' | 'teacher_workflow' | 'student' | 'parent';
+type SectionKey = 'overview' | 'login' | 'sqi' | 'admin' | 'teacher_classes' | 'teacher_workflow' | 'teacher_operations' | 'student' | 'parent';
+
+const teacherPillBtn = (active: boolean): React.CSSProperties => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '6px',
+  padding: '7px 14px',
+  borderRadius: '7px',
+  border: 'none',
+  fontSize: '13px',
+  fontWeight: 700,
+  cursor: 'pointer',
+  background: active ? '#ffffff' : 'transparent',
+  color: active ? '#047857' : '#64748b',
+  boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+  transition: 'all 0.15s ease',
+});
+
+const teacherSubItem = (active: boolean): React.CSSProperties => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  padding: '7px 10px',
+  borderRadius: '6px',
+  fontSize: '12px',
+  fontWeight: active ? 700 : 500,
+  color: active ? '#047857' : '#475569',
+  background: active ? '#ecfdf5' : 'transparent',
+  borderLeft: active ? '3px solid #059669' : '3px solid transparent',
+  cursor: 'pointer',
+  transition: 'all 0.15s ease',
+});
 
 export const GuidePage: React.FC = () => {
   const [activeSection, setActiveSection] = useState<SectionKey>('overview');
   const [teacherOpen, setTeacherOpen] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  const isTeacherActive = activeSection === 'teacher_classes' || activeSection === 'teacher_workflow';
+  const isTeacherActive =
+    activeSection === 'teacher_classes' ||
+    activeSection === 'teacher_workflow' ||
+    activeSection === 'teacher_operations';
 
   const handleCopy = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -232,44 +267,14 @@ export const GuidePage: React.FC = () => {
               {/* Sub-tabs menu cho Giáo Viên */}
               {teacherOpen && (
                 <div style={{ paddingLeft: '12px', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                  <div
-                    onClick={() => setActiveSection('teacher_classes')}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '7px 10px',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                      fontWeight: activeSection === 'teacher_classes' ? 700 : 500,
-                      color: activeSection === 'teacher_classes' ? '#047857' : '#475569',
-                      background: activeSection === 'teacher_classes' ? '#ecfdf5' : 'transparent',
-                      borderLeft: activeSection === 'teacher_classes' ? '3px solid #059669' : '3px solid transparent',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
+                  <div onClick={() => setActiveSection('teacher_classes')} style={teacherSubItem(activeSection === 'teacher_classes')}>
                     <span>📚 Cẩm nang Lớp học & Bài tập</span>
                   </div>
-
-                  <div
-                    onClick={() => setActiveSection('teacher_workflow')}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '7px 10px',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                      fontWeight: activeSection === 'teacher_workflow' ? 700 : 500,
-                      color: activeSection === 'teacher_workflow' ? '#047857' : '#475569',
-                      background: activeSection === 'teacher_workflow' ? '#ecfdf5' : 'transparent',
-                      borderLeft: activeSection === 'teacher_workflow' ? '3px solid #059669' : '3px solid transparent',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
+                  <div onClick={() => setActiveSection('teacher_workflow')} style={teacherSubItem(activeSection === 'teacher_workflow')}>
                     <span>⚡ Quy trình Buổi học & AI</span>
+                  </div>
+                  <div onClick={() => setActiveSection('teacher_operations')} style={teacherSubItem(activeSection === 'teacher_operations')}>
+                    <span>💼 Lương, Đơn nghỉ, SQI & Tài liệu</span>
                   </div>
                 </div>
               )}
@@ -374,6 +379,7 @@ export const GuidePage: React.FC = () => {
                 activeSection === 'login' ? '> KHỞI ĐẦU HỆ THỐNG > ĐĂNG NHẬP' :
                 activeSection === 'teacher_classes' ? '> CỔNG GIÁO VIÊN & ĐIỂM DANH > CẨM NANG LỚP HỌC & BÀI TẬP' :
                 activeSection === 'teacher_workflow' ? '> CỔNG GIÁO VIÊN & ĐIỂM DANH > QUY TRÌNH BUỔI HỌC (ĐIỂM DANH & AI)' :
+                activeSection === 'teacher_operations' ? '> CỔNG GIÁO VIÊN & ĐIỂM DANH > LƯƠNG, ĐƠN NGHỈ, SQI & TÀI LIỆU' :
                 activeSection === 'student' ? '> CỔNG HỌC VIÊN > CẨM NANG HỌC SINH' :
                 activeSection === 'parent' ? '> CỔNG PHỤ HUYNH > HỌC PHÍ & ĐƠN XIN NGHỈ' :
                 activeSection === 'sqi' ? '> NHẬN XÉT & BÁO CÁO SQI > IN BÁO CÁO & CÁCH TÍNH ĐIỂM SQI' : ''
@@ -413,50 +419,31 @@ export const GuidePage: React.FC = () => {
                 marginBottom: '24px',
                 width: 'fit-content',
                 border: '1px solid #e2e8f0',
+                flexWrap: 'wrap',
               }}
             >
               <button
                 type="button"
                 onClick={() => setActiveSection('teacher_classes')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '7px 14px',
-                  borderRadius: '7px',
-                  border: 'none',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  background: activeSection === 'teacher_classes' ? '#ffffff' : 'transparent',
-                  color: activeSection === 'teacher_classes' ? '#047857' : '#64748b',
-                  boxShadow: activeSection === 'teacher_classes' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                  transition: 'all 0.15s ease',
-                }}
+                style={teacherPillBtn(activeSection === 'teacher_classes')}
               >
-                <span>📚</span> Cẩm Nang Lớp Học & Bài Tập (9 bước)
+                <span>📚</span> Cẩm Nang Lớp Học & Bài Tập
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveSection('teacher_workflow')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '7px 14px',
-                  borderRadius: '7px',
-                  border: 'none',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  background: activeSection === 'teacher_workflow' ? '#ffffff' : 'transparent',
-                  color: activeSection === 'teacher_workflow' ? '#047857' : '#64748b',
-                  boxShadow: activeSection === 'teacher_workflow' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                  transition: 'all 0.15s ease',
-                }}
+                style={teacherPillBtn(activeSection === 'teacher_workflow')}
               >
                 <span>⚡</span> Quy Trình Buổi Học: Điểm Danh & AI
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveSection('teacher_operations')}
+                style={teacherPillBtn(activeSection === 'teacher_operations')}
+              >
+                <span>💼</span> Lương, Đơn Nghỉ, SQI & Tài Liệu
               </button>
             </div>
           )}
@@ -467,6 +454,7 @@ export const GuidePage: React.FC = () => {
           {activeSection === 'sqi' && <ReportPrintAndSqiGuide />}
           {activeSection === 'teacher_classes' && <TeacherClassFeaturesGuide />}
           {activeSection === 'teacher_workflow' && <TeacherWorkflowGuide />}
+          {activeSection === 'teacher_operations' && <TeacherOperationsGuide />}
           {activeSection === 'student' && <StudentPortalGuide />}
           {activeSection === 'parent' && <ParentPortalGuide />}
           {activeSection === 'admin' && (
