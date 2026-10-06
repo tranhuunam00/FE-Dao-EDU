@@ -1,15 +1,8 @@
 import React from 'react';
 import {
-  Calendar,
-  FileText,
-  UploadCloud,
-  Award,
-  CheckCircle2,
-  Clock,
   Sparkles,
   ExternalLink,
   Smartphone,
-  BookOpen,
 } from 'lucide-react';
 
 interface GuideStep {
