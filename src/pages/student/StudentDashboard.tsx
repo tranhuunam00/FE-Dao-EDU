@@ -19,6 +19,7 @@ interface SessionData {
   id: string;
   className: string;
   classCode: string;
+  classStatus?: string;
   date: string;
   startTime: string;
   endTime: string;
@@ -103,8 +104,35 @@ export const StudentDashboard: React.FC = () => {
     fetchData();
   }, []);
 
+  // Date & time helpers
+  const todayStr = dayjs().format('YYYY-MM-DD');
+  const currentTimeStr = dayjs().format('HH:mm');
+
+  // Check if session has occurred up to the current session / date
+  const hasSessionOccurred = (s: SessionData) => {
+    if (s.status === 'Cancelled') return false;
+    if (s.status === 'Completed') return true;
+    const sDate = dayjs(s.date).format('YYYY-MM-DD');
+    if (sDate < todayStr) return true;
+    if (sDate === todayStr) {
+      if (s.isPresent) return true;
+      const endTime = (s.endTime || s.startTime || '').slice(0, 5);
+      if (endTime && endTime <= currentTimeStr) return true;
+    }
+    return false;
+  };
+
   // Group sessions by class code
-  const classesMap: Record<string, { classCode: string; className: string; teacherName: string; sessions: SessionData[]; completedCount: number; presentCount: number; }> = {};
+  const classesMap: Record<string, {
+    classCode: string;
+    className: string;
+    teacherName: string;
+    classStatus?: string;
+    sessions: SessionData[];
+    completedCount: number;
+    presentCount: number;
+  }> = {};
+
   data?.sessions.forEach(s => {
     const code = s.classCode;
     if (!classesMap[code]) {
@@ -112,13 +140,14 @@ export const StudentDashboard: React.FC = () => {
         classCode: s.classCode,
         className: s.className,
         teacherName: s.teacherName,
+        classStatus: s.classStatus || 'Active',
         sessions: [],
         completedCount: 0,
         presentCount: 0,
       };
     }
     classesMap[code].sessions.push(s);
-    if (s.status === 'Completed' || s.hasAttendanceRecord) {
+    if (hasSessionOccurred(s)) {
       classesMap[code].completedCount++;
       if (s.isPresent) {
         classesMap[code].presentCount++;
@@ -127,10 +156,28 @@ export const StudentDashboard: React.FC = () => {
   });
   const activeClasses = Object.values(classesMap);
 
-  // Get closest upcoming session
-  const upcomingSessions = data?.sessions
-    .filter(s => s.status === 'Scheduled')
-    .sort((a, b) => dayjs(a.date).diff(dayjs(b.date)));
+  // Overall attendance calculated up to current session / date
+  const overallCompleted = activeClasses.reduce((sum, c) => sum + c.completedCount, 0);
+  const overallPresent = activeClasses.reduce((sum, c) => sum + c.presentCount, 0);
+  const computedAttendanceRate = overallCompleted > 0
+    ? Math.round((overallPresent / overallCompleted) * 100)
+    : (data?.stats?.attendance?.presentRate ?? 100);
+
+  // Get closest upcoming session (must be scheduled, class Active, and in future)
+  const now = dayjs();
+  const upcomingSessions = (data?.sessions || [])
+    .filter(s => {
+      if (s.status !== 'Scheduled') return false;
+      if (s.classStatus && s.classStatus !== 'Active') return false;
+      const sDate = dayjs(s.date).format('YYYY-MM-DD');
+      const sessionEnd = dayjs(`${sDate} ${s.endTime || s.startTime || '23:59'}`);
+      return sessionEnd.isAfter(now);
+    })
+    .sort((a, b) => {
+      const timeA = dayjs(`${dayjs(a.date).format('YYYY-MM-DD')} ${a.startTime || '00:00'}`);
+      const timeB = dayjs(`${dayjs(b.date).format('YYYY-MM-DD')} ${b.startTime || '00:00'}`);
+      return timeA.diff(timeB);
+    });
   const nextSession = upcomingSessions && upcomingSessions.length > 0 ? upcomingSessions[0] : null;
 
   // Filter urgent pending assignments
@@ -218,7 +265,7 @@ export const StudentDashboard: React.FC = () => {
             <div style={{ color: 'var(--text-secondary)', fontSize: '0.78rem', textTransform: 'uppercase' }}>Chuyên cần</div>
             <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <GraduationCap size={20} style={{ color: 'var(--secondary)' }} />
-              {data?.stats?.attendance.presentRate ?? 0}%
+              {computedAttendanceRate}%
             </div>
           </div>
         </div>
@@ -261,7 +308,12 @@ export const StudentDashboard: React.FC = () => {
                     }}
                   >
                     <div>
-                      <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem' }}>{cls.className}</div>
+                      <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>{cls.className}</span>
+                        {cls.classStatus === 'Closed' && (
+                          <Tag color="default" style={{ fontSize: '0.7rem', padding: '0 6px', margin: 0 }}>Đã kết thúc</Tag>
+                        )}
+                      </div>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>Mã lớp: {cls.classCode} · GV: {cls.teacherName}</div>
                       <div style={{ display: 'flex', gap: '10px', marginTop: '6px', fontSize: '0.78rem' }}>
                         <span style={{ color: 'var(--text-muted)' }}>Đã học: <b>{cls.completedCount}/{cls.sessions.length}</b> buổi</span>
