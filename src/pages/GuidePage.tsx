@@ -18,8 +18,9 @@ import { ReportPrintAndSqiGuide } from '../components/guide/ReportPrintAndSqiGui
 import { TeacherWorkflowGuide } from '../components/guide/TeacherWorkflowGuide';
 import { TeacherClassFeaturesGuide } from '../components/guide/TeacherClassFeaturesGuide';
 import { StudentPortalGuide } from '../components/guide/StudentPortalGuide';
+import { ParentPortalGuide } from '../components/guide/ParentPortalGuide';
 
-type SectionKey = 'overview' | 'login' | 'sqi' | 'admin' | 'teacher_classes' | 'teacher_workflow' | 'student';
+type SectionKey = 'overview' | 'login' | 'sqi' | 'admin' | 'teacher_classes' | 'teacher_workflow' | 'student' | 'parent';
 
 export const GuidePage: React.FC = () => {
   const [activeSection, setActiveSection] = useState<SectionKey>('overview');
@@ -167,9 +168,32 @@ export const GuidePage: React.FC = () => {
               }}
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span>📱</span> CỔNG HỌC VIÊN & PHỤ HUYNH
+                <span>🎓</span> CỔNG HỌC VIÊN
               </span>
               <ChevronRight size={14} color={activeSection === 'student' ? '#007a64' : '#94a3b8'} />
+            </div>
+            <div
+              onClick={() => setActiveSection('parent')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '9px 12px',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: 800,
+                color: activeSection === 'parent' ? '#007a64' : '#334155',
+                background: activeSection === 'parent' ? '#e6f7f2' : 'transparent',
+                border: activeSection === 'parent' ? '1px solid #a7f3d0' : '1px solid transparent',
+                cursor: 'pointer',
+                margin: '3px 0',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>👨‍👩‍👧</span> CỔNG PHỤ HUYNH
+              </span>
+              <ChevronRight size={14} color={activeSection === 'parent' ? '#007a64' : '#94a3b8'} />
             </div>
             {/* CỔNG GIÁO VIÊN & ĐIỂM DANH (Có các tab con) */}
             <div style={{ margin: '3px 0' }}>
@@ -350,7 +374,8 @@ export const GuidePage: React.FC = () => {
                 activeSection === 'login' ? '> KHỞI ĐẦU HỆ THỐNG > ĐĂNG NHẬP' :
                 activeSection === 'teacher_classes' ? '> CỔNG GIÁO VIÊN & ĐIỂM DANH > CẨM NANG LỚP HỌC & BÀI TẬP' :
                 activeSection === 'teacher_workflow' ? '> CỔNG GIÁO VIÊN & ĐIỂM DANH > QUY TRÌNH BUỔI HỌC (ĐIỂM DANH & AI)' :
-                activeSection === 'student' ? '> CỔNG HỌC VIÊN & PHỤ HUYNH > CẨM NANG HỌC SINH' :
+                activeSection === 'student' ? '> CỔNG HỌC VIÊN > CẨM NANG HỌC SINH' :
+                activeSection === 'parent' ? '> CỔNG PHỤ HUYNH > HỌC PHÍ & ĐƠN XIN NGHỈ' :
                 activeSection === 'sqi' ? '> NHẬN XÉT & BÁO CÁO SQI > IN BÁO CÁO & CÁCH TÍNH ĐIỂM SQI' : ''
               }
             </span>
@@ -443,6 +468,7 @@ export const GuidePage: React.FC = () => {
           {activeSection === 'teacher_classes' && <TeacherClassFeaturesGuide />}
           {activeSection === 'teacher_workflow' && <TeacherWorkflowGuide />}
           {activeSection === 'student' && <StudentPortalGuide />}
+          {activeSection === 'parent' && <ParentPortalGuide />}
           {activeSection === 'admin' && (
             <div>
               <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px' }}>

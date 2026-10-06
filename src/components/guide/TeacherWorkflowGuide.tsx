@@ -92,6 +92,26 @@ export const TeacherWorkflowGuide: React.FC = () => {
               Tại ô <strong>(2)</strong>: Tìm đến buổi học ngày hôm nay (Ví dụ: <code>02/10/2026</code>) và nhấn nút <strong>&ldquo;Điểm danh / Đổi lịch&rdquo;</strong> màu xanh lá đậm để mở cửa sổ phiên học.
             </li>
           </ul>
+
+          <div
+            style={{
+              background: '#ecfdf5',
+              border: '1px solid #a7f3d0',
+              borderRadius: '8px',
+              padding: '10px 14px',
+              marginTop: '10px',
+              fontSize: '13px',
+              color: '#065f46',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '10px',
+            }}
+          >
+            <Info size={16} color="#059669" style={{ marginTop: '2px', flexShrink: 0 }} />
+            <div>
+              <strong>💡 Khi có học sinh mới đi học đột xuất:</strong> Thầy/cô sang tab <strong>Học sinh</strong> → Bấm <strong>Thêm học sinh</strong> → Chọn nút xanh <strong>&ldquo;+ Tạo học sinh mới & thêm vào lớp&rdquo;</strong> (chỉ cần Họ tên + SĐT). Sau khi lưu, hệ thống sẽ hiện popup hỏi <strong>&ldquo;Đồng bộ buổi học ngay?&rdquo;</strong> → Thầy/cô chọn <strong>&ldquo;Đồng bộ ngay&rdquo;</strong>, học sinh mới sẽ lập tức xuất hiện trong danh sách điểm danh buổi học hôm nay và các ca tiếp theo!
+            </div>
+          </div>
         </div>
 
         {/* Màn hình 1 thực tế Educare */}

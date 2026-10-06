@@ -66,8 +66,10 @@ const GUIDE_STEPS: GuideStep[] = [
     points: [
       { num: '❶', label: 'Danh sách học sinh', detail: 'Bảng thông tin học sinh: Mã HS, Họ tên, Ngày sinh, SĐT phụ huynh.' },
       { num: '❷', label: 'Xuất Excel sĩ số', detail: 'Tải danh sách học sinh phục vụ in ấn hoặc liên lạc với gia đình.' },
-      { num: '❸', label: 'Thêm học sinh', detail: 'Thêm học viên mới đăng ký hoặc học viên chuyển từ lớp khác sang.' },
+      { num: '❸', label: 'Thêm & Tạo nhanh học sinh mới', detail: 'Thêm học viên từ hệ thống hoặc bấm nút "+ Tạo học sinh mới & thêm vào lớp" (chỉ cần Họ tên + SĐT) khi có học sinh đi học đột xuất mà trung tâm chưa kịp tạo tài khoản.' },
+      { num: '❹', label: 'Hỏi & Tự động đồng bộ buổi học', detail: 'Sau khi thêm học sinh vào lớp, hệ thống tự động hiển thị hộp thoại hỏi "Đồng bộ ngay?". Thầy/cô chỉ cần bấm "Đồng bộ ngay", hệ thống sẽ tự động cập nhật học sinh vào danh sách điểm danh các buổi học tiếp theo.' },
     ],
+    tip: '💡 Mẹo: Nếu lúc thêm học sinh thầy/cô bấm "Để sau", thầy/cô vẫn có thể sang tab "Lịch dạy & Điểm danh" rồi bấm nút "Sinh lại / Đồng bộ" bất cứ lúc nào để đồng bộ lại danh sách lớp.',
   },
   {
     id: 'step-attendance-modal',

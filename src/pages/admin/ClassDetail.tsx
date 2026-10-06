@@ -7,7 +7,7 @@ import {
 } from 'antd';
 import {
   ArrowLeftOutlined, TeamOutlined, EditOutlined,
-  PlusOutlined, DeleteOutlined
+  PlusOutlined, DeleteOutlined, SyncOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../services/api';
@@ -115,6 +115,11 @@ const ClassDetailInner: React.FC = () => {
   const [isCreateAdhocVisible, setIsCreateAdhocVisible] = useState(false);
   const [savingAdhoc, setSavingAdhoc] = useState(false);
   const [adhocForm] = Form.useForm();
+
+  // Quick-create new student from Add-Student modal
+  const [isQuickCreateStudentVisible, setIsQuickCreateStudentVisible] = useState(false);
+  const [quickCreateStudentForm] = Form.useForm();
+  const [savingQuickStudent, setSavingQuickStudent] = useState(false);
 
   const loadAllData = async () => {
     if (!id) return;
@@ -309,6 +314,36 @@ const ClassDetailInner: React.FC = () => {
     }
   };
 
+  const promptSyncSessionsAfterAdd = () => {
+    modal.confirm({
+      title: 'Đồng bộ buổi học cho học sinh mới',
+      icon: <SyncOutlined style={{ color: '#10b981' }} />,
+      content: (
+        <div>
+          <p>Đã thêm học sinh vào lớp thành công!</p>
+          <p>
+            Thầy/cô có muốn <strong>đồng bộ ngay danh sách buổi học</strong> để học sinh mới xuất hiện trong các buổi điểm danh sắp tới không?
+          </p>
+          <p style={{ fontSize: '12px', color: '#64748b' }}>
+            Hệ thống sẽ tự động cập nhật danh sách điểm danh cho các buổi học từ hôm nay trở đi.
+          </p>
+        </div>
+      ),
+      okText: 'Đồng bộ ngay',
+      cancelText: 'Để sau',
+      okButtonProps: { style: { backgroundColor: '#10b981', borderColor: '#10b981' } },
+      onOk: async () => {
+        try {
+          await api.post(`/classes/${id}/generate-sessions`, {});
+          message.success('Đã sinh lại và đồng bộ danh sách buổi học thành công!');
+          await loadAllData();
+        } catch (err: any) {
+          message.error(err.response?.data?.message || 'Lỗi khi đồng bộ buổi học');
+        }
+      },
+    });
+  };
+
   const handleAddStudent = async () => {
     if (selectedStudentIds.length === 0 || !id) return;
     try {
@@ -316,7 +351,8 @@ const ClassDetailInner: React.FC = () => {
       message.success('Đã thêm học sinh vào lớp thành công!');
       setIsAddStudentVisible(false);
       setSelectedStudentIds([]);
-      loadAllData();
+      await loadAllData();
+      promptSyncSessionsAfterAdd();
     } catch (err: any) {
       message.error(err.response?.data?.message || 'Lỗi khi thêm học sinh');
     }
@@ -401,7 +437,8 @@ const ClassDetailInner: React.FC = () => {
       setSelectedSourceClassId(null);
       setSourceStudents([]);
       setCloneStudentIds([]);
-      loadAllData();
+      await loadAllData();
+      promptSyncSessionsAfterAdd();
     } catch (err: any) {
       message.error(err.response?.data?.message || 'Lỗi khi sao chép học sinh');
     } finally {
@@ -808,7 +845,7 @@ const ClassDetailInner: React.FC = () => {
           setIsAddStudentVisible(false);
           setSelectedStudentIds([]);
         }}
-        okText="Thêm"
+        okText="Thêm vào lớp"
         cancelText="Hủy"
       >
         <div style={{ padding: '12px 0' }}>
@@ -835,7 +872,123 @@ const ClassDetailInner: React.FC = () => {
               })
             }
           </Select>
+
+          <Divider style={{ margin: '16px 0 10px' }}>
+            <Text type="secondary" style={{ fontSize: '12px' }}>hoặc</Text>
+          </Divider>
+
+          <Button
+            type="dashed"
+            block
+            icon={<PlusOutlined />}
+            onClick={() => {
+              quickCreateStudentForm.resetFields();
+              setIsQuickCreateStudentVisible(true);
+            }}
+            style={{ borderColor: '#059669', color: '#059669' }}
+          >
+            Tạo học sinh mới & thêm vào lớp
+          </Button>
         </div>
+      </Modal>
+
+      {/* Quick-Create Student Modal */}
+      <Modal
+        title={
+          <span>
+            <PlusOutlined style={{ color: '#059669', marginRight: 8 }} />
+            Tạo học sinh mới
+          </span>
+        }
+        open={isQuickCreateStudentVisible}
+        confirmLoading={savingQuickStudent}
+        okText="Tạo & thêm vào lớp"
+        cancelText="Hủy"
+        onCancel={() => {
+          setIsQuickCreateStudentVisible(false);
+          quickCreateStudentForm.resetFields();
+        }}
+        onOk={async () => {
+          try {
+            const vals = await quickCreateStudentForm.validateFields();
+            setSavingQuickStudent(true);
+            const payload = {
+              lastName: vals.lastName?.trim(),
+              firstName: vals.firstName?.trim(),
+              mobile: vals.mobile?.trim(),
+              loginEmail: vals.loginEmail?.trim() || undefined,
+              loginPassword: vals.loginPassword || '123456',
+              status: 'Active',
+              country: 'Việt Nam',
+            };
+            const res = await api.post('/students', payload);
+            const newStudent = res.data;
+            await api.post(`/classes/${id}/students`, { studentId: newStudent.id });
+            message.success(`Đã tạo và thêm học sinh ${newStudent.lastName} ${newStudent.firstName} vào lớp thành công!`);
+            setIsQuickCreateStudentVisible(false);
+            setIsAddStudentVisible(false);
+            quickCreateStudentForm.resetFields();
+            await loadAllData();
+            promptSyncSessionsAfterAdd();
+          } catch (err: any) {
+            const msg = err.response?.data?.message;
+            message.error(Array.isArray(msg) ? msg.join(', ') : msg || 'Không thể tạo học sinh.');
+          } finally {
+            setSavingQuickStudent(false);
+          }
+        }}
+        width={480}
+      >
+        <Form
+          form={quickCreateStudentForm}
+          layout="vertical"
+          style={{ marginTop: 12 }}
+          initialValues={{ loginPassword: '123456' }}
+        >
+          <Row gutter={12}>
+            <Col span={10}>
+              <Form.Item
+                name="lastName"
+                label="Họ"
+                rules={[{ required: true, message: 'Nhập họ' }]}
+              >
+                <Input placeholder="Nguyễn" />
+              </Form.Item>
+            </Col>
+            <Col span={14}>
+              <Form.Item
+                name="firstName"
+                label="Tên"
+                rules={[{ required: true, message: 'Nhập tên' }]}
+              >
+                <Input placeholder="Văn An" />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item
+            name="mobile"
+            label="Số điện thoại phụ huynh"
+            rules={[{ required: true, message: 'Nhập SĐT' }]}
+          >
+            <Input placeholder="0912345678" prefix={<span style={{ color: '#94a3b8' }}>📞</span>} />
+          </Form.Item>
+          <Form.Item name="loginEmail" label="Email đăng nhập (tuỳ chọn)">
+            <Input placeholder="example@email.com" type="email" />
+          </Form.Item>
+          <Form.Item
+            name="loginPassword"
+            label="Mật khẩu mặc định"
+            rules={[{ required: true, message: 'Nhập mật khẩu' }]}
+          >
+            <Input.Password placeholder="123456" />
+          </Form.Item>
+          <Alert
+            type="info"
+            showIcon
+            style={{ marginTop: 4 }}
+            message="Học sinh sẽ được tạo và tự động được chọn để thêm vào lớp. Có thể cập nhật đầy đủ thông tin tại trang quản lý học sinh sau."
+          />
+        </Form>
       </Modal>
 
       {/* Modal Sao Chép Học Sinh Từ Lớp Khác */}
