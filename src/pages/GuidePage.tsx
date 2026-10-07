@@ -18,10 +18,11 @@ import { ReportPrintAndSqiGuide } from '../components/guide/ReportPrintAndSqiGui
 import { TeacherWorkflowGuide } from '../components/guide/TeacherWorkflowGuide';
 import { TeacherClassFeaturesGuide } from '../components/guide/TeacherClassFeaturesGuide';
 import { TeacherOperationsGuide } from '../components/guide/TeacherOperationsGuide';
+import { TeacherClassActionsGuide } from '../components/guide/TeacherClassActionsGuide';
 import { StudentPortalGuide } from '../components/guide/StudentPortalGuide';
 import { ParentPortalGuide } from '../components/guide/ParentPortalGuide';
 
-type SectionKey = 'overview' | 'login' | 'sqi' | 'admin' | 'teacher_classes' | 'teacher_workflow' | 'teacher_operations' | 'student' | 'parent';
+type SectionKey = 'overview' | 'login' | 'sqi' | 'admin' | 'teacher_classes' | 'teacher_workflow' | 'teacher_operations' | 'teacher_class_actions' | 'student' | 'parent';
 
 const teacherPillBtn = (active: boolean): React.CSSProperties => ({
   display: 'flex',
@@ -62,7 +63,8 @@ export const GuidePage: React.FC = () => {
   const isTeacherActive =
     activeSection === 'teacher_classes' ||
     activeSection === 'teacher_workflow' ||
-    activeSection === 'teacher_operations';
+    activeSection === 'teacher_operations' ||
+    activeSection === 'teacher_class_actions';
 
   const handleCopy = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -276,6 +278,9 @@ export const GuidePage: React.FC = () => {
                   <div onClick={() => setActiveSection('teacher_operations')} style={teacherSubItem(activeSection === 'teacher_operations')}>
                     <span>💼 Lương, Đơn nghỉ, SQI & Tài liệu</span>
                   </div>
+                  <div onClick={() => setActiveSection('teacher_class_actions')} style={teacherSubItem(activeSection === 'teacher_class_actions')}>
+                    <span>🎯 Tạo mã HS, Thêm lớp & Đột xuất</span>
+                  </div>
                 </div>
               )}
             </div>
@@ -445,6 +450,14 @@ export const GuidePage: React.FC = () => {
               >
                 <span>💼</span> Lương, Đơn Nghỉ, SQI & Tài Liệu
               </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveSection('teacher_class_actions')}
+                style={teacherPillBtn(activeSection === 'teacher_class_actions')}
+              >
+                <span>🎯</span> Tạo Mã HS, Thêm Vào Lớp, Học Đột Xuất & Sinh Lại
+              </button>
             </div>
           )}
 
@@ -455,6 +468,7 @@ export const GuidePage: React.FC = () => {
           {activeSection === 'teacher_classes' && <TeacherClassFeaturesGuide />}
           {activeSection === 'teacher_workflow' && <TeacherWorkflowGuide />}
           {activeSection === 'teacher_operations' && <TeacherOperationsGuide />}
+          {activeSection === 'teacher_class_actions' && <TeacherClassActionsGuide />}
           {activeSection === 'student' && <StudentPortalGuide />}
           {activeSection === 'parent' && <ParentPortalGuide />}
           {activeSection === 'admin' && (
