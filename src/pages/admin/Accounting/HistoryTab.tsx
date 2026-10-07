@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Button, Table, Typography, Space, Tag, Spin, App, Modal, Popconfirm, Select, DatePicker, Form, Input, Tooltip, Badge } from 'antd';
-import { LockOutlined, UnlockOutlined, CheckCircleOutlined, DeleteOutlined, CloseCircleOutlined, ArrowLeftOutlined, DownloadOutlined, QrcodeOutlined, PrinterOutlined, CopyOutlined, ThunderboltOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Button, Table, Typography, Space, Tag, Spin, App, Modal, Popconfirm, Select, DatePicker, Form, Input } from 'antd';
+import { LockOutlined, UnlockOutlined, CheckCircleOutlined, DeleteOutlined, CloseCircleOutlined, ArrowLeftOutlined, DownloadOutlined, QrcodeOutlined, PrinterOutlined, CopyOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import api from '../../../services/api';
 
@@ -50,8 +50,6 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
   const [currentOrder, setCurrentOrder] = useState<any>(null);
   const [qrRequest, setQrRequest] = useState<any>(null);
   const [qrVisible, setQrVisible] = useState(false);
-  const [qrSending, setQrSending] = useState(false);
-  const [qrAllSending, setQrAllSending] = useState(false);
 
   const [periodsSearch, setPeriodsSearch] = useState('');
   const [periodsTypeFilter, setPeriodsTypeFilter] = useState<'All' | 'tuition' | 'salary'>('All');
@@ -121,7 +119,14 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
 
   const handleConfirmFullPayment = async (order: any, type: string) => {
     try {
-      await api.patch(`/payment-periods/orders/${type}/${order.id}`, { paidAmount: order.totalAmount, status: 'Paid', paymentMethod: 'cash', paymentDate: dayjs().toISOString(), note: 'Thanh toán đủ' });
+      const isBankClaimed = type === 'tuition' && !!order.paymentRequest?.claimedAt;
+      await api.patch(`/payment-periods/orders/${type}/${order.id}`, {
+        paidAmount: order.totalAmount,
+        status: 'Paid',
+        paymentMethod: isBankClaimed ? 'bank_transfer' : 'cash',
+        paymentDate: dayjs().toISOString(),
+        note: isBankClaimed ? 'Xác nhận chuyển khoản Techcombank (PH đã báo nộp)' : 'Thanh toán đủ',
+      });
       message.success('Xác nhận thanh toán thành công');
       loadPeriodDetail(selectedPeriodId!);
     } catch (err: any) {
@@ -186,50 +191,34 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
     }
   };
 
-  const generateQr = async (order: any, silent = false) => {
-    setCurrentOrder(order);
-    if (!silent) setQrSending(true);
-    try {
-      const { data } = await api.post(`/tuition-payment-requests/bills/${order.id}/generate-qr`);
-      if (!silent) {
-        setQrRequest(data);
-        setQrVisible(true);
-        message.success(order.hasAccount ? 'Đã tạo QR và gửi thông báo cho học sinh' : 'Đã tạo QR — Sao chép link gửi qua Zalo cho phụ huynh');
-      }
-      loadPeriodDetail(selectedPeriodId!);
-      return data;
-    } catch (err: any) {
-      if (!silent) message.error(err.response?.data?.message || 'Không thể tạo QR thanh toán');
-      return null;
-    } finally {
-      if (!silent) setQrSending(false);
-    }
-  };
 
-
-  const sendQrToAll = async () => {
-    if (!periodDetail) return;
-    const unpaidOrders = periodDetail.orders.filter((o: any) => o.status !== 'Paid' && !o.paymentRequest);
-    if (unpaidOrders.length === 0) {
-      message.info('Tất cả học sinh đã có QR hoặc đã thanh toán.');
-      return;
+  const showTuitionQr = (order?: any) => {
+    if (order) {
+      setCurrentOrder(order);
+      const content = `HP ${order.code || ''} ${order.name || ''}`.trim();
+      setQrRequest(order.paymentRequest || {
+        qrUrl: '/qr_daogroup.png',
+        bankCode: '970407',
+        accountNumber: '8888383999',
+        accountName: 'CONG TY CO PHAN DAOGROUP',
+        amount: order.totalAmount,
+        transferContent: content,
+        status: 'pending',
+        logs: [],
+      });
+    } else {
+      setCurrentOrder(null);
+      setQrRequest({
+        qrUrl: '/qr_daogroup.png',
+        bankCode: '970407',
+        accountNumber: '8888383999',
+        accountName: 'CONG TY CO PHAN DAOGROUP',
+        amount: 0,
+        transferContent: 'HP [Mã_HS] [Tên_HS]',
+        status: 'pending',
+        logs: [],
+      });
     }
-    setQrAllSending(true);
-    let successCount = 0;
-    let failCount = 0;
-    for (const order of unpaidOrders) {
-      const result = await generateQr(order, true);
-      if (result) successCount++; else failCount++;
-    }
-    setQrAllSending(false);
-    if (successCount > 0) message.success(`Đã tạo QR cho ${successCount} học sinh.${failCount > 0 ? ` Lỗi ${failCount} học sinh.` : ''}`);
-    else message.error('Không thể tạo QR cho bất kỳ học sinh nào.');
-    loadPeriodDetail(selectedPeriodId!);
-  };
-
-  const showTuitionQr = (order: any) => {
-    setCurrentOrder(order);
-    setQrRequest(order.paymentRequest);
     setQrVisible(true);
   };
 
@@ -456,20 +445,14 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
               >
                 {periodDetail.period.status === 'Active' ? 'Khóa đợt' : 'Mở khóa đợt'}
               </Button>
-              {periodDetail.period.type === 'tuition' && periodDetail.period.status === 'Active' && (
-                <Tooltip title={`Tạo QR cho tất cả học sinh chưa thanh toán (${periodDetail.orders.filter((o: any) => o.status !== 'Paid' && !o.paymentRequest).length} học sinh)`}>
-                  <Badge count={periodDetail.orders.filter((o: any) => o.status !== 'Paid' && !o.paymentRequest).length} size="small">
-                    <Button
-                      type="primary"
-                      icon={<ThunderboltOutlined />}
-                      loading={qrAllSending}
-                      onClick={sendQrToAll}
-                      style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', border: 'none' }}
-                    >
-                      Gửi QR tất cả
-                    </Button>
-                  </Badge>
-                </Tooltip>
+              {periodDetail.period.type === 'tuition' && (
+                <Button
+                  icon={<QrcodeOutlined />}
+                  onClick={() => showTuitionQr()}
+                  style={{ background: 'rgba(124,58,237,0.15)', borderColor: 'rgba(124,58,237,0.4)', color: '#a78bfa' }}
+                >
+                  Xem QR Techcombank
+                </Button>
               )}
             </>
           )}
@@ -621,10 +604,9 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                       style={{ width: 180 }}
                       options={[
                         { value: 'All', label: 'Tất cả phương thức' },
+                        { value: 'claimed', label: 'PH đã báo nộp' },
+                        { value: 'bank_transfer', label: 'Chuyển khoản' },
                         { value: 'cash', label: 'Tiền mặt' },
-                        { value: 'bank_transfer', label: 'CK thủ công' },
-                        { value: 'auto_reconciled', label: 'Đối soát tự động' },
-                        { value: 'no_qr', label: 'Chưa lấy QR' },
                       ]}
                     />
                   )}
@@ -642,11 +624,9 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                     if (paymentMethodFilter === 'cash') {
                       if (o.status !== 'Paid' || o.paymentMethod !== 'cash') return false;
                     } else if (paymentMethodFilter === 'bank_transfer') {
-                      if (o.status !== 'Paid' || o.paymentMethod !== 'bank_transfer' || o.paymentRequest) return false;
-                    } else if (paymentMethodFilter === 'auto_reconciled') {
-                      if (o.status !== 'Paid' || !o.paymentRequest) return false;
-                    } else if (paymentMethodFilter === 'no_qr') {
-                      if (o.status === 'Paid' || o.paymentRequest) return false;
+                      if (o.status !== 'Paid' || o.paymentMethod !== 'bank_transfer') return false;
+                    } else if (paymentMethodFilter === 'claimed') {
+                      if (o.status === 'Paid' || !o.paymentRequest?.claimedAt) return false;
                     }
                   }
 
@@ -831,9 +811,9 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                       return (
                         <Space size="small">
                           <Button type="link" size="small" onClick={() => showDetailModal(r, periodDetail.period.type)} style={{ color: '#38bdf8' }}>Chi tiết</Button>
-                          {periodDetail.period.type === 'tuition' && r.paymentRequest && (
+                          {periodDetail.period.type === 'tuition' && (
                             <Button type="link" size="small" icon={<QrcodeOutlined />} onClick={() => showTuitionQr(r)} style={{ color: '#a78bfa', padding: 0 }}>
-                              Xem QR / Đối soát
+                              Xem QR
                             </Button>
                           )}
                           {periodDetail.period.type === 'tuition' && r.status === 'Paid' && r.receiptCode && (
@@ -847,17 +827,6 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
                                 <Button type="link" danger size="small" onClick={() => openCancelPayment(r)} style={{ padding: 0 }}>Hủy xác nhận</Button>
                               ) : (
                                 <>
-                                  {periodDetail.period.type === 'tuition' && !r.paymentRequest && (
-                                    <Button
-                                      size="small"
-                                      icon={<QrcodeOutlined />}
-                                      loading={qrSending}
-                                      onClick={() => generateQr(r)}
-                                      style={{ background: 'rgba(124,58,237,0.15)', borderColor: 'rgba(124,58,237,0.4)', color: '#a78bfa' }}
-                                    >
-                                      Lấy QR
-                                    </Button>
-                                  )}
                                   <Popconfirm
                                     title="Xác nhận thanh toán?"
                                     onConfirm={() => handleConfirmFullPayment(r, periodDetail.period.type)}
@@ -972,38 +941,52 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({ isActive }) => {
             </Modal>
 
             <Modal
-              title="QR chuyển khoản học phí"
+              title="Mã QR Chuyển Khoản Techcombank"
               open={qrVisible}
               onCancel={() => setQrVisible(false)}
               footer={[
-                qrRequest?.qrUrl && (
-                  <Button
-                    key="copy"
-                    icon={<CopyOutlined />}
-                    onClick={() => {
-                      navigator.clipboard.writeText(qrRequest.qrUrl);
-                      message.success('Đã sao chép link QR — Dán vào Zalo để gửi phụ huynh!');
-                    }}
-                  >
-                    Sao chép link QR
-                  </Button>
-                ),
-                <Button key="resend" icon={<QrcodeOutlined />} loading={qrSending} onClick={() => currentOrder && generateQr(currentOrder)}>
-                  Tạo lại QR
+                <Button
+                  key="copySyntax"
+                  icon={<CopyOutlined />}
+                  onClick={() => {
+                    const syntax = qrRequest?.transferContent || (currentOrder ? `HP ${currentOrder.code} ${currentOrder.name}` : 'DAOHP');
+                    navigator.clipboard.writeText(syntax);
+                    message.success(`Đã sao chép nội dung CK: "${syntax}"`);
+                  }}
+                >
+                  Sao chép cú pháp CK
+                </Button>,
+                <Button
+                  key="copyAll"
+                  icon={<CopyOutlined />}
+                  onClick={() => {
+                    const amountStr = (Number(qrRequest?.amount || currentOrder?.totalAmount || 0)).toLocaleString('vi-VN');
+                    const syntax = qrRequest?.transferContent || (currentOrder ? `HP ${currentOrder.code} ${currentOrder.name}` : 'DAOHP');
+                    const fullInfo = `NGÂN HÀNG: Techcombank\nSỐ TÀI KHOẢN: 8888383999\nCHỦ TÀI KHOẢN: CONG TY CO PHAN DAOGROUP\nSỐ TIỀN: ${amountStr} đ\nNỘI DUNG CK: ${syntax}`;
+                    navigator.clipboard.writeText(fullInfo);
+                    message.success('Đã sao chép thông tin chuyển khoản gửi Zalo!');
+                  }}
+                >
+                  Sao chép gửi Zalo
                 </Button>,
                 <Button key="close" type="primary" onClick={() => setQrVisible(false)}>Đóng</Button>
               ]}
             >
               {qrRequest && (
                 <div style={{ textAlign: 'center' }}>
-                  <img src={qrRequest.qrUrl} alt="QR chuyển khoản học phí" style={{ width: '100%', maxWidth: 360, borderRadius: 8 }} />
+                  <img src="/qr_daogroup.png" alt="QR Chuyển khoản Techcombank DAOGROUP" style={{ width: '100%', maxWidth: 280, borderRadius: 8, border: '1px solid var(--card-border)' }} />
                   <div style={{ marginTop: 12, color: 'var(--text-secondary)' }}>
-                    <div>{qrRequest.accountName} - {qrRequest.accountNumber}</div>
-                    <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>{Number(qrRequest.amount).toLocaleString('vi-VN')} ₫</div>
-                    <div>Nội dung: <Text copyable={{ text: qrRequest.transferContent }} style={{ color: '#a78bfa' }}>{qrRequest.transferContent}</Text></div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>CONG TY CO PHAN DAOGROUP</div>
+                    <div>Techcombank - STK: <Text copyable={{ text: '8888383999' }} style={{ fontWeight: 600 }}>8888383999</Text></div>
+                    {Number(qrRequest.amount) > 0 && (
+                      <div style={{ fontWeight: 700, color: '#10b981', fontSize: 18, marginTop: 4 }}>
+                        {Number(qrRequest.amount).toLocaleString('vi-VN')} ₫
+                      </div>
+                    )}
+                    <div>Nội dung: <Text copyable={{ text: qrRequest.transferContent }} style={{ color: '#a78bfa', fontWeight: 600 }}>{qrRequest.transferContent}</Text></div>
                     <div style={{ marginTop: 8 }}>
-                      <Tag color={qrRequest.status === 'reconciled' ? 'green' : qrRequest.status === 'processing' ? 'gold' : 'blue'}>
-                        {qrRequest.status === 'reconciled' ? 'Đã tự động đối soát' : qrRequest.status === 'processing' ? 'Đang chuyển tiền' : 'Chờ học sinh chuyển khoản'}
+                      <Tag color={currentOrder?.status === 'Paid' ? 'green' : (currentOrder?.paymentRequest?.claimedAt ? 'gold' : 'blue')}>
+                        {currentOrder?.status === 'Paid' ? 'Đã thu học phí' : (currentOrder?.paymentRequest?.claimedAt ? 'PH đã báo nộp (Chờ duyệt)' : 'Chờ phụ huynh chuyển khoản')}
                       </Tag>
                     </div>
                     {(qrRequest.logs || []).length > 0 && (

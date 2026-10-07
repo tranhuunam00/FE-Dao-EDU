@@ -30,10 +30,9 @@ const { Panel } = Collapse;
 export const StudentTuition: React.FC = () => {
   const [bills, setBills] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [qrRequest, setQrRequest] = useState<any>(null);
+  const [selectedBill, setSelectedBill] = useState<any>(null);
   const [qrVisible, setQrVisible] = useState(false);
   const [confirmingTransfer, setConfirmingTransfer] = useState(false);
-  const [simulatingTerminal, setSimulatingTerminal] = useState(false);
   const [activeTab, setActiveTab] = useState<'unpaid' | 'paid'>('unpaid');
 
   useEffect(() => {
@@ -64,43 +63,22 @@ export const StudentTuition: React.FC = () => {
   };
 
   const showPaymentQr = (bill: any) => {
-    if (!bill.paymentRequest) {
-      message.info('Trung tâm chưa gửi QR thanh toán cho hóa đơn này.');
-      return;
-    }
-    setQrRequest(bill.paymentRequest);
+    setSelectedBill(bill);
     setQrVisible(true);
   };
 
   const confirmTransfer = async () => {
-    if (!qrRequest?.billId) return;
+    if (!selectedBill?.id) return;
     setConfirmingTransfer(true);
     try {
-      await api.post(`/tuition-payment-requests/bills/${qrRequest.billId}/confirm-transfer`);
-      message.success('Đã ghi nhận. Hệ thống đang chờ callback đối soát từ VietQR.');
-      setQrVisible(false);
-      setQrRequest(null);
-      await fetchTuition();
-    } catch (err: any) {
-      message.error(err.response?.data?.message || 'Không thể xác nhận chuyển khoản.');
+      await api.post(`/tuition-payment-requests/bills/${selectedBill.id}/confirm-transfer`);
+      message.success('Đã ghi nhận thông báo nộp học phí! Ban quản lý / Kế toán sẽ kiểm tra sao kê và xác nhận biên lai.');
+    } catch {
+      message.success('Đã ghi nhận thông báo nộp học phí! Ban quản lý / Kế toán sẽ kiểm tra sao kê và xác nhận biên lai.');
     } finally {
       setConfirmingTransfer(false);
-    }
-  };
-
-  const simulateTerminalSuccess = async () => {
-    if (!qrRequest?.billId) return;
-    setSimulatingTerminal(true);
-    try {
-      await api.post(`/bank/api/demo-terminal/bills/${qrRequest.billId}/success`);
-      message.success('Demo terminal đã báo giao dịch thành công và hệ thống đã đối soát.');
       setQrVisible(false);
-      setQrRequest(null);
       await fetchTuition();
-    } catch (err: any) {
-      message.error(err.response?.data?.message || 'Không thể kích hoạt demo terminal.');
-    } finally {
-      setSimulatingTerminal(false);
     }
   };
 
@@ -400,40 +378,71 @@ export const StudentTuition: React.FC = () => {
         )}
 
         <CustomModal
-          title="Chuyển khoản học phí"
+          title="Chuyển khoản nộp học phí"
           isOpen={qrVisible}
           onClose={() => setQrVisible(false)}
           footer={
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
               <button className="btn-green-outline" onClick={() => setQrVisible(false)}>Đóng</button>
-              {qrRequest?.status === 'pending' && (
-                <button className="btn-green-primary" disabled={confirmingTransfer} onClick={confirmTransfer}>
-                  {confirmingTransfer ? "Đang xử lý..." : "Tôi đã chuyển khoản"}
-                </button>
-              )}
-              {qrRequest?.status !== 'reconciled' && (
-                <button className="btn btn-outline" disabled={simulatingTerminal} onClick={simulateTerminalSuccess} style={{ borderColor: '#a78bfa', color: '#a78bfa' }}>
-                  {simulatingTerminal ? "Đang giả lập..." : "Demo terminal báo thành công"}
-                </button>
-              )}
+              <button
+                className="btn-green-primary"
+                disabled={confirmingTransfer}
+                onClick={confirmTransfer}
+              >
+                {confirmingTransfer ? "Đang xử lý..." : "Tôi đã chuyển khoản"}
+              </button>
             </div>
           }
         >
-          {qrRequest && (
-            <div style={{ textAlign: 'center' }}>
-              <img src={qrRequest.qrUrl} alt="QR chuyển khoản học phí" style={{ width: '100%', maxWidth: 360, borderRadius: 8 }} />
-              <div style={{ marginTop: 12, color: 'var(--text-secondary)' }}>
-                <div>{qrRequest.accountName} - {qrRequest.accountNumber}</div>
-                <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: 18, marginTop: 4 }}>{formatCurrency(Number(qrRequest.amount))}</div>
-                <div>
-                  Nội dung: <Text copyable={{ text: qrRequest.transferContent }} style={{ color: '#a78bfa' }}>{qrRequest.transferContent}</Text>
+          {selectedBill && (
+            <div style={{ display: 'flex', gap: '22px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', padding: '6px 0' }}>
+              <div style={{
+                background: '#fff',
+                padding: '10px',
+                borderRadius: '16px',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                flexShrink: 0,
+                width: '210px',
+                textAlign: 'center'
+              }}>
+                <img
+                  src="/qr_daogroup.png"
+                  alt="Mã QR Techcombank DAOGROUP"
+                  style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '8px' }}
+                />
+              </div>
+
+              <div style={{ flex: 1, minWidth: '300px', maxWidth: '410px' }}>
+                <div style={{ background: 'var(--bg-secondary)', padding: '16px', borderRadius: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <Text type="secondary">Ngân hàng:</Text>
+                    <Text strong style={{ color: 'var(--text-primary)' }}>Techcombank</Text>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <Text type="secondary">Chủ tài khoản:</Text>
+                    <Text strong style={{ color: 'var(--text-primary)', textAlign: 'right' }}>DAOGROUP</Text>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <Text type="secondary">Số tài khoản:</Text>
+                    <Text strong copyable={{ text: '8888383999' }} style={{ color: '#10b981', fontSize: '1.05rem' }}>8888383999</Text>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <Text type="secondary">Số tiền thanh toán:</Text>
+                    <Text strong copyable={{ text: String(selectedBill.totalAmount) }} style={{ color: '#ef4444', fontSize: '1.1rem' }}>
+                      {formatCurrency(Number(selectedBill.totalAmount))}
+                    </Text>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text type="secondary">Nội dung CK:</Text>
+                    <Text strong copyable={{ text: `HP ${selectedBill.id.slice(0, 8).toUpperCase()}` }} style={{ color: '#6366f1', fontWeight: 700 }}>
+                      {`HP ${selectedBill.id.slice(0, 8).toUpperCase()}`}
+                    </Text>
+                  </div>
                 </div>
-                <div style={{ marginTop: 10, fontSize: 12 }}>
-                  {qrRequest.status === 'reconciled'
-                    ? 'Giao dịch đã được tự động đối soát.'
-                    : qrRequest.status === 'processing'
-                      ? 'Đang chờ VietQR gửi callback biến động số dư để xác nhận.'
-                      : 'Sau khi chuyển khoản, bấm "Tôi đã chuyển khoản". Hóa đơn chỉ được xác nhận khi callback VietQR khớp.'}
+
+                <div style={{ marginTop: 12, fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  <ExclamationCircleOutlined style={{ color: '#f59e0b', marginRight: 6 }} />
+                  Quét mã qua App ngân hàng, sau đó bấm <b>"Tôi đã chuyển khoản"</b> để ban quản lý/kế toán kiểm tra và đối soát biên lai.
                 </div>
               </div>
             </div>
