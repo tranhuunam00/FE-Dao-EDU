@@ -65,7 +65,7 @@ export const ReportCardSqiBreakdown: React.FC<ReportCardSqiBreakdownProps> = ({
         const st = (s.homeworkStatus || '').toLowerCase();
         return st && st !== 'no_homework' && st !== 'none';
       });
-      if (valid.length === 0) return 'Không giao BTVN';
+      if (valid.length === 0) return 'Chưa có ghi nhận';
       for (const s of valid) {
         const st = (s.homeworkStatus || '').toLowerCase();
         let lbl = 'buổi đã làm BTVN';
@@ -86,7 +86,7 @@ export const ReportCardSqiBreakdown: React.FC<ReportCardSqiBreakdownProps> = ({
     if (type === 'behavior') {
       const counts: Record<string, number> = {};
       const valid = sessions.filter(s => (s.behaviorTags && s.behaviorTags.length > 0) || s.behaviorStatus);
-      if (valid.length === 0) return 'Duy trì nề nếp tốt, nghiêm túc';
+      if (valid.length === 0) return 'Chưa có ghi nhận';
       for (const s of valid) {
         const tags = (s.behaviorTags || []).map((t: any) => String(t).toLowerCase());
         const st = (s.behaviorStatus || tags[0] || '').toLowerCase();
@@ -107,7 +107,7 @@ export const ReportCardSqiBreakdown: React.FC<ReportCardSqiBreakdownProps> = ({
     if (type === 'participation') {
       const counts: Record<string, number> = {};
       const valid = sessions.filter(s => s.participation);
-      if (valid.length === 0) return 'Tham gia học tập đầy đủ';
+      if (valid.length === 0) return 'Chưa có ghi nhận';
       for (const s of valid) {
         const st = String(s.participation).toLowerCase();
         let lbl = 'buổi chăm chú nhưng ít nói';
@@ -124,12 +124,13 @@ export const ReportCardSqiBreakdown: React.FC<ReportCardSqiBreakdownProps> = ({
       return Object.entries(counts).map(([k, v]) => `${v} ${k}`).join(', ');
     }
 
-    return 'Đang cập nhật';
+    return 'Chưa có ghi nhận';
   };
 
   const getCriteriaScore = (type: 'attendance' | 'homework' | 'behavior' | 'participation', max: number) => {
     let sc: number | null | undefined = sqiBreakdown?.[type];
-    if (sc === null || sc === undefined) {
+    if (sc === null) return <span style={{ color: '#94a3b8' }}>—</span>;
+    if (sc === undefined) {
       if (sessions && sessions.length > 0) {
         if (type === 'attendance') {
           let p = 0;

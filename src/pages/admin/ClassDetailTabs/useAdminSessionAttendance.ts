@@ -153,13 +153,6 @@ export const useAdminSessionAttendance = ({
     }
   };
 
-  const defaultCriteria: EvaluationCriteria = {
-    homework: 'done',
-    understanding: 'normal',
-    participation: 'active',
-    behavior: 'good',
-  };
-
   const handleSingleGenerateAi = async (studentId: string, studentName: string) => {
     try {
       setGeneratingMap((prev) => ({ ...prev, [studentId]: true }));
@@ -167,13 +160,9 @@ export const useAdminSessionAttendance = ({
       const studentAtt = sessionAttendance.find((a) => a.studentId === studentId);
       const isStudentAbsent = studentAtt ? !studentAtt.isPresent : false;
 
-      const hasCriteria = Boolean(
-        currentEval?.criteria?.homework || currentEval?.criteria?.understanding ||
-        currentEval?.criteria?.participation || currentEval?.criteria?.behavior
-      );
       const effectiveCriteria = isStudentAbsent
         ? { attendance: 'no' as const }
-        : hasCriteria ? currentEval?.criteria : defaultCriteria;
+        : currentEval?.criteria || {};
 
       const res = await evaluationService.generateComment(currentSession.id, {
         studentId, studentName, className: classData?.className, date: currentSession.date,
@@ -182,8 +171,9 @@ export const useAdminSessionAttendance = ({
       } as any);
 
       handleEvaluationChange(studentId, {
-        criteria: effectiveCriteria, evaluationComment: res.comment,
-        isAiGenerated: res.isAiGenerated, isApprovedByTeacher: false,
+        evaluationComment: res.comment,
+        isAiGenerated: res.isAiGenerated,
+        isApprovedByTeacher: false,
       });
 
       if (res.cooldownSeconds > 0) setCooldownMap((prev) => ({ ...prev, [studentId]: res.cooldownSeconds }));
@@ -205,8 +195,7 @@ export const useAdminSessionAttendance = ({
       }
       const candidates = targetStudents.map((a) => {
         const currentEval = sessionEvaluations[a.studentId];
-        const hasCriteria = Boolean(currentEval?.criteria?.homework || currentEval?.criteria?.understanding || currentEval?.criteria?.participation || currentEval?.criteria?.behavior);
-        const effectiveCriteria = hasCriteria ? currentEval?.criteria : defaultCriteria;
+        const effectiveCriteria = currentEval?.criteria || {};
         const firstName = a.student?.firstName || '';
         const lastName = a.student?.lastName || '';
         const studentName = `${lastName} ${firstName}`.trim() || a.student?.name || 'Học sinh';
@@ -220,10 +209,8 @@ export const useAdminSessionAttendance = ({
           for (const item of res.results) {
             if (item.comment) {
               const currentItem = next[item.studentId] || { studentId: item.studentId, classSessionId: currentSession.id, criteria: {} };
-              const hasCriteria = Boolean(currentItem.criteria?.homework || currentItem.criteria?.understanding || currentItem.criteria?.participation || currentItem.criteria?.behavior);
               next[item.studentId] = {
                 ...currentItem,
-                criteria: hasCriteria ? currentItem.criteria : defaultCriteria,
                 evaluationComment: item.comment,
                 isAiGenerated: item.isAiGenerated,
                 isApprovedByTeacher: false,
@@ -232,7 +219,7 @@ export const useAdminSessionAttendance = ({
           }
           return next;
         });
-        message.success(`Đã tạo nhận xét AI & điền tiêu chí đánh giá cho ${res.results.length} học sinh.`);
+        message.success(`Đã tạo nhận xét AI cho ${res.results.length} học sinh.`);
       }
     } catch (err: any) {
       const errMsg = err.response?.data?.message || err.message || 'Lỗi khi sinh nhận xét hàng loạt.';

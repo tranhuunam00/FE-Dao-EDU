@@ -182,13 +182,6 @@ export const useSessionAttendanceAndEvaluation = ({
     }
   };
 
-  const defaultCriteria: EvaluationCriteria = {
-    homework: 'done',
-    understanding: 'normal',
-    participation: 'active',
-    behavior: 'good',
-  };
-
   const handleSingleGenerateAi = async (studentId: string, studentName: string) => {
     try {
       setGeneratingMap((prev) => ({ ...prev, [studentId]: true }));
@@ -196,17 +189,9 @@ export const useSessionAttendanceAndEvaluation = ({
       const studentAtt = attendances.find((a) => a.studentId === studentId);
       const isStudentAbsent = studentAtt ? !studentAtt.isPresent : false;
 
-      const hasCriteria = Boolean(
-        currentEval?.criteria?.homework ||
-        currentEval?.criteria?.understanding ||
-        currentEval?.criteria?.participation ||
-        currentEval?.criteria?.behavior
-      );
       const effectiveCriteria = isStudentAbsent
         ? { attendance: 'no' as const }
-        : hasCriteria
-        ? currentEval?.criteria
-        : defaultCriteria;
+        : currentEval?.criteria || {};
 
       const res = await evaluationService.generateComment(session.id, {
         studentId,
@@ -219,7 +204,6 @@ export const useSessionAttendanceAndEvaluation = ({
       } as any);
 
       handleEvaluationChange(studentId, {
-        criteria: effectiveCriteria,
         evaluationComment: res.comment,
         isAiGenerated: res.isAiGenerated,
         isApprovedByTeacher: false,
@@ -246,13 +230,7 @@ export const useSessionAttendanceAndEvaluation = ({
       }
       const candidates = targetStudents.map((a) => {
         const currentEval = evaluations[a.studentId];
-        const hasCriteria = Boolean(
-          currentEval?.criteria?.homework ||
-          currentEval?.criteria?.understanding ||
-          currentEval?.criteria?.participation ||
-          currentEval?.criteria?.behavior
-        );
-        const effectiveCriteria = hasCriteria ? currentEval?.criteria : defaultCriteria;
+        const effectiveCriteria = currentEval?.criteria || {};
         const firstName = a.student?.firstName || '';
         const lastName = a.student?.lastName || '';
         const studentName = `${lastName} ${firstName}`.trim() || 'Học sinh';
@@ -278,15 +256,8 @@ export const useSessionAttendanceAndEvaluation = ({
                 classSessionId: session.id,
                 criteria: {},
               };
-              const hasCriteria = Boolean(
-                currentItem.criteria?.homework ||
-                currentItem.criteria?.understanding ||
-                currentItem.criteria?.participation ||
-                currentItem.criteria?.behavior
-              );
               next[item.studentId] = {
                 ...currentItem,
-                criteria: hasCriteria ? currentItem.criteria : defaultCriteria,
                 evaluationComment: item.comment,
                 isAiGenerated: item.isAiGenerated,
                 isApprovedByTeacher: false,
@@ -295,7 +266,7 @@ export const useSessionAttendanceAndEvaluation = ({
           }
           return next;
         });
-        message.success(`Đã tạo nhận xét AI & điền tiêu chí đánh giá cho ${res.results.length} học sinh.`);
+        message.success(`Đã tạo nhận xét AI cho ${res.results.length} học sinh.`);
       }
     } catch (err: any) {
       message.error(err.response?.data?.message || 'Lỗi khi sinh nhận xét hàng loạt.');
