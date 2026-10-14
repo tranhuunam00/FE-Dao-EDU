@@ -45,15 +45,22 @@ export const ReportCardSqiBreakdown: React.FC<ReportCardSqiBreakdownProps> = ({
       const counts: Record<string, number> = {};
       for (const s of sessions) {
         const st = (s.attendanceStatus || '').toLowerCase();
-        let lbl = 'buổi đúng giờ';
-        if (st === 'yes') lbl = 'buổi đúng giờ';
-        else if (st === 'no') lbl = 'buổi vắng mặt';
-        else if (st === 'makeup') lbl = 'buổi học bù';
-        else if (st === 'late' || (s.isPresent && s.isLate)) lbl = 'buổi đi muộn';
-        else if (st === 'early_leave') lbl = 'buổi về sớm';
-        else if (st === 'late_much') lbl = 'buổi đi muộn nhiều';
-        else if (st === 'absent_excused') lbl = 'buổi vắng có phép';
-        else if (st === 'absent_unexcused' || !s.isPresent) lbl = 'buổi vắng không phép';
+        let lbl = 'buổi có mặt';
+        const isAbsent =
+          s.isPresent === false ||
+          ['no', 'absent', 'absent_excused', 'absent_unexcused'].includes(st);
+
+        if (isAbsent) {
+          if (st === 'absent_excused' || (s as any).reason?.toLowerCase().includes('phép')) {
+            lbl = 'buổi vắng có phép';
+          } else if (st === 'absent_unexcused') {
+            lbl = 'buổi vắng không phép';
+          } else {
+            lbl = 'buổi vắng mặt';
+          }
+        } else {
+          lbl = st === 'makeup' ? 'buổi học bù' : 'buổi có mặt';
+        }
         counts[lbl] = (counts[lbl] || 0) + 1;
       }
       return Object.entries(counts).map(([k, v]) => `${v} ${k}`).join(', ') || 'Chưa có dữ liệu';
@@ -136,11 +143,12 @@ export const ReportCardSqiBreakdown: React.FC<ReportCardSqiBreakdownProps> = ({
           let p = 0;
           for (const s of sessions) {
             const st = (s.attendanceStatus || '').toLowerCase();
-            if (st === 'yes' || st === 'on_time' || st === 'makeup') p += 1.0;
-            else if (st === 'late' || st === 'early_leave') p += 0.75;
-            else if (st === 'late_much') p += 0.4;
-            else if (st === 'absent_excused') p += 0.2;
-            else if (s.isPresent) p += s.isLate ? 0.75 : 1.0;
+            const isAbsent =
+              s.isPresent === false ||
+              ['no', 'absent', 'absent_excused', 'absent_unexcused'].includes(st);
+            if (!isAbsent) {
+              p += 1.0;
+            }
           }
           sc = Math.round((p / sessions.length) * 30 * 10) / 10;
         } else if (type === 'homework') {

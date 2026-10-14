@@ -69,7 +69,7 @@ export const evaluationService = {
           item.criteria?.attendance ||
           item.attendanceStatus ||
           item.reason ||
-          (item.isPresent ? (item.isLate ? 'late' : 'on_time') : undefined),
+          (item.isPresent ? 'present' : undefined),
         homework:
           item.criteria?.homework ||
           item.homeworkStatus ||

@@ -17,7 +17,7 @@ export const sampleMonthlyReport: WeeklyReportData = {
     behavior: 16,
     participation: 16.5,
     narratives: {
-      attendance: '1 buổi đi muộn',
+      attendance: '3 buổi có mặt, 1 buổi vắng có phép',
       homework: 'Làm tốt các buổi có bài tập',
       behavior: 'Nề nếp tốt, nghiêm túc',
       participation: 'Chủ động phát biểu trong lớp',
@@ -26,7 +26,7 @@ export const sampleMonthlyReport: WeeklyReportData = {
   subjectPerformances: [
     { subjectName: 'Toán học', score: 8.5, trend: 'up' },
   ],
-  overview: 'Học sinh tham gia học tập nghiêm túc, cần khắc phục việc đi muộn và tiếp tục phát huy ưu điểm.',
+  overview: 'Học sinh tham gia học tập nghiêm túc và tiếp tục phát huy ưu điểm.',
   commendation: 'Tuyên dương tinh thần chủ động phát biểu xây dựng bài trong các buổi học.',
   suggestion: 'Động viên con tiếp tục phát huy tinh thần tự giác trong các buổi học tiếp theo.',
   strengths: 'Tham gia học tập đầy đủ, đúng giờ trong phần lớn các buổi. Tiếp thu bài nhanh.',
