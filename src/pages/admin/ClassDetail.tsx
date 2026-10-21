@@ -20,6 +20,7 @@ import { AssignmentsTab } from './ClassDetailTabs/AssignmentsTab';
 import { MaterialsTab } from './ClassDetailTabs/MaterialsTab';
 import { GenerateSessionsModal, type GenerateSessionMode } from './ClassDetailTabs/GenerateSessionsModal';
 import { AdminSessionAttendanceModal } from './ClassDetailTabs/AdminSessionAttendanceModal';
+import { QuickCreateStudentModal } from './ClassDetailTabs/QuickCreateStudentModal';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -118,8 +119,6 @@ const ClassDetailInner: React.FC = () => {
 
   // Quick-create new student from Add-Student modal
   const [isQuickCreateStudentVisible, setIsQuickCreateStudentVisible] = useState(false);
-  const [quickCreateStudentForm] = Form.useForm();
-  const [savingQuickStudent, setSavingQuickStudent] = useState(false);
 
   const loadAllData = async () => {
     if (!id) return;
@@ -882,7 +881,6 @@ const ClassDetailInner: React.FC = () => {
             block
             icon={<PlusOutlined />}
             onClick={() => {
-              quickCreateStudentForm.resetFields();
               setIsQuickCreateStudentVisible(true);
             }}
             style={{ borderColor: '#059669', color: '#059669' }}
@@ -893,103 +891,18 @@ const ClassDetailInner: React.FC = () => {
       </Modal>
 
       {/* Quick-Create Student Modal */}
-      <Modal
-        title={
-          <span>
-            <PlusOutlined style={{ color: '#059669', marginRight: 8 }} />
-            Tạo học sinh mới
-          </span>
-        }
-        open={isQuickCreateStudentVisible}
-        confirmLoading={savingQuickStudent}
-        okText="Tạo & thêm vào lớp"
-        cancelText="Hủy"
-        onCancel={() => {
-          setIsQuickCreateStudentVisible(false);
-          quickCreateStudentForm.resetFields();
-        }}
-        onOk={async () => {
-          try {
-            const vals = await quickCreateStudentForm.validateFields();
-            setSavingQuickStudent(true);
-            const payload = {
-              lastName: vals.lastName?.trim(),
-              firstName: vals.firstName?.trim(),
-              mobile: vals.mobile?.trim(),
-              loginEmail: vals.loginEmail?.trim() || undefined,
-              loginPassword: vals.loginPassword || '123456',
-              status: 'Active',
-              country: 'Việt Nam',
-            };
-            const res = await api.post('/students', payload);
-            const newStudent = res.data;
-            await api.post(`/classes/${id}/students`, { studentId: newStudent.id });
-            message.success(`Đã tạo và thêm học sinh ${newStudent.lastName} ${newStudent.firstName} vào lớp thành công!`);
-            setIsQuickCreateStudentVisible(false);
+      {id && (
+        <QuickCreateStudentModal
+          visible={isQuickCreateStudentVisible}
+          classId={id}
+          onClose={() => setIsQuickCreateStudentVisible(false)}
+          onSuccess={async () => {
             setIsAddStudentVisible(false);
-            quickCreateStudentForm.resetFields();
             await loadAllData();
             promptSyncSessionsAfterAdd();
-          } catch (err: any) {
-            const msg = err.response?.data?.message;
-            message.error(Array.isArray(msg) ? msg.join(', ') : msg || 'Không thể tạo học sinh.');
-          } finally {
-            setSavingQuickStudent(false);
-          }
-        }}
-        width={480}
-      >
-        <Form
-          form={quickCreateStudentForm}
-          layout="vertical"
-          style={{ marginTop: 12 }}
-          initialValues={{ loginPassword: '123456' }}
-        >
-          <Row gutter={12}>
-            <Col span={10}>
-              <Form.Item
-                name="lastName"
-                label="Họ"
-                rules={[{ required: true, message: 'Nhập họ' }]}
-              >
-                <Input placeholder="Nguyễn" />
-              </Form.Item>
-            </Col>
-            <Col span={14}>
-              <Form.Item
-                name="firstName"
-                label="Tên"
-                rules={[{ required: true, message: 'Nhập tên' }]}
-              >
-                <Input placeholder="Văn An" />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Form.Item
-            name="mobile"
-            label="Số điện thoại phụ huynh"
-            rules={[{ required: true, message: 'Nhập SĐT' }]}
-          >
-            <Input placeholder="0912345678" prefix={<span style={{ color: '#94a3b8' }}>📞</span>} />
-          </Form.Item>
-          <Form.Item name="loginEmail" label="Email đăng nhập (tuỳ chọn)">
-            <Input placeholder="example@email.com" type="email" />
-          </Form.Item>
-          <Form.Item
-            name="loginPassword"
-            label="Mật khẩu mặc định"
-            rules={[{ required: true, message: 'Nhập mật khẩu' }]}
-          >
-            <Input.Password placeholder="123456" />
-          </Form.Item>
-          <Alert
-            type="info"
-            showIcon
-            style={{ marginTop: 4 }}
-            message="Học sinh sẽ được tạo và tự động được chọn để thêm vào lớp. Có thể cập nhật đầy đủ thông tin tại trang quản lý học sinh sau."
-          />
-        </Form>
-      </Modal>
+          }}
+        />
+      )}
 
       {/* Modal Sao Chép Học Sinh Từ Lớp Khác */}
       <Modal
