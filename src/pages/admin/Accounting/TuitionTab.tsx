@@ -58,7 +58,8 @@ export const TuitionTab: React.FC<TuitionTabProps> = ({ onSuccess }) => {
       const { data } = await api.get('/payment-periods/preview/tuition', {
         params: { endDate: endStr }
       });
-      const list = data.students || [];
+      const rawList = data.students || [];
+      const list = rawList.filter((s: any) => (Number(s.totalAmount) || 0) > 0);
       setTuitionPreviewData(list);
       setTuitionSelectedRowKeys(list.map((s: any) => s.studentId));
       if (list.length === 0) {
@@ -93,11 +94,13 @@ export const TuitionTab: React.FC<TuitionTabProps> = ({ onSuccess }) => {
     }
   };
 
-  const filteredTuition = tuitionPreviewData.filter(item => {
-    const query = tuitionPreviewSearch.toLowerCase().trim();
-    if (!query) return true;
-    return (item.studentCode || '').toLowerCase().includes(query) || (item.name || '').toLowerCase().includes(query);
-  });
+  const filteredTuition = tuitionPreviewData
+    .filter((item) => (Number(item.totalAmount) || 0) > 0)
+    .filter((item) => {
+      const query = tuitionPreviewSearch.toLowerCase().trim();
+      if (!query) return true;
+      return (item.studentCode || '').toLowerCase().includes(query) || (item.name || '').toLowerCase().includes(query);
+    });
 
   return (
     <div>

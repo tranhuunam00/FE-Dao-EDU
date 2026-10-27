@@ -60,7 +60,8 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
       const { data } = await api.get('/payment-periods/preview/salary', {
         params: { endDate: endStr, month: monthStr }
       });
-      const list = data.teachers || [];
+      const rawList = data.teachers || [];
+      const list = rawList.filter((t: any) => (Number(t.totalAmount) || 0) > 0);
       setSalaryPreviewData(list);
       setSalarySelectedRowKeys(list.map((t: any) => t.teacherId));
       if (list.length === 0) {
@@ -95,11 +96,13 @@ export const SalaryTab: React.FC<SalaryTabProps> = ({ onSuccess }) => {
     }
   };
 
-  const filteredSalary = salaryPreviewData.filter(item => {
-    const query = salaryPreviewSearch.toLowerCase().trim();
-    if (!query) return true;
-    return (item.teacherCode || '').toLowerCase().includes(query) || (item.name || '').toLowerCase().includes(query);
-  });
+  const filteredSalary = salaryPreviewData
+    .filter((item) => (Number(item.totalAmount) || 0) > 0)
+    .filter((item) => {
+      const query = salaryPreviewSearch.toLowerCase().trim();
+      if (!query) return true;
+      return (item.teacherCode || '').toLowerCase().includes(query) || (item.name || '').toLowerCase().includes(query);
+    });
 
   return (
     <div>
